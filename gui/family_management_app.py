@@ -1,253 +1,277 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, simpledialog
 import random
 import datetime
 
-class Family:
-    """Clase que representa una familia en el sistema"""
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-        self.members = []  # Lista de personas
-        self.current_year = datetime.datetime.now().year  # Año actual en la simulación
-
+# === CLASES DE DATOS ===
 class Person:
-    """Clase que representa a una persona en el sistema"""
-    def __init__(self, cedula, first_name, last_name, birth_date, death_date, gender, province, marital_status, family):
+    def __init__(self, cedula, first_name, last_name, birth_date, gender, province):
         self.cedula = cedula
         self.first_name = first_name
         self.last_name = last_name
         self.birth_date = birth_date
-        self.death_date = death_date
+        self.death_date = None
         self.gender = gender
         self.province = province
-        self.marital_status = marital_status
+        self.marital_status = "Soltero"
         self.spouse = None
         self.mother = None
         self.father = None
-        self.children = []  # Lista de hijos
-        self.family = family  # Referencia a la familia
+        self.children = []
+        self.siblings = []
         self.alive = True
-        self.emotional_health = 100  # Salud emocional (0-100)
-        self.interests = self.generate_interests()  # Intereses personales
-        self.history = []  # Historial cronológico de eventos
-        self.add_event("Nacimiento", birth_date)
+        self.history = [f"Nació en {birth_date}"]
+        self.interests = ["Deportes", "Lectura", "Música"]  # Intereses base
 
-    def generate_interests(self):
-        """Genera intereses aleatorios para la persona"""
-        all_interests = ["Deportes", "Lectura", "Música", "Arte", "Tecnología", "Cocina", "Viajes", "Naturaleza"]
-        return random.sample(all_interests, 3)
+    def add_event(self, event_type):
+        self.history.append(f"{event_type}")
 
-    def calculate_age(self):
-        """Calcula la edad actual de la persona"""
-        if not self.birth_date:
-            return 0
-        
-        try:
-            birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
-            today = datetime.datetime.now()
-            age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
-            return age
-        except:
-            return 0
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.cedula})"
 
-    def add_event(self, event_type, date=None):
-        """Agrega un evento al historial cronológico"""
-        if not date:
-            date = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.history.append((date, event_type))
-        self.history.sort(key=lambda x: x[0])  # Ordenar por fecha
 
-class FamilyManagementApp:
+class Family:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self.members = []
+
+
+# === INTERFAZ GRÁFICA ===
+class GenealogyApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Sistema de Gestión Familiar")
-        self.root.geometry("1100x750")
+        self.root.title("Árbol Genealógico")
+        self.root.geometry("1200x800")
         self.root.configure(bg="#f0f0f0")
-        
+
         # Variables globales
-        self.families = []
-        self.next_family_id = 1
-        self.current_family = None
-        
+        self.family = Family(1, "Mi Familia")
+        self.current_person = None  # Persona seleccionada para agregar padre/hijo/etc.
+        self.tree_canvas = None
+        self.person_nodes = {}  # Mapa: persona -> ID del nodo en canvas
+        self.node_id_counter = 0
+
         # Crear la interfaz
-        self.create_main_interface()
+        self.create_widgets()
 
-    def create_main_interface(self):
-        """Crea la interfaz principal con pestañas"""
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+    def create_widgets(self):
+        """Crear widgets principales"""
+        main_frame = ttk.Frame(self.root)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # Crear las pestañas
-        self.family_tab = ttk.Frame(self.notebook)
-        self.members_tab = ttk.Frame(self.notebook)
-        self.relationships_tab = ttk.Frame(self.notebook)
+        # Notebook para pestañas
+        self.notebook = ttk.Notebook(main_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        # Pestañas
         self.tree_tab = ttk.Frame(self.notebook)
-        self.simulation_tab = ttk.Frame(self.notebook)
-        self.queries_tab = ttk.Frame(self.notebook)
-
-        self.notebook.add(self.family_tab, text="Gestión de Familias")
-        self.notebook.add(self.members_tab, text="Integrantes")
-        self.notebook.add(self.relationships_tab, text="Relaciones Familiares")
+        self.form_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.tree_tab, text="Árbol Genealógico")
-        self.notebook.add(self.simulation_tab, text="Simulación")
-        self.notebook.add(self.queries_tab, text="Consultas Avanzadas")
+        self.notebook.add(self.form_tab, text="Formulario")
 
-        # Configurar cada pestaña
-        self.setup_family_tab()
-        self.setup_members_tab()
-        self.setup_relationships_tab()
+        # Configurar pestañas
         self.setup_tree_tab()
-        self.setup_simulation_tab()
-        self.setup_queries_tab()
-
-    def setup_family_tab(self):
-        """Configura la pestaña de gestión de familias"""
-        # Frame principal
-        main_frame = ttk.Frame(self.family_tab, style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # Frame para crear nueva familia
-        create_frame = ttk.Frame(main_frame, style="Card.TFrame")
-        create_frame.pack(fill=tk.X, pady=10, padx=10)
-
-        ttk.Label(create_frame, text="Nueva Familia", style="SubHeader.TLabel").pack(pady=10, anchor="w", padx=15)
-
-        # Formulario para crear familia
-        form_frame = ttk.Frame(create_frame)
-        form_frame.pack(fill=tk.X, padx=15, pady=10)
-
-        ttk.Label(form_frame, text="Nombre de la familia:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.family_name_entry = ttk.Entry(form_frame, width=30)
-        self.family_name_entry.grid(row=0, column=1, sticky="w", padx=5, pady=5)
-
-        ttk.Button(form_frame, text="Crear Familia", 
-                  command=self.create_family,
-                  style="Accent.TButton").grid(row=0, column=2, sticky="w", padx=10, pady=5)
-
-    def create_family(self):
-        """Crea una nueva familia"""
-        name = self.family_name_entry.get().strip()
-        if not name:
-            messagebox.showerror("Error", "El nombre de la familia no puede estar vacío")
-            return
-            
-        # Crear nueva familia
-        new_family = Family(self.next_family_id, name)
-        self.families.append(new_family)
-        self.next_family_id += 1
-        
-        # Limpiar campo
-        self.family_name_entry.delete(0, tk.END)
-        
-        messagebox.showinfo("Éxito", f"Familia '{name}' creada exitosamente")
-
-    def setup_members_tab(self):
-        """Configura la pestaña de gestión de integrantes"""
-        # Frame principal
-        main_frame = ttk.Frame(self.members_tab, style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # Frame para crear nuevo integrante
-        create_frame = ttk.Frame(main_frame, style="Card.TFrame")
-        create_frame.pack(fill=tk.X, pady=10, padx=10)
-
-        ttk.Label(create_frame, text="Nuevo Integrante", style="SubHeader.TLabel").pack(pady=10, anchor="w", padx=15)
-
-        # Formulario para nuevo integrante
-        form_frame = ttk.Frame(create_frame)
-        form_frame.pack(fill=tk.X, padx=15, pady=10)
-
-        # Fila 1: Cédula y Nombre
-        ttk.Label(form_frame, text="Cédula:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.member_cedula_entry = ttk.Entry(form_frame, width=20)
-        self.member_cedula_entry.grid(row=0, column=1, sticky="w", padx=5, pady=5)
-
-        ttk.Label(form_frame, text="Nombre:").grid(row=0, column=2, sticky="e", padx=15, pady=5)
-        self.member_first_name_entry = ttk.Entry(form_frame, width=30)
-        self.member_first_name_entry.grid(row=0, column=3, sticky="w", padx=5, pady=5)
-
-        # Botón de agregar
-        ttk.Button(form_frame, text="Agregar Integrante", 
-                  command=self.add_member,
-                  style="Accent.TButton").grid(row=4, column=3, sticky="e", padx=5, pady=15)
-
-        # Frame para listar integrantes
-        list_frame = ttk.Frame(main_frame, style="Card.TFrame")
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=10, padx=10)
-
-        ttk.Label(list_frame, text="Integrantes de la Familia", style="SubHeader.TLabel").pack(pady=10, anchor="w", padx=15)
-
-        # Tabla de integrantes
-        columns = ("cedula", "name", "last_name", "birth", "gender", "province", "status", "age", "alive")
-        self.members_tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=8)
-
-        # Configurar encabezados
-        self.members_tree.heading("cedula", text="Cédula")
-        self.members_tree.heading("name", text="Nombre")
-        self.members_tree.heading("last_name", text="Apellido")
-        self.members_tree.heading("birth", text="Nacimiento")
-        self.members_tree.heading("gender", text="Género")
-        self.members_tree.heading("province", text="Provincia")
-        self.members_tree.heading("status", text="Estado Civil")
-        self.members_tree.heading("age", text="Edad")
-        self.members_tree.heading("alive", text="Vivo")
-
-        # Configurar columnas
-        self.members_tree.column("cedula", width=100)
-        self.members_tree.column("name", width=100)
-        self.members_tree.column("last_name", width=100)
-        self.members_tree.column("birth", width=100, anchor=tk.CENTER)
-        self.members_tree.column("gender", width=80, anchor=tk.CENTER)
-        self.members_tree.column("province", width=120)
-        self.members_tree.column("status", width=100)
-        self.members_tree.column("age", width=50, anchor=tk.CENTER)
-        self.members_tree.column("alive", width=50, anchor=tk.CENTER)
-
-        # Barra de desplazamiento
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.members_tree.yview)
-        self.members_tree.configure(yscroll=scrollbar.set)
-
-        # Ubicar elementos
-        self.members_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(15, 0), pady=10)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=10)
-
-    def add_member(self):
-        """Agrega un nuevo integrante a la familia"""
-        cedula = self.member_cedula_entry.get().strip()
-        first_name = self.member_first_name_entry.get().strip()
-
-        if not cedula or not first_name:
-            messagebox.showerror("Error", "La cédula y el nombre no pueden estar vacíos")
-            return
-
-        # Aquí se puede agregar la lógica para crear un nuevo objeto Person
-        # y agregarlo a la familia actual.
-        
-        messagebox.showinfo("Éxito", f"Integrante '{first_name}' agregado exitosamente")
-
-    def setup_relationships_tab(self):
-        """Configura la pestaña de relaciones familiares"""
-        main_frame = ttk.Frame(self.relationships_tab, style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        ttk.Label(main_frame, text="Registrar Relaciones", style="SubHeader.TLabel").pack(pady=10, anchor="w", padx=15)
-
-        # Aquí se pueden agregar más elementos para registrar relaciones
-        # Por ejemplo, formularios para seleccionar padres e hijos, etc.
+        self.setup_form_tab()
 
     def setup_tree_tab(self):
-        """Configura la pestaña del árbol genealógico"""
-        main_frame = ttk.Frame(self.tree_tab, style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        """Configurar la pestaña del árbol"""
+        frame = ttk.Frame(self.tree_tab)
+        frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(main_frame, text="Árbol Genealógico", style="SubHeader.TLabel").pack(pady=10, anchor="w", padx=15)
+        # Canvas para dibujar el árbol
+        self.tree_canvas = tk.Canvas(frame, bg="white", bd=2, relief="sunken")
+        self.tree_canvas.pack(fill=tk.BOTH, expand=True)
 
-        # Aquí se pueden agregar más elementos para visualizar el árbol genealógico
-        # Por ejemplo, un área de texto o un canvas para dibujar el árbol
+        # Botón para agregar Ego si no hay nadie
+        if not self.family.members:
+            self.add_ego_button = ttk.Button(
+                frame, text="Agregar Persona Principal (Ego)", command=self.add_ego
+            )
+            self.add_ego_button.pack(pady=20)
 
-# Punto de entrada
+        # Dibujar árbol inicial
+        self.draw_tree()
+
+    def setup_form_tab(self):
+        """Configurar la pestaña de formulario (reutilizable)"""
+        form_frame = ttk.Frame(self.form_tab)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        ttk.Label(form_frame, text="Agregar Persona", font=("Arial", 14)).pack(pady=10)
+
+        # Formulario con grid
+        form = ttk.Frame(form_frame)
+        form.pack(fill=tk.X, padx=10, pady=10)
+
+        # Configurar columnas
+        form.columnconfigure(0, weight=1)
+        form.columnconfigure(1, weight=3)
+
+        # Cédula
+        ttk.Label(form, text="Cédula:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.cedula_entry = ttk.Entry(form, width=20)
+        self.cedula_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        # Nombre
+        ttk.Label(form, text="Nombre:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.name_entry = ttk.Entry(form, width=30)
+        self.name_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        # Fecha nacimiento
+        ttk.Label(form, text="Fecha Nac.:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.birth_entry = ttk.Entry(form, width=20)
+        self.birth_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # Género
+        ttk.Label(form, text="Género:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
+        self.gender_var = tk.StringVar(value="Masculino")
+        gender_combo = ttk.Combobox(form, textvariable=self.gender_var, values=["Masculino", "Femenino"])
+        gender_combo.grid(row=3, column=1, padx=5, pady=5)
+
+        # Provincia
+        ttk.Label(form, text="Provincia:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+        self.province_var = tk.StringVar(value="San José")
+        province_combo = ttk.Combobox(form, textvariable=self.province_var,
+                                     values=["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"])
+        province_combo.grid(row=4, column=1, padx=5, pady=5)
+
+        # Botón guardar
+        save_button = ttk.Button(form, text="Guardar Persona", command=self.save_person)
+        save_button.grid(row=5, column=0, columnspan=2, pady=20, sticky="ew")
+
+    def add_ego(self):
+        """Agrega la persona principal (Ego) al árbol genealógico"""
+        name = simpledialog.askstring("Nombre", "Ingrese el nombre completo de la persona principal (Ego):")
+        if not name or not name.strip():
+            return
+
+        parts = name.strip().split()
+        first_name = parts[0]
+        last_name = " ".join(parts[1:]) if len(parts) > 1 else "Apellido"
+
+        cedula = f"EGO{random.randint(100000, 999999)}"
+        birth_date = "2000-01-01"
+        gender = "Masculino"
+        province = "San José"
+
+        person = Person(cedula, first_name, last_name, birth_date, gender, province)
+        self.family.members.append(person)
+        self.current_person = person
+        person.add_event("Registrado como Ego")
+
+        # Eliminar botón Ego
+        if hasattr(self, 'add_ego_button') and self.add_ego_button:
+            self.add_ego_button.destroy()
+
+        self.draw_tree()
+
+    def save_person(self):
+        """Guarda una nueva persona desde el formulario"""
+        cedula = self.cedula_entry.get().strip()
+        name = self.name_entry.get().strip()
+        birth_date = self.birth_entry.get().strip()
+        gender = self.gender_var.get()
+        province = self.province_var.get()
+
+        if not cedula or not name or not birth_date:
+            messagebox.showerror("Error", "Todos los campos son obligatorios")
+            return
+
+        # Procesar nombre
+        name_parts = name.split()
+        first_name = name_parts[0]
+        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Apellido"
+
+        # Crear persona
+        person = Person(cedula, first_name, last_name, birth_date, gender, province)
+        self.family.members.append(person)
+
+        # Si se está agregando como padre/madre/hijo/etc., conectar relaciones
+        if self.current_person:
+            # Aquí puedes agregar lógica para relaciones
+            # Ejemplo: este nuevo integrante será padre del current_person
+            pass
+
+        # Limpiar y actualizar
+        self.clear_form()
+        self.draw_tree()
+
+    def clear_form(self):
+        """Limpia el formulario"""
+        self.cedula_entry.delete(0, tk.END)
+        self.name_entry.delete(0, tk.END)
+        self.birth_entry.delete(0, tk.END)
+        self.gender_var.set("Masculino")
+        self.province_var.set("San José")
+
+    def draw_tree(self):
+        """Dibuja el árbol genealógico en el canvas"""
+        self.tree_canvas.delete("all")
+        if not self.family.members:
+            self.tree_canvas.create_text(600, 400, text="No hay personas en el árbol", font=("Arial", 16))
+            return
+
+        # Dibujar cada persona
+        for i, person in enumerate(self.family.members):
+            x = 200 + (i % 3) * 300
+            y = 100 + (i // 3) * 150
+            self.draw_person_node(person, x, y)
+
+    def draw_person_node(self, person, x, y):
+        """Dibuja un nodo de persona en el canvas"""
+        # Rectángulo de fondo
+        self.tree_canvas.create_rectangle(x-100, y-50, x+100, y+50, fill="lightblue", outline="black")
+        
+        # Foto (círculo)
+        self.tree_canvas.create_oval(x-40, y-40, x+40, y+40, fill="lightgray", outline="black")
+        
+        # Nombre y cédula
+        text = f"{person.first_name}\n{person.last_name}\n{person.cedula}"
+        self.tree_canvas.create_text(x, y-30, text=text, font=("Arial", 8), anchor="center")
+
+        # Estado (vivo/fallecido)
+        status = "Vivo" if person.alive else "Fallecido"
+        self.tree_canvas.create_text(x, y+30, text=status, font=("Arial", 8), anchor="center")
+
+        # Botón de menú (acciónes)
+        menu_btn = self.tree_canvas.create_oval(x-15, y+55, x+15, y+75, fill="green", outline="black")
+        self.tree_canvas.tag_bind(menu_btn, "<Button-1>", lambda e, p=person: self.show_menu(p))
+
+    def show_menu(self, person):
+        """Muestra menú contextual para agregar relaciones"""
+        menu = tk.Menu(self.root, tearoff=0)
+        menu.add_command(label="Agregar Padre", command=lambda: self.add_parent(person, "father"))
+        menu.add_command(label="Agregar Madre", command=lambda: self.add_parent(person, "mother"))
+        menu.add_command(label="Agregar Hijo", command=lambda: self.add_child(person))
+        menu.add_command(label="Agregar Pareja", command=lambda: self.add_spouse(person))
+        menu.add_command(label="Agregar Hermano", command=lambda: self.add_sibling(person))
+        menu.post(self.root.winfo_pointerx(), self.root.winfo_pointery())
+
+    def add_parent(self, child, parent_type):
+        """Prepara el formulario para agregar un padre o madre"""
+        self.current_person = child
+        self.notebook.select(self.form_tab)
+        self.cedula_entry.focus()
+
+    def add_child(self, parent):
+        """Prepara el formulario para agregar un hijo"""
+        self.current_person = parent
+        self.notebook.select(self.form_tab)
+
+    def add_spouse(self, person):
+        """Prepara el formulario para agregar pareja"""
+        self.current_person = person
+        self.notebook.select(self.form_tab)
+
+    def add_sibling(self, person):
+        """Prepara el formulario para agregar hermano"""
+        self.current_person = person
+        self.notebook.select(self.form_tab)
+
+
+# === PUNTO DE ENTRADA ===
 if __name__ == "__main__":
     root = tk.Tk()
-    app = FamilyManagementApp(root)
+    app = GenealogyApp(root)
     root.mainloop()
