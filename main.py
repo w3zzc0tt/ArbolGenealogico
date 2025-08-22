@@ -1,5 +1,5 @@
 import tkinter as tk
-from interfaz import FamilyManagementApp
+from gui.family_management_app import FamilyManagementApp
 
 if __name__ == "__main__":
     root = tk.Tk()
