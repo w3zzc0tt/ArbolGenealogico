@@ -1,8 +1,9 @@
-# app.py
+# gui/app.py
 import customtkinter as ctk
 import tkinter as tk
 import sys
 import os
+from tkinter import messagebox
 
 # Añadir raíz del proyecto para imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -10,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models.family import Family
 from models.person import Person
 from gui.forms import PersonForm
+from services.relacion_service import RelacionService
 
 try:
     from utils.graph_visualizer import FamilyGraphVisualizer
@@ -98,6 +100,41 @@ class GenealogyApp:
 
         if HAS_VISUALIZER:
             visualizer = FamilyGraphVisualizer()
+            
+            # ✅ CORRECCIÓN CLAVE: Nueva definición con orden correcto
+            def custom_show_menu(event, person):
+                menu = tk.Menu(self.root, tearoff=0)
+                menu.add_command(
+                    label="➕ Agregar Padre",
+                    command=lambda: self.abrir_formulario_relacion(person, "padre")
+                )
+                menu.add_command(
+                    label="➕ Agregar Madre",
+                    command=lambda: self.abrir_formulario_relacion(person, "madre")
+                )
+                menu.add_command(
+                    label="💍 Agregar Cónyuge",
+                    command=lambda: self.abrir_formulario_relacion(person, "conyuge")
+                )
+                menu.add_command(
+                    label="👶 Agregar Hijo",
+                    command=lambda: self.abrir_formulario_relacion(person, "hijo")
+                )
+                menu.add_command(
+                    label="🧍 Agregar Hermano",
+                    command=lambda: self.abrir_formulario_relacion(person, "hermano")
+                )
+                menu.add_separator()
+                menu.add_command(
+                    label="🔍 Ver relaciones",
+                    command=lambda: self.mostrar_relaciones(person)
+                )
+                menu.tk_popup(event.x_root, event.y_root)
+                menu.grab_release()
+
+            # ✅ Asignar el nuevo método con el orden correcto
+            visualizer._show_menu = custom_show_menu
+            
             visualizer.draw_family_tree(self.family, self.tree_canvas)
         else:
             self._draw_basic_tree()
@@ -113,6 +150,87 @@ class GenealogyApp:
             self.tree_canvas.create_oval(x-30, y-30, x+30, y+30, fill=color, outline="#1f7dbf", width=2)
             self.tree_canvas.create_text(x, y, text=f"{person.first_name}\n{person.last_name}", fill="white", font=("Arial", 10, "bold"))
             self.tree_canvas.create_text(x, y+25, text=person.cedula, fill="lightgray", font=("Arial", 8))
+
+    def abrir_formulario_relacion(self, persona, tipo_relacion):
+        """Abre un formulario para seleccionar una persona y establecer una relación"""
+        form = ctk.CTkToplevel(self.root)
+        form.title(f"Agregar {tipo_relacion}")
+        form.geometry("400x300")
+        form.transient(self.root)
+        form.grab_set()
+
+        ctk.CTkLabel(form, text=f"Selecciona una persona para ser {tipo_relacion} de {persona.first_name}").pack(pady=10)
+
+        # Lista de personas (excepto la misma persona)
+        opciones = [p for p in self.family.members if p.cedula != persona.cedula]
+        if not opciones:
+            ctk.CTkLabel(form, text="No hay otras personas en la familia").pack(pady=20)
+            return
+
+        nombres = [f"{p.first_name} {p.last_name} ({p.cedula})" for p in opciones]
+        combo = ctk.CTkComboBox(form, values=nombres, width=300)
+        combo.pack(pady=10)
+
+        def guardar():
+            seleccion = combo.get()
+            cedula_destino = seleccion.split("(")[-1].rstrip(")")
+
+            exito = False
+            mensaje = ""
+
+            if tipo_relacion == "padre":
+                exito, mensaje = RelacionService.registrar_padres(
+                    self.family, cedula_destino, mother_cedula="", father_cedula=persona.cedula
+                )
+            elif tipo_relacion == "madre":
+                exito, mensaje = RelacionService.registrar_padres(
+                    self.family, cedula_destino, mother_cedula=persona.cedula, father_cedula=""
+                )
+            elif tipo_relacion == "conyuge":
+                exito, mensaje = RelacionService.registrar_pareja(self.family, persona.cedula, cedula_destino)
+            elif tipo_relacion == "hijo":
+                exito, mensaje = RelacionService.registrar_padres(
+                    self.family, cedula_destino, mother_cedula="", father_cedula=""
+                )
+                # Lo manejamos al revés: hijo → padre/madre
+                madre = next((p for p in self.family.members if p.cedula == cedula_destino), None)
+                if madre and madre.gender == "Femenino":
+                    exito, mensaje = RelacionService.registrar_padres(self.family, cedula_destino, mother_cedula=persona.cedula, father_cedula="")
+                else:
+                    exito, mensaje = RelacionService.registrar_padres(self.family, cedula_destino, mother_cedula="", father_cedula=persona.cedula)
+            elif tipo_relacion == "hermano":
+                # Asumimos que comparten al menos un padre/madre
+                exito, mensaje = True, "Hermano agregado (funcionalidad básica)"
+                persona.siblings.append(next((p for p in self.family.members if p.cedula == cedula_destino), None))
+
+            if exito:
+                form.destroy()
+                self.draw_tree()
+                self.update_history_tab()
+                messagebox.showinfo("Éxito", mensaje)
+            else:
+                messagebox.showerror("Error", mensaje)
+
+        ctk.CTkButton(form, text="Guardar", command=guardar, fg_color="#1db954").pack(pady=20)
+
+    def mostrar_relaciones(self, person):
+        """Muestra un popup con las relaciones de la persona"""
+        relaciones = []
+        if person.father:
+            relaciones.append(f"Padre: {person.father.first_name} {person.father.last_name}")
+        if person.mother:
+            relaciones.append(f"Madre: {person.mother.first_name} {person.mother.last_name}")
+        if person.spouse:
+            relaciones.append(f"Pareja: {person.spouse.first_name} {person.spouse.last_name}")
+        if person.children:
+            hijos = ", ".join([f"{c.first_name}" for c in person.children])
+            relaciones.append(f"Hijos: {hijos}")
+        if person.siblings:
+            hermanos = ", ".join([f"{s.first_name}" for s in person.siblings])
+            relaciones.append(f"Hermanos: {hermanos}")
+
+        info = "\n".join(relaciones) if relaciones else "No hay relaciones registradas."
+        messagebox.showinfo(f"Relaciones de {person.first_name}", info)
 
     def setup_history_tab(self):
         self.history_text = tk.Text(self.history_tab, bg="#2a2a2a", fg="white", font=("Consolas", 10))
