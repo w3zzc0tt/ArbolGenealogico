@@ -56,3 +56,15 @@ class Family:
             
         last_name = random.choice(last_names)
         return first_name, last_name
+
+    def add_relationship(self, parent_cedula: str, child_cedula: str) -> None:
+        """Establece una relación de padre-hijo entre dos miembros de la familia."""
+        parent = self.get_member_by_cedula(parent_cedula)
+        child = self.get_member_by_cedula(child_cedula)
+        
+        if parent and child:
+            child.father = parent if parent.gender == "Masculino" else child.father
+            child.mother = parent if parent.gender == "Femenino" else child.mother
+            parent.children.append(child)
+        else:
+            raise ValueError("Uno o ambos miembros no existen en la familia.")
