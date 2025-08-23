@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from gui.family_management_app import GenealogyApp
+from gui.app import GenealogyApp
 
 if __name__ == "__main__":
     root = ctk.CTk()  

@@ -1,10 +1,16 @@
+# app.py
 import customtkinter as ctk
 import tkinter as tk
 import sys
 import os
 
-# Agregar el directorio raíz al path para importar utils
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Añadir raíz del proyecto para imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from models.family import Family
+from models.person import Person
+from gui.forms import PersonForm
+
 try:
     from utils.graph_visualizer import FamilyGraphVisualizer
     HAS_VISUALIZER = True
@@ -12,44 +18,39 @@ except ImportError:
     HAS_VISUALIZER = False
     print("Advertencia: No se pudo importar FamilyGraphVisualizer")
 
-try:
-    from forms import PersonForm
-    from models import Family, Person
-except ImportError:
-    from forms import PersonForm
-    from models import Family, Person
 
 class GenealogyApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Árbol Genealógico")
+        self.root.title("🌳 Árbol Genealógico Familiar")
         self.root.geometry("1200x800")
 
-        # Variables
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+
         self.family = Family(1, "Mi Familia")
+        self.selected_person = None
         self.create_widgets()
 
     def create_widgets(self):
         main_frame = ctk.CTkFrame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # Solo pestaña del árbol (sin formulario)
+        # Pestañas
         self.notebook = ctk.CTkTabview(main_frame)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         self.tree_tab = self.notebook.add("Árbol Genealógico")
+        self.history_tab = self.notebook.add("Historial")
 
         self.setup_tree_tab()
+        self.setup_history_tab()
 
     def setup_tree_tab(self):
         frame = ctk.CTkFrame(self.tree_tab)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        # Canvas para el árbol
-        self.tree_canvas = tk.Canvas(frame, bg="#2a2a2a", highlightthickness=0)
-        self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Botón para agregar Ego si no hay nadie
+        # Botón agregar Ego
         if not self.family.members:
             self.add_ego_button = ctk.CTkButton(
                 frame,
@@ -60,11 +61,16 @@ class GenealogyApp:
                 hover_color="#1ed760"
             )
             self.add_ego_button.pack(pady=20)
+        else:
+            self.add_ego_button = None
+
+        # Canvas para el árbol
+        self.tree_canvas = tk.Canvas(frame, bg="#2a2a2a", highlightthickness=0)
+        self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         self.draw_tree()
 
     def open_person_form_for_ego(self):
-        """Abre el formulario para agregar al Ego"""
         def on_save(data):
             person = Person(
                 cedula=data["cedula"],
@@ -73,106 +79,60 @@ class GenealogyApp:
                 birth_date=data["birth_date"],
                 gender=data["gender"],
                 province=data["province"],
-                death_date=data["death_date"]
+                death_date=data["death_date"],
+                marital_status=data["marital_status"]
             )
-            # Establecer el estado civil desde el formulario
-            person.marital_status = data["marital_status"]
-            self.family.members.append(person)
-            if hasattr(self, 'add_ego_button'):
+            self.family.add_member(person)
+            if self.add_ego_button:
                 self.add_ego_button.destroy()
             self.draw_tree()
+            self.update_history_tab()
 
-        form = PersonForm(self.root, title="Agregar Persona Principal (Ego)", on_save=on_save)
-        form.focus()
+        PersonForm(self.root, title="Agregar Persona Principal", on_save=on_save)
 
     def draw_tree(self):
-        """Dibuja el árbol genealógico"""
         self.tree_canvas.delete("all")
         if not self.family.members:
-            self.tree_canvas.create_text(
-                600, 400,
-                text="No hay personas en el árbol",
-                font=("Arial", 16),
-                fill="white"
-            )
+            self.tree_canvas.create_text(600, 400, text="No hay personas en el árbol", fill="white", font=("Arial", 16))
             return
 
-        try:
-            # Usar el visualizador de grafos para dibujar el árbol
-            if HAS_VISUALIZER:
-                visualizer = FamilyGraphVisualizer()
-                visualizer.draw_family_tree(self.family, self.tree_canvas)
-                
-                # Conectar el menú contextual a los nodos
-                self._connect_menu_to_nodes()
-            else:
-                # Dibujo básico si no hay visualizador
-                self._draw_basic_tree()
-                
-        except Exception as e:
-            print(f"Error al dibujar el árbol: {e}")
-            self.tree_canvas.create_text(
-                600, 400,
-                text=f"Error al dibujar el árbol: {str(e)}",
-                font=("Arial", 12),
-                fill="red"
-            )
+        if HAS_VISUALIZER:
+            visualizer = FamilyGraphVisualizer()
+            visualizer.draw_family_tree(self.family, self.tree_canvas)
+        else:
+            self._draw_basic_tree()
 
     def _draw_basic_tree(self):
-        """Dibuja un árbol básico cuando no hay visualizador disponible"""
         canvas_width = self.tree_canvas.winfo_width() or 1200
-        canvas_height = self.tree_canvas.winfo_height() or 800
-        
-        # Posicionamiento simple
-        x_spacing = canvas_width / (len(self.family.members) + 1)
-        y = canvas_height / 2
-        
+        x_step = canvas_width / (len(self.family.members) + 1)
+        y = 400
+
         for i, person in enumerate(self.family.members):
-            x = (i + 1) * x_spacing
-            
-            # Dibujar nodo básico
-            radius = 25
+            x = (i + 1) * x_step
             color = "#3b8ed0" if person.alive else "#d35f5f"
-            self.tree_canvas.create_oval(x-radius, y-radius, x+radius, y+radius, 
-                                       fill=color, outline="#1f7dbf", width=2)
-            
-            # Nombre
-            name_text = f"{person.first_name}\n{person.last_name}"
-            self.tree_canvas.create_text(x, y-10, text=name_text, font=("Arial", 8, "bold"), 
-                                       fill="white", anchor="center")
-            
-            # Cédula
-            self.tree_canvas.create_text(x, y+10, text=person.cedula, font=("Arial", 7), 
-                                       fill="lightgray", anchor="center")
+            self.tree_canvas.create_oval(x-30, y-30, x+30, y+30, fill=color, outline="#1f7dbf", width=2)
+            self.tree_canvas.create_text(x, y, text=f"{person.first_name}\n{person.last_name}", fill="white", font=("Arial", 10, "bold"))
+            self.tree_canvas.create_text(x, y+25, text=person.cedula, fill="lightgray", font=("Arial", 8))
 
-    def _connect_menu_to_nodes(self):
-        """Conecta el menú contextual a todos los nodos del canvas"""
-        # Buscar todos los elementos ovalados (nodos) en el canvas
-        nodes = self.tree_canvas.find_withtag("oval")
-        
-        for node in nodes:
-            # Vincular evento de clic derecho para menú contextual
-            self.tree_canvas.tag_bind(node, "<Button-3>", self._show_context_menu)
-            
-            # También vincular clic izquierdo para selección
-            self.tree_canvas.tag_bind(node, "<Button-1>", self._select_node)
+    def setup_history_tab(self):
+        self.history_text = tk.Text(self.history_tab, bg="#2a2a2a", fg="white", font=("Consolas", 10))
+        self.history_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-    def _show_context_menu(self, event):
-        """Muestra el menú contextual para el nodo"""
-        # Encontrar el nodo más cercano al clic
-        closest = self.tree_canvas.find_closest(event.x, event.y)
-        if closest:
-            print(f"Menú contextual para nodo {closest[0]}")
-            # Aquí se puede implementar un menú contextual real
-            
-    def _select_node(self, event):
-        """Selecciona un nodo al hacer clic"""
-        closest = self.tree_canvas.find_closest(event.x, event.y)
-        if closest:
-            print(f"Nodo seleccionado: {closest[0]}")
+        self.update_history_tab()
 
-# === PUNTO DE ENTRADA ===
+    def update_history_tab(self):
+        self.history_text.delete(1.0, tk.END)
+        for person in self.family.members:
+            self.history_text.insert(tk.END, f"👤 {person}\n", "person")
+            for event in person.history:
+                self.history_text.insert(tk.END, f"  • {event}\n", "event")
+            self.history_text.insert(tk.END, "\n")
+
+    def run(self):
+        self.root.mainloop()
+
+
 if __name__ == "__main__":
     root = ctk.CTk()
     app = GenealogyApp(root)
-    root.mainloop()
+    app.run()

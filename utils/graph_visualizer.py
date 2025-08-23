@@ -47,30 +47,42 @@ class FamilyGraphVisualizer:
         return self.G
     
     def calculate_hierarchical_layout(self, family) -> Dict[str, Tuple[float, float]]:
-        """Calcula posiciones jerárquicas para la visualización"""
+        """Calcula posiciones jerárquicas centradas y dentro del canvas"""
         pos = {}
         levels = self._assign_levels(family)
         
+        if not levels:
+            return {}
+
+        # Ajustar niveles para que el mínimo sea 0 (evitar negativos)
+        min_level = min(levels.values())
+        adjusted_levels = {cedula: level - min_level for cedula, level in levels.items()}
+        max_level = max(adjusted_levels.values()) if adjusted_levels else 0
+
         canvas_width = 1200
         canvas_height = 800
-        level_height = canvas_height / (max(levels.values()) + 2 if levels else 1)
-        
+        margin_top = 100
+        margin_bottom = 150
+        available_height = canvas_height - margin_top - margin_bottom
+
+        if max_level == 0:
+            level_height = available_height
+        else:
+            level_height = available_height / max_level if max_level > 0 else available_height
+
         # Distribuir nodos por niveles
         level_nodes = {}
-        for cedula, level in levels.items():
-            if level not in level_nodes:
-                level_nodes[level] = []
-            level_nodes[level].append(cedula)
-        
-        ego_cedula = "YOUR_EGO_CEDULA"  # Replace with the actual cedula of the Ego
-        ego_index = None
-        for level, nodes in level_nodes.items():
-            level_width = canvas_width / (len(nodes) + 1)
-            for i, cedula in enumerate(nodes):
-                x = (i + 1) * level_width
-                y = canvas_height - (level * level_height)
+        for cedula, level in adjusted_levels.items():
+            level_nodes.setdefault(level, []).append(cedula)
+
+        # Posicionar nodos
+        for level, cedulas in level_nodes.items():
+            y = margin_top + (level * level_height)
+            x_spacing = canvas_width / (len(cedulas) + 1)
+            for i, cedula in enumerate(cedulas):
+                x = (i + 1) * x_spacing
                 pos[cedula] = (x, y)
-        
+
         return pos
     
     def _assign_levels(self, family) -> Dict[str, int]:
