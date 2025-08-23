@@ -1,6 +1,6 @@
 from typing import Tuple, Optional
-from models.familia import Family, validate_cedula_unique
-from models.persona import Person
+from models.family import Family
+from models.person import Person
 from utils.validators import validar_persona_completa
 
 class PersonaService:
@@ -22,12 +22,12 @@ class PersonaService:
             return False, None, error
         
         # Verificar que la cédula sea única
-        if not validate_cedula_unique(cedula, family):
+        if not Family.validate_cedula_unique(cedula, family):
             return False, None, "La cédula ya existe en la familia"
         
         # Crear la persona
         person = Person(cedula, first_name, last_name, birth_date, 
-                       death_date, gender, province, marital_status, family)
+                       death_date, gender, province, marital_status)
         
         # Agregar a la familia
         family.add_member(person)

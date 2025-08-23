@@ -1,8 +1,8 @@
 import random
 import datetime
 from typing import Tuple, Optional
-from models.familia import Family
-from models.persona import Person
+from models.family import Family
+from models.person import Person
 
 class SimulacionService:
     """Servicio para gestionar la simulación de eventos familiares"""
@@ -123,10 +123,13 @@ class SimulacionService:
         
         # Crear el bebé
         from services.persona_service import PersonaService
-        baby = PersonaService.crear_persona(
+        success, baby, error = PersonaService.crear_persona(
             family, cedula, first_name, last_name, birth_date, 
             "", gender, father.province, "Soltero/a"
         )
+        
+        if not success:
+            return False, error
         
         # Registrar como hijos de ambos padres
         from services.relacion_service import RelacionService

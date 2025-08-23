@@ -1,16 +1,21 @@
+import customtkinter as ctk
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import messagebox
 import random
 import datetime
 
+# Configuración de customtkinter
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
 # === CLASES DE DATOS ===
 class Person:
-    def __init__(self, cedula, first_name, last_name, birth_date, gender, province):
+    def __init__(self, cedula, first_name, last_name, birth_date, gender, province, death_date=None):
         self.cedula = cedula
         self.first_name = first_name
         self.last_name = last_name
         self.birth_date = birth_date
-        self.death_date = None
+        self.death_date = death_date
         self.gender = gender
         self.province = province
         self.marital_status = "Soltero"
@@ -19,12 +24,16 @@ class Person:
         self.father = None
         self.children = []
         self.siblings = []
-        self.alive = True
+        self.alive = death_date is None
         self.history = [f"Nació en {birth_date}"]
-        self.interests = ["Deportes", "Lectura", "Música"]  # Intereses base
+        if not self.alive:
+            self.history.append(f"Falleció en {death_date}")
 
-    def add_event(self, event_type):
-        self.history.append(f"{event_type}")
+    def add_event(self, event_type, date=None):
+        if not date:
+            date = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.history.append(f"{event_type} ({date})")
+        self.history.sort(key=lambda x: x.split('(')[1].rstrip(')') if '(' in x else "")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.cedula})"
@@ -37,241 +46,332 @@ class Family:
         self.members = []
 
 
-# === INTERFAZ GRÁFICA ===
+# === FORMULARIO EMERGENTE REUTILIZABLE ===
+class PersonForm(ctk.CTkToplevel):
+    def __init__(self, parent, title="Agregar Persona", on_save=None, data=None):
+        super().__init__(parent)
+        self.title(title)
+        self.geometry("500x650")
+        self.resizable(False, False)
+        self.on_save = on_save
+        self.data = data or {}
+
+        # Centrar ventana
+        self.transient(parent)
+        self.grab_set()
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        form_frame = ctk.CTkFrame(self)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        ctk.CTkLabel(form_frame, text="📋 Registrar Persona", font=("Arial", 18, "bold")).pack(pady=15)
+
+        form = ctk.CTkFrame(form_frame)
+        form.pack(fill=tk.X, padx=10, pady=10)
+        form.columnconfigure(1, weight=1)
+
+        # Cédula
+        ctk.CTkLabel(form, text="Cédula:", font=("Arial", 12)).grid(row=0, column=0, sticky="w", padx=10, pady=8)
+        self.cedula_entry = ctk.CTkEntry(form, placeholder_text="9-12 dígitos, solo números", width=220)
+        self.cedula_entry.grid(row=0, column=1, padx=10, pady=8, sticky="ew")
+        self.cedula_entry.insert(0, self.data.get("cedula", ""))
+
+        # Nombre
+        ctk.CTkLabel(form, text="Nombre:", font=("Arial", 12)).grid(row=1, column=0, sticky="w", padx=10, pady=8)
+        self.first_name_entry = ctk.CTkEntry(form, placeholder_text="Ej: María", width=220)
+        self.first_name_entry.grid(row=1, column=1, padx=10, pady=8, sticky="ew")
+        self.first_name_entry.insert(0, self.data.get("first_name", ""))
+
+        # Apellidos
+        ctk.CTkLabel(form, text="Apellidos:", font=("Arial", 12)).grid(row=2, column=0, sticky="w", padx=10, pady=8)
+        self.last_name_entry = ctk.CTkEntry(form, placeholder_text="Ej: López Fernández", width=220)
+        self.last_name_entry.grid(row=2, column=1, padx=10, pady=8, sticky="ew")
+        self.last_name_entry.insert(0, self.data.get("last_name", ""))
+
+        # Fecha nacimiento
+        ctk.CTkLabel(form, text="Fecha Nac.:", font=("Arial", 12)).grid(row=3, column=0, sticky="w", padx=10, pady=8)
+        self.birth_entry = ctk.CTkEntry(form, placeholder_text="YYYY-MM-DD", width=220)
+        self.birth_entry.grid(row=3, column=1, padx=10, pady=8, sticky="ew")
+        self.birth_entry.insert(0, self.data.get("birth_date", ""))
+
+        # Género
+        ctk.CTkLabel(form, text="Género:", font=("Arial", 12)).grid(row=4, column=0, sticky="w", padx=10, pady=8)
+        self.gender_var = ctk.StringVar(value=self.data.get("gender", "Masculino"))
+        gender_combo = ctk.CTkComboBox(form, values=["Masculino", "Femenino"], variable=self.gender_var, width=220, state="readonly")
+        gender_combo.grid(row=4, column=1, padx=10, pady=8, sticky="ew")
+
+        # Provincia
+        ctk.CTkLabel(form, text="Provincia:", font=("Arial", 12)).grid(row=5, column=0, sticky="w", padx=10, pady=8)
+        self.province_var = ctk.StringVar(value=self.data.get("province", "San José"))
+        province_combo = ctk.CTkComboBox(form, values=[
+            "San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"
+        ], variable=self.province_var, width=220, state="readonly")
+        province_combo.grid(row=5, column=1, padx=10, pady=8, sticky="ew")
+
+        # Estado civil
+        ctk.CTkLabel(form, text="Estado Civil:", font=("Arial", 12)).grid(row=6, column=0, sticky="w", padx=10, pady=8)
+        self.marital_status_var = ctk.StringVar(value=self.data.get("marital_status", "Soltero/a"))
+        marital_status_combo = ctk.CTkComboBox(form, values=[
+            "Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a"
+        ], variable=self.marital_status_var, width=220, state="readonly")
+        marital_status_combo.grid(row=6, column=1, padx=10, pady=8, sticky="ew")
+
+        # Estado: Vivo / Fallecido
+        ctk.CTkLabel(form, text="Estado:", font=("Arial", 12)).grid(row=7, column=0, sticky="w", padx=10, pady=8)
+        self.status_var = ctk.StringVar(value="Vivo" if self.data.get("death_date") is None else "Fallecido")
+        status_frame = ctk.CTkFrame(form)
+        status_frame.grid(row=7, column=1, sticky="w", padx=10, pady=8)
+
+        ctk.CTkRadioButton(status_frame, text="Vivo", variable=self.status_var, value="Vivo",
+                           command=self.toggle_death_field).pack(side="left", padx=5)
+        ctk.CTkRadioButton(status_frame, text="Fallecido", variable=self.status_var, value="Fallecido",
+                           command=self.toggle_death_field).pack(side="left", padx=5)
+
+        # Frame para fecha de fallecimiento
+        self.death_frame = ctk.CTkFrame(form)
+        self.death_frame.grid(row=8, column=1, sticky="ew", padx=10, pady=5)
+        ctk.CTkLabel(self.death_frame, text="Fecha Fallec.:").pack(side="left")
+        self.death_entry = ctk.CTkEntry(self.death_frame, placeholder_text="YYYY-MM-DD", width=150)
+        self.death_entry.pack(side="left", padx=5)
+        if self.data.get("death_date"):
+            self.death_entry.insert(0, self.data["death_date"])
+
+        # Ocultar si está vivo
+        if self.status_var.get() == "Vivo":
+            self.death_frame.grid_remove()
+        else:
+            self.death_frame.grid()
+
+        # Botones
+        button_frame = ctk.CTkFrame(form_frame)
+        button_frame.pack(pady=20)
+
+        ctk.CTkButton(button_frame, text="Cancelar", command=self.destroy, fg_color="gray").pack(side="left", padx=5)
+        ctk.CTkButton(button_frame, text="Guardar", command=self.save, fg_color="#007acc").pack(side="left", padx=5)
+
+    def toggle_death_field(self):
+        if self.status_var.get() == "Fallecido":
+            self.death_frame.grid()
+        else:
+            self.death_frame.grid_remove()
+
+    def validate_cedula(self, cedula):
+        return cedula.isdigit() and 9 <= len(cedula) <= 12
+
+    def save(self):
+        cedula = self.cedula_entry.get().strip()
+        first_name = self.first_name_entry.get().strip()
+        last_name = self.last_name_entry.get().strip()
+        birth_date = self.birth_entry.get().strip()
+        gender = self.gender_var.get()
+        province = self.province_var.get()
+        marital_status = self.marital_status_var.get()
+        status = self.status_var.get()
+        death_date = self.death_entry.get().strip() if status == "Fallecido" else None
+
+        if not all([cedula, first_name, last_name, birth_date]):
+            messagebox.showerror("Error", "Todos los campos obligatorios deben llenarse")
+            return
+
+        if not self.validate_cedula(cedula):
+            messagebox.showerror("Error", "La cédula debe tener entre 9 y 12 dígitos y contener solo números")
+            return
+
+        try:
+            datetime.datetime.strptime(birth_date, "%Y-%m-%d")
+            if death_date:
+                datetime.datetime.strptime(death_date, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Error", "Formato de fecha inválido. Use YYYY-MM-DD")
+            return
+
+        data = {
+            "cedula": cedula,
+            "first_name": first_name,
+            "last_name": last_name,
+            "birth_date": birth_date,
+            "gender": gender,
+            "province": province,
+            "marital_status": marital_status,
+            "death_date": death_date
+        }
+
+        if self.on_save:
+            self.on_save(data)
+        self.destroy()
+
+
+# === INTERFAZ PRINCIPAL ===
 class GenealogyApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Árbol Genealógico")
         self.root.geometry("1200x800")
-        self.root.configure(bg="#f0f0f0")
 
-        # Variables globales
+        # Variables
         self.family = Family(1, "Mi Familia")
-        self.current_person = None  # Persona seleccionada para agregar padre/hijo/etc.
+        self.current_person = None  # Para relaciones
         self.tree_canvas = None
-        self.person_nodes = {}  # Mapa: persona -> ID del nodo en canvas
+        self.person_nodes = {}
         self.node_id_counter = 0
 
-        # Crear la interfaz
+        # Crear widgets
         self.create_widgets()
 
     def create_widgets(self):
-        """Crear widgets principales"""
-        main_frame = ttk.Frame(self.root)
+        main_frame = ctk.CTkFrame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # Notebook para pestañas
-        self.notebook = ttk.Notebook(main_frame)
-        self.notebook.pack(fill=tk.BOTH, expand=True)
+        # Solo pestaña del árbol (sin formulario)
+        self.notebook = ctk.CTkTabview(main_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Pestañas
-        self.tree_tab = ttk.Frame(self.notebook)
-        self.form_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.tree_tab, text="Árbol Genealógico")
-        self.notebook.add(self.form_tab, text="Formulario")
+        self.tree_tab = self.notebook.add("Árbol Genealógico")
 
-        # Configurar pestañas
         self.setup_tree_tab()
-        self.setup_form_tab()
 
     def setup_tree_tab(self):
-        """Configurar la pestaña del árbol"""
-        frame = ttk.Frame(self.tree_tab)
+        frame = ctk.CTkFrame(self.tree_tab)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        # Canvas para dibujar el árbol
-        self.tree_canvas = tk.Canvas(frame, bg="white", bd=2, relief="sunken")
-        self.tree_canvas.pack(fill=tk.BOTH, expand=True)
+        # Canvas para el árbol
+        self.tree_canvas = tk.Canvas(frame, bg="#2a2a2a", highlightthickness=0)
+        self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Botón para agregar Ego si no hay nadie
         if not self.family.members:
-            self.add_ego_button = ttk.Button(
-                frame, text="Agregar Persona Principal (Ego)", command=self.add_ego
+            self.add_ego_button = ctk.CTkButton(
+                frame,
+                text="➕ Agregar Persona Principal (Ego)",
+                command=self.open_person_form_for_ego,
+                font=("Arial", 14, "bold"),
+                fg_color="#1db954",
+                hover_color="#1ed760"
             )
             self.add_ego_button.pack(pady=20)
 
-        # Dibujar árbol inicial
         self.draw_tree()
 
-    def setup_form_tab(self):
-        """Configurar la pestaña de formulario (reutilizable)"""
-        form_frame = ttk.Frame(self.form_tab)
-        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+    def open_person_form_for_ego(self):
+        """Abre el formulario para agregar al Ego"""
+        def on_save(data):
+            person = Person(
+                cedula=data["cedula"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                birth_date=data["birth_date"],
+                gender=data["gender"],
+                province=data["province"],
+                death_date=data["death_date"]
+            )
+            # Establecer el estado civil desde el formulario
+            person.marital_status = data["marital_status"]
+            self.family.members.append(person)
+            if hasattr(self, 'add_ego_button'):
+                self.add_ego_button.destroy()
+            self.draw_tree()
 
-        ttk.Label(form_frame, text="Agregar Persona", font=("Arial", 14)).pack(pady=10)
+        form = PersonForm(self.root, title="Agregar Persona Principal (Ego)", on_save=on_save)
+        form.focus()
 
-        # Formulario con grid
-        form = ttk.Frame(form_frame)
-        form.pack(fill=tk.X, padx=10, pady=10)
+    def open_person_form_for_relation(self, parent, relation_type):
+        """Abre el formulario para agregar una relación"""
+        def on_save(data):
+            child = Person(
+                cedula=data["cedula"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                birth_date=data["birth_date"],
+                gender=data["gender"],
+                province=data["province"],
+                death_date=data["death_date"]
+            )
+            # Establecer el estado civil desde el formulario
+            child.marital_status = data["marital_status"]
+            self.family.members.append(child)
 
-        # Configurar columnas
-        form.columnconfigure(0, weight=1)
-        form.columnconfigure(1, weight=3)
+            # Conectar relación
+            if relation_type == "father":
+                child.father = parent
+                parent.children.append(child)
+            elif relation_type == "mother":
+                child.mother = parent
+                parent.children.append(child)
+            elif relation_type == "child":
+                parent.children.append(child)
+                if parent.gender == "Masculino":
+                    child.father = parent
+                else:
+                    child.mother = parent
+            elif relation_type == "spouse":
+                parent.spouse = child
+                child.spouse = parent
+                child.marital_status = "Casado/a"
+                parent.marital_status = "Casado/a"
+            elif relation_type == "sibling":
+                if parent.father:
+                    child.father = parent.father
+                    parent.father.children.append(child)
+                if parent.mother:
+                    child.mother = parent.mother
+                    parent.mother.children.append(child)
+                parent.siblings.append(child)
+                child.siblings.append(parent)
 
-        # Cédula
-        ttk.Label(form, text="Cédula:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.cedula_entry = ttk.Entry(form, width=20)
-        self.cedula_entry.grid(row=0, column=1, padx=5, pady=5)
+            parent.add_event(f"Se agregó {relation_type}: {child.first_name}")
+            child.add_event(f"Nació como {relation_type} de {parent.first_name}")
+            self.draw_tree()
 
-        # Nombre
-        ttk.Label(form, text="Nombre:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.name_entry = ttk.Entry(form, width=30)
-        self.name_entry.grid(row=1, column=1, padx=5, pady=5)
-
-        # Fecha nacimiento
-        ttk.Label(form, text="Fecha Nac.:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.birth_entry = ttk.Entry(form, width=20)
-        self.birth_entry.grid(row=2, column=1, padx=5, pady=5)
-
-        # Género
-        ttk.Label(form, text="Género:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
-        self.gender_var = tk.StringVar(value="Masculino")
-        gender_combo = ttk.Combobox(form, textvariable=self.gender_var, values=["Masculino", "Femenino"])
-        gender_combo.grid(row=3, column=1, padx=5, pady=5)
-
-        # Provincia
-        ttk.Label(form, text="Provincia:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
-        self.province_var = tk.StringVar(value="San José")
-        province_combo = ttk.Combobox(form, textvariable=self.province_var,
-                                     values=["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"])
-        province_combo.grid(row=4, column=1, padx=5, pady=5)
-
-        # Botón guardar
-        save_button = ttk.Button(form, text="Guardar Persona", command=self.save_person)
-        save_button.grid(row=5, column=0, columnspan=2, pady=20, sticky="ew")
-
-    def add_ego(self):
-        """Agrega la persona principal (Ego) al árbol genealógico"""
-        name = simpledialog.askstring("Nombre", "Ingrese el nombre completo de la persona principal (Ego):")
-        if not name or not name.strip():
-            return
-
-        parts = name.strip().split()
-        first_name = parts[0]
-        last_name = " ".join(parts[1:]) if len(parts) > 1 else "Apellido"
-
-        cedula = f"EGO{random.randint(100000, 999999)}"
-        birth_date = "2000-01-01"
-        gender = "Masculino"
-        province = "San José"
-
-        person = Person(cedula, first_name, last_name, birth_date, gender, province)
-        self.family.members.append(person)
-        self.current_person = person
-        person.add_event("Registrado como Ego")
-
-        # Eliminar botón Ego
-        if hasattr(self, 'add_ego_button') and self.add_ego_button:
-            self.add_ego_button.destroy()
-
-        self.draw_tree()
-
-    def save_person(self):
-        """Guarda una nueva persona desde el formulario"""
-        cedula = self.cedula_entry.get().strip()
-        name = self.name_entry.get().strip()
-        birth_date = self.birth_entry.get().strip()
-        gender = self.gender_var.get()
-        province = self.province_var.get()
-
-        if not cedula or not name or not birth_date:
-            messagebox.showerror("Error", "Todos los campos son obligatorios")
-            return
-
-        # Procesar nombre
-        name_parts = name.split()
-        first_name = name_parts[0]
-        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else "Apellido"
-
-        # Crear persona
-        person = Person(cedula, first_name, last_name, birth_date, gender, province)
-        self.family.members.append(person)
-
-        # Si se está agregando como padre/madre/hijo/etc., conectar relaciones
-        if self.current_person:
-            # Aquí puedes agregar lógica para relaciones
-            # Ejemplo: este nuevo integrante será padre del current_person
-            pass
-
-        # Limpiar y actualizar
-        self.clear_form()
-        self.draw_tree()
-
-    def clear_form(self):
-        """Limpia el formulario"""
-        self.cedula_entry.delete(0, tk.END)
-        self.name_entry.delete(0, tk.END)
-        self.birth_entry.delete(0, tk.END)
-        self.gender_var.set("Masculino")
-        self.province_var.set("San José")
+        form = PersonForm(self.root, title=f"Agregar {relation_type.title()}", on_save=on_save)
+        form.focus()
 
     def draw_tree(self):
-        """Dibuja el árbol genealógico en el canvas"""
+        """Dibuja el árbol genealógico"""
         self.tree_canvas.delete("all")
         if not self.family.members:
-            self.tree_canvas.create_text(600, 400, text="No hay personas en el árbol", font=("Arial", 16))
+            self.tree_canvas.create_text(
+                600, 400,
+                text="No hay personas en el árbol",
+                font=("Arial", 16),
+                fill="white"
+            )
             return
 
-        # Dibujar cada persona
         for i, person in enumerate(self.family.members):
             x = 200 + (i % 3) * 300
             y = 100 + (i // 3) * 150
             self.draw_person_node(person, x, y)
 
     def draw_person_node(self, person, x, y):
-        """Dibuja un nodo de persona en el canvas"""
-        # Rectángulo de fondo
-        self.tree_canvas.create_rectangle(x-100, y-50, x+100, y+50, fill="lightblue", outline="black")
-        
-        # Foto (círculo)
-        self.tree_canvas.create_oval(x-40, y-40, x+40, y+40, fill="lightgray", outline="black")
-        
-        # Nombre y cédula
-        text = f"{person.first_name}\n{person.last_name}\n{person.cedula}"
-        self.tree_canvas.create_text(x, y-30, text=text, font=("Arial", 8), anchor="center")
+        """Dibuja un nodo de persona"""
+        color = "#3b8ed0" if person.alive else "#d35f5f"
+        status_text = "Vivo" if person.alive else "Fallecido"
+        status_color = "lightgreen" if person.alive else "red"
 
-        # Estado (vivo/fallecido)
-        status = "Vivo" if person.alive else "Fallecido"
-        self.tree_canvas.create_text(x, y+30, text=status, font=("Arial", 8), anchor="center")
+        self.tree_canvas.create_rectangle(x-100, y-50, x+100, y+50, fill=color, outline="#1f7dbf", width=2)
+        self.tree_canvas.create_oval(x-40, y-40, x+40, y+40, fill="#59a8e2", outline="white", width=2)
 
-        # Botón de menú (acciónes)
-        menu_btn = self.tree_canvas.create_oval(x-15, y+55, x+15, y+75, fill="green", outline="black")
+        text = f"{person.first_name}\n{person.last_name}\n{person.cedula}\n{person.marital_status}"
+        self.tree_canvas.create_text(x, y-35, text=text, font=("Arial", 8, "bold"), fill="white", anchor="center")
+        self.tree_canvas.create_text(x, y+30, text=status_text, font=("Arial", 9, "italic"), fill=status_color, anchor="center")
+
+        menu_btn = self.tree_canvas.create_oval(x-15, y+55, x+15, y+75, fill="#1db954", outline="white", width=2)
         self.tree_canvas.tag_bind(menu_btn, "<Button-1>", lambda e, p=person: self.show_menu(p))
 
     def show_menu(self, person):
-        """Muestra menú contextual para agregar relaciones"""
-        menu = tk.Menu(self.root, tearoff=0)
-        menu.add_command(label="Agregar Padre", command=lambda: self.add_parent(person, "father"))
-        menu.add_command(label="Agregar Madre", command=lambda: self.add_parent(person, "mother"))
-        menu.add_command(label="Agregar Hijo", command=lambda: self.add_child(person))
-        menu.add_command(label="Agregar Pareja", command=lambda: self.add_spouse(person))
-        menu.add_command(label="Agregar Hermano", command=lambda: self.add_sibling(person))
+        menu = tk.Menu(self.root, tearoff=0, bg="#2e2e2e", fg="white")
+        menu.add_command(label="Agregar Padre", command=lambda: self.open_person_form_for_relation(person, "father"))
+        menu.add_command(label="Agregar Madre", command=lambda: self.open_person_form_for_relation(person, "mother"))
+        menu.add_command(label="Agregar Hijo", command=lambda: self.open_person_form_for_relation(person, "child"))
+        menu.add_command(label="Agregar Pareja", command=lambda: self.open_person_form_for_relation(person, "spouse"))
+        menu.add_command(label="Agregar Hermano", command=lambda: self.open_person_form_for_relation(person, "sibling"))
         menu.post(self.root.winfo_pointerx(), self.root.winfo_pointery())
-
-    def add_parent(self, child, parent_type):
-        """Prepara el formulario para agregar un padre o madre"""
-        self.current_person = child
-        self.notebook.select(self.form_tab)
-        self.cedula_entry.focus()
-
-    def add_child(self, parent):
-        """Prepara el formulario para agregar un hijo"""
-        self.current_person = parent
-        self.notebook.select(self.form_tab)
-
-    def add_spouse(self, person):
-        """Prepara el formulario para agregar pareja"""
-        self.current_person = person
-        self.notebook.select(self.form_tab)
-
-    def add_sibling(self, person):
-        """Prepara el formulario para agregar hermano"""
-        self.current_person = person
-        self.notebook.select(self.form_tab)
 
 
 # === PUNTO DE ENTRADA ===
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ctk.CTk()
     app = GenealogyApp(root)
     root.mainloop()

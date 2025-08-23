@@ -1,6 +1,6 @@
 from typing import Tuple, Optional
-from models.familia import Family
-from models.persona import Person
+from models.family import Family
+from models.person import Person
 
 class RelacionService:
     """Servicio para gestionar relaciones familiares"""
