@@ -11,11 +11,9 @@ class RelacionService:
                         father_cedula: Optional[str] = None) -> Tuple[bool, str]:
         """
         Registra la relación de padres para un hijo.
-        Ahora acepta madre O padre de forma opcional.
+        Actualiza automáticamente la lista de hermanos.
         """
         child = family.get_member_by_cedula(child_cedula)
-        
-        # Validar que el hijo exista
         if not child:
             return False, "El hijo no existe en la familia"
         
@@ -51,11 +49,26 @@ class RelacionService:
             if child not in father.children:
                 father.children.append(child)
         
+        # ✅ ACTUALIZAR HERMANOS AUTOMÁTICAMENTE
+        RelacionService._actualizar_hermanos(child, family)
+        
         return True, "Relación de padres registrada exitosamente"
+
+    @staticmethod
+    def _actualizar_hermanos(person: Person, family: Family):
+        """Actualiza la lista de hermanos para todos los hijos de los padres"""
+        if person.father or person.mother:
+            # Obtener todos los hijos de los padres
+            padres = [p for p in [person.father, person.mother] if p]
+            for padre in padres:
+                for hermano in padre.children:
+                    if hermano != person and hermano not in person.siblings:
+                        person.siblings.append(hermano)
+                        hermano.siblings.append(person)
     
     @staticmethod
     def registrar_pareja(family: Family, person1_cedula: str, 
-                        person2_cedula: str) -> Tuple[bool, str]:
+                        person2_cedula: str) -> Tuple[bool, str]:   
         """Registra una unión de pareja entre dos personas"""
         person1 = family.get_member_by_cedula(person1_cedula)
         person2 = family.get_member_by_cedula(person2_cedula)
@@ -212,3 +225,52 @@ def obtener_fallecidos_antes_50(family: Family) -> int:
             except (ValueError, TypeError):
                 continue
     return count
+
+def buscar_personas_por_nombre(family: Family, nombre: str) -> list:
+    """Busca personas por nombre o apellido (búsqueda parcial, insensible a mayúsculas)"""
+    nombre = nombre.lower()
+    resultados = []
+    for person in family.members:
+        if (nombre in person.first_name.lower() or 
+            nombre in person.last_name.lower()):
+            resultados.append(person)
+    return resultados
+
+def obtener_personas_sin_relacion(family: Family) -> list:
+    """Obtiene personas sin relaciones familiares (sin padres, hijos, pareja o hermanos)"""
+    sin_relacion = []
+    for person in family.members:
+        if (not person.mother and not person.father and 
+            not person.children and not person.spouse and 
+            not person.siblings):
+            sin_relacion.append(person)
+    return sin_relacion
+
+def obtener_estadisticas_familia(family: Family) -> dict:
+    """Obtiene estadísticas generales de la familia"""
+    total = len(family.members)
+    vivos = len(family.get_living_members())
+    fallecidos = len(family.get_deceased_members())
+    promedio_edad = (sum(p.calculate_age() for p in family.get_living_members()) / vivos) if vivos > 0 else 0
+    return {
+        'total': total,
+        'vivos': vivos,
+        'fallecidos': fallecidos,
+        'promedio_edad': round(promedio_edad, 2)
+    }
+def obtener_personas_por_estado_civil(family: Family, estado_civil: str) -> list:
+    """Obtiene personas por estado civil"""
+    return [p for p in family.members if p.marital_status.lower() == estado_civil.lower()]
+
+def obtener_personas_por_provincia(family: Family, provincia: str) -> list:
+    """Obtiene personas por provincia"""
+    return [p for p in family.members if p.province.lower() == provincia.lower()] 
+
+def buscar_por_caracteristica(family: Family, caracteristica: str, valor) -> list:
+    """Busca personas por una característica específica"""
+    resultados = []
+    for person in family.members:
+        if hasattr(person, caracteristica):
+            if str(getattr(person, caracteristica)).lower() == str(valor).lower():
+                resultados.append(person)
+    return resultados

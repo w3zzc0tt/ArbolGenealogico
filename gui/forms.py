@@ -325,4 +325,6 @@ class PersonForm(ctk.CTkToplevel):
 
         if self.on_save:
             self.on_save(data)
-        self.destroy()
+            self.destroy()
+        else:
+            messagebox.showerror("Error", "No se puede guardar: falta función on_save")

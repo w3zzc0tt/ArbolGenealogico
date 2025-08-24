@@ -9,8 +9,17 @@ class Family:
         self.members = []
         self.current_year = datetime.datetime.now().year
 
-    def add_member(self, person: Person) -> None:
-        """Agrega una persona a la familia"""
+    # En models/family.py
+    def undo(self):
+        if self.history:
+            self.restore_state(self.history.pop())
+
+    def add_or_update_member(self, person: Person) -> None:
+        """Agrega o actualiza una persona en la familia"""
+        for i, p in enumerate(self.members):
+            if p.cedula == person.cedula:
+                self.members[i] = person
+                return
         self.members.append(person)
 
     def get_member_by_cedula(self, cedula: str) -> Optional[Person]:

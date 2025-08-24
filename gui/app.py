@@ -84,7 +84,7 @@ class GenealogyApp:
                 death_date=data["death_date"],
                 marital_status=data["marital_status"]
             )
-            self.family.add_member(person)
+            self.family.add_or_update_member(person)
             if self.add_ego_button:
                 self.add_ego_button.destroy()
             self.draw_tree()
@@ -171,7 +171,7 @@ class GenealogyApp:
                 return
 
             # Agregar a la familia
-            self.family.add_member(nueva_persona)
+            self.family.add_or_update_member(nueva_persona)
 
             # Establecer la relación según el tipo
             exito = False
@@ -206,7 +206,7 @@ class GenealogyApp:
             elif tipo_relacion == "conyuge":
                 exito, mensaje = RelacionService.registrar_pareja(
                     self.family,
-                    persona1_cedula=persona.cedula,
+                    person1_cedula=persona.cedula,
                     person2_cedula=nueva_persona.cedula
                 )
 

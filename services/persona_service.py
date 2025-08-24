@@ -5,7 +5,14 @@ from utils.validators import validar_persona_completa
 
 class PersonaService:
     """Servicio para gestionar operaciones relacionadas con personas"""
-    
+    def exportar_gedcom(family: Family) -> str:
+        """Exporta la familia a formato GEDCOM"""
+        gedcom_lines = ["0 HEAD", "1 SOUR ArbolGenealogicoApp", "1 GEDC", "2 VERS 5.5.1", "1 CHAR UTF-8"]
+        for person in family.members:
+            gedcom_lines.append(f"0 @{person.cedula}@ INDI")
+            gedcom_lines.append(f"1 NAME {person.first_name} /{person.last_name}/")
+            gedcom_lines.append
+            
     @staticmethod
     def crear_persona(family: Family, cedula: str, first_name: str, last_name: str, 
                      birth_date: str, death_date: str, gender: str, 

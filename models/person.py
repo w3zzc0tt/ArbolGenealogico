@@ -17,9 +17,21 @@ class Person:
         self.children = []
         self.siblings = []
         self.alive = death_date is None
-        self.history = [f"Nació en {birth_date}"]
+        self.history = [f"Nació el {birth_date}"]
         if not self.alive:
-            self.history.append(f"Falleció en {death_date}")
+            self.history.append(f"Falleció el {death_date}")
+
+    def set_death_date(self, death_date: str):
+        """Establece la fecha de defunción y actualiza estado"""
+        self.death_date = death_date
+        self.alive = False
+        self.add_event("Fallecimiento", death_date)
+
+    def set_alive(self):
+        """Establece que la persona está viva"""
+        self.death_date = None
+        self.alive = True
+        self.add_event("Regreso a la vida")
 
         # Atributos para simulación
         self.emotional_health = 100
