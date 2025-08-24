@@ -7,30 +7,49 @@ class RelacionService:
     
     @staticmethod
     def registrar_padres(family: Family, child_cedula: str, 
-                        mother_cedula: str, father_cedula: str) -> Tuple[bool, str]:
-        """Registra la relación de padres para un hijo"""
+                        mother_cedula: Optional[str] = None, 
+                        father_cedula: Optional[str] = None) -> Tuple[bool, str]:
+        """
+        Registra la relación de padres para un hijo.
+        Ahora acepta madre O padre de forma opcional.
+        """
         child = family.get_member_by_cedula(child_cedula)
-        mother = family.get_member_by_cedula(mother_cedula)
-        father = family.get_member_by_cedula(father_cedula)
         
-        if not child or not mother or not father:
-            return False, "Una o más personas no existen en la familia"
+        # Validar que el hijo exista
+        if not child:
+            return False, "El hijo no existe en la familia"
         
-        if mother.gender != "F":
+        # Validar que al menos un padre/madre esté presente
+        if not mother_cedula and not father_cedula:
+            return False, "Debe proporcionar al menos una madre o un padre"
+        
+        # Obtener objetos de personas
+        mother = family.get_member_by_cedula(mother_cedula) if mother_cedula else None
+        father = family.get_member_by_cedula(father_cedula) if father_cedula else None
+        
+        # Validar que los padres existan si se proporcionaron
+        if mother_cedula and not mother:
+            return False, "La madre seleccionada no existe en la familia"
+        if father_cedula and not father:
+            return False, "El padre seleccionado no existe en la familia"
+        
+        # Validar género para los padres proporcionados
+        if mother and mother.gender != "Femenino":
             return False, "La persona seleccionada como madre debe ser mujer"
         
-        if father.gender != "M":
+        if father and father.gender != "Masculino":
             return False, "La persona seleccionada como padre debe ser hombre"
         
         # Establecer relaciones
-        child.mother = mother
-        child.father = father
+        if mother:
+            child.mother = mother
+            if child not in mother.children:
+                mother.children.append(child)
         
-        # Asegurar que el hijo no esté duplicado
-        if child not in mother.children:
-            mother.children.append(child)
-        if child not in father.children:
-            father.children.append(child)
+        if father:
+            child.father = father
+            if child not in father.children:
+                father.children.append(child)
         
         return True, "Relación de padres registrada exitosamente"
     

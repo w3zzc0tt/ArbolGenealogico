@@ -152,66 +152,103 @@ class GenealogyApp:
             self.tree_canvas.create_text(x, y+25, text=person.cedula, fill="lightgray", font=("Arial", 8))
 
     def abrir_formulario_relacion(self, persona, tipo_relacion):
-        """Abre un formulario para seleccionar una persona y establecer una relación"""
-        form = ctk.CTkToplevel(self.root)
-        form.title(f"Agregar {tipo_relacion}")
-        form.geometry("400x300")
-        form.transient(self.root)
-        form.grab_set()
+        def on_save(data):
+            # Crear la nueva persona
+            nueva_persona = Person(
+                cedula=data["cedula"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                birth_date=data["birth_date"],
+                gender=data["gender"],
+                province=data["province"],
+                death_date=data["death_date"],
+                marital_status=data["marital_status"]
+            )
 
-        ctk.CTkLabel(form, text=f"Selecciona una persona para ser {tipo_relacion} de {persona.first_name}").pack(pady=10)
+            # Validar que no exista ya
+            if self.family.get_member_by_cedula(nueva_persona.cedula):
+                messagebox.showerror("Error", "Ya existe una persona con esa cédula")
+                return
 
-        # Lista de personas (excepto la misma persona)
-        opciones = [p for p in self.family.members if p.cedula != persona.cedula]
-        if not opciones:
-            ctk.CTkLabel(form, text="No hay otras personas en la familia").pack(pady=20)
-            return
+            # Agregar a la familia
+            self.family.add_member(nueva_persona)
 
-        nombres = [f"{p.first_name} {p.last_name} ({p.cedula})" for p in opciones]
-        combo = ctk.CTkComboBox(form, values=nombres, width=300)
-        combo.pack(pady=10)
-
-        def guardar():
-            seleccion = combo.get()
-            cedula_destino = seleccion.split("(")[-1].rstrip(")")
-
+            # Establecer la relación según el tipo
             exito = False
             mensaje = ""
 
             if tipo_relacion == "padre":
-                exito, mensaje = RelacionService.registrar_padres(
-                    self.family, cedula_destino, mother_cedula="", father_cedula=persona.cedula
-                )
-            elif tipo_relacion == "madre":
-                exito, mensaje = RelacionService.registrar_padres(
-                    self.family, cedula_destino, mother_cedula=persona.cedula, father_cedula=""
-                )
-            elif tipo_relacion == "conyuge":
-                exito, mensaje = RelacionService.registrar_pareja(self.family, persona.cedula, cedula_destino)
-            elif tipo_relacion == "hijo":
-                exito, mensaje = RelacionService.registrar_padres(
-                    self.family, cedula_destino, mother_cedula="", father_cedula=""
-                )
-                # Lo manejamos al revés: hijo → padre/madre
-                madre = next((p for p in self.family.members if p.cedula == cedula_destino), None)
-                if madre and madre.gender == "Femenino":
-                    exito, mensaje = RelacionService.registrar_padres(self.family, cedula_destino, mother_cedula=persona.cedula, father_cedula="")
+                if nueva_persona.gender == "Masculino":
+                    # ✅ Solo pasa father_cedula
+                    exito, mensaje = RelacionService.registrar_padres(
+                        self.family,
+                        child_cedula=persona.cedula,
+                        father_cedula=nueva_persona.cedula
+                    )
                 else:
-                    exito, mensaje = RelacionService.registrar_padres(self.family, cedula_destino, mother_cedula="", father_cedula=persona.cedula)
-            elif tipo_relacion == "hermano":
-                # Asumimos que comparten al menos un padre/madre
-                exito, mensaje = True, "Hermano agregado (funcionalidad básica)"
-                persona.siblings.append(next((p for p in self.family.members if p.cedula == cedula_destino), None))
+                    messagebox.showerror("Error", "El padre debe ser masculino")
+                    return
+            
+            
 
+            elif tipo_relacion == "madre":
+                if nueva_persona.gender == "Femenino":
+                    # ✅ Solo pasa mother_cedula
+                    exito, mensaje = RelacionService.registrar_padres(
+                        self.family,
+                        child_cedula=persona.cedula,
+                        mother_cedula=nueva_persona.cedula
+                    )
+                else:
+                    messagebox.showerror("Error", "La madre debe ser femenina")
+                    return
+
+            elif tipo_relacion == "conyuge":
+                exito, mensaje = RelacionService.registrar_pareja(
+                    self.family,
+                    persona1_cedula=persona.cedula,
+                    person2_cedula=nueva_persona.cedula
+                )
+
+            elif tipo_relacion == "hijo":
+                # ✅ USO CORRECTO: child_cedula es la NUEVA persona (hijo)
+                exito, mensaje = RelacionService.registrar_padres(
+                    family=self.family,
+                    child_cedula=nueva_persona.cedula,
+                    father_cedula=persona.cedula if persona.gender == "Masculino" else None,
+                    mother_cedula=persona.cedula if persona.gender == "Femenino" else None
+                )
+
+            elif tipo_relacion == "hermano":
+                # ✅ USO CORRECTO: child_cedula es la NUEVA persona (hermano)
+                exito, mensaje = RelacionService.registrar_padres(
+                    family=self.family,
+                    child_cedula=nueva_persona.cedula,
+                    father_cedula=persona.father.cedula if persona.father else None,
+                    mother_cedula=persona.mother.cedula if persona.mother else None
+                )
+
+            # Resultado
             if exito:
-                form.destroy()
+                messagebox.showinfo("Éxito", f"{mensaje}\n{nueva_persona.first_name} ahora es {tipo_relacion} de {persona.first_name}")
                 self.draw_tree()
                 self.update_history_tab()
-                messagebox.showinfo("Éxito", mensaje)
             else:
                 messagebox.showerror("Error", mensaje)
+                # Si falló, eliminar la persona recién creada
+                self.family.members.remove(nueva_persona)
 
-        ctk.CTkButton(form, text="Guardar", command=guardar, fg_color="#1db954").pack(pady=20)
+        # Abrir formulario para NUEVA persona
+        title_map = {
+            "padre": "Agregar Nuevo Padre",
+            "madre": "Agregar Nueva Madre",
+            "conyuge": "Agregar Nuevo Cónyuge",
+            "hijo": "Agregar Nuevo Hijo",
+            "hermano": "Agregar Nuevo Hermano"
+        }
+        title = title_map.get(tipo_relacion, f"Agregar Nueva Persona como {tipo_relacion}")
+
+        PersonForm(self.root, title=title, on_save=on_save)
 
     def mostrar_relaciones(self, person):
         """Muestra un popup con las relaciones de la persona"""
