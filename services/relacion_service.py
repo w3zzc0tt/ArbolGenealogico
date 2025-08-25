@@ -207,13 +207,13 @@ class RelacionService:
             exito, mensaje = RelacionService.registrar_padres(
                 family, 
                 child_cedula=child_cedula, 
-                father_cedula=parent_cedula
+                father_cedula=parent.cedula
             )
         else:
             exito, mensaje = RelacionService.registrar_padres(
                 family, 
                 child_cedula=child_cedula, 
-                mother_cedula=parent_cedula
+                mother_cedula=parent.cedula
             )
         
         if not exito:

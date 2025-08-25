@@ -211,11 +211,10 @@ class GenealogyApp:
 
             elif tipo_relacion == "hijo":
                 # ✅ USO CORRECTO: child_cedula es la NUEVA persona (hijo)
-                exito, mensaje = RelacionService.registrar_padres(
-                    family=self.family,
-                    child_cedula=nueva_persona.cedula,
-                    father_cedula=persona.cedula if persona.gender == "Masculino" else None,
-                    mother_cedula=persona.cedula if persona.gender == "Femenino" else None
+                exito, mensaje = RelacionService.registrar_hijo_con_pareja(
+                    self.family,
+                    persona.cedula,
+                    nueva_persona.cedula
                 )
 
             elif tipo_relacion == "hermano":

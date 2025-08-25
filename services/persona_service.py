@@ -8,6 +8,29 @@ def exportar_a_gedcom(family: Family) -> str:
     """Exporta la familia a formato GEDCOM"""
     gedcom_lines = ["0 HEAD", "1 GEDC", "2 VERS 5.5", "2 FORM LINEAGE-LINKED", "1 CHAR UTF-8"]
     
+    # Primero, identificar todas las familias únicas
+    families = {}
+    for person in family.members:
+        # Si la persona tiene padre o madre, pertenece a una familia como hijo
+        if person.father or person.mother:
+            # Crear una clave única para la familia basada en los padres
+            father_key = person.father.cedula if person.father else ""
+            mother_key = person.mother.cedula if person.mother else ""
+            family_key = f"{father_key}_{mother_key}"
+            
+            if family_key not in families:
+                families[family_key] = {
+                    "father": person.father,
+                    "mother": person.mother,
+                    "children": []
+                }
+            families[family_key]["children"].append(person)
+    
+    # Asignar referencias únicas a cada familia
+    family_refs = {}
+    for i, family_key in enumerate(families.keys(), 1):
+        family_refs[family_key] = f"@F{i}@"
+    
     # Exportar personas
     for i, person in enumerate(family.members, 1):
         ref = f"@I{i}@"
@@ -24,27 +47,39 @@ def exportar_a_gedcom(family: Family) -> str:
             gedcom_lines.append(f"2 DATE {person.death_date}")
         
         # Relaciones familiares
+        # Si la persona es padre/madre, asignar FAMS
+        if person.children:
+            # Encontrar todas las familias donde esta persona es padre/madre
+            for family_key, family_info in families.items():
+                if (person == family_info["father"] or person == family_info["mother"]) and family_key in family_refs:
+                    gedcom_lines.append(f"1 FAMS {family_refs[family_key]}")
+        
+        # Si la persona es hijo, asignar FAMC
         if person.father or person.mother:
-            gedcom_lines.append(f"1 FAMC @F{person.cedula}@")
-        if person.children or person.spouse:
-            gedcom_lines.append(f"1 FAMS @F{person.cedula}@")
+            father_key = person.father.cedula if person.father else ""
+            mother_key = person.mother.cedula if person.mother else ""
+            family_key = f"{father_key}_{mother_key}"
+            if family_key in family_refs:
+                gedcom_lines.append(f"1 FAMC {family_refs[family_key]}")
     
     # Exportar familias
-    for person in family.members:
-        if person.children or person.spouse:
-            fam_ref = f"@F{person.cedula}@"
-            gedcom_lines.append(f"0 {fam_ref} FAM")
-            
-            if person.father:
-                father_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == person.father.cedula][0]}@"
-                gedcom_lines.append(f"1 HUSB {father_ref}")
-            if person.mother:
-                mother_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == person.mother.cedula][0]}@"
-                gedcom_lines.append(f"1 WIFE {mother_ref}")
-            
-            for child in person.children:
-                child_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == child.cedula][0]}@"
-                gedcom_lines.append(f"1 CHIL {child_ref}")
+    for i, (family_key, family_info) in enumerate(families.items(), 1):
+        fam_ref = f"@F{i}@"
+        gedcom_lines.append(f"0 {fam_ref} FAM")
+        
+        if family_info["father"]:
+            # Encontrar el índice del padre en family.members
+            father_index = family.members.index(family_info["father"]) + 1
+            gedcom_lines.append(f"1 HUSB @I{father_index}@")
+        if family_info["mother"]:
+            # Encontrar el índice de la madre en family.members
+            mother_index = family.members.index(family_info["mother"]) + 1
+            gedcom_lines.append(f"1 WIFE @I{mother_index}@")
+        
+        for child in family_info["children"]:
+            # Encontrar el índice del hijo en family.members
+            child_index = family.members.index(child) + 1
+            gedcom_lines.append(f"1 CHIL @I{child_index}@")
     
     gedcom_lines.append("0 TRLR")
     return "\n".join(gedcom_lines)
