@@ -5,6 +5,7 @@ from tkinter import messagebox
 import datetime
 import sys
 import os
+import re  # Aseguramos que re está importado para las validaciones
 
 # Añadir el directorio raíz del proyecto para importar utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -95,16 +96,33 @@ class PersonForm(ctk.CTkToplevel):
         self.birth_entry.grid(row=3, column=1, padx=10, pady=6, sticky="ew")
         self.birth_entry.insert(0, self.data.get("birth_date", ""))
 
-        # Género
+        # Género - CÓDIGO CORREGIDO AQUÍ
         ctk.CTkLabel(form, text="Género:", font=("Arial", 12)).grid(
             row=4, column=0, sticky="w", padx=10, pady=6
         )
-        self.gender_var = ctk.StringVar(
-            value=self.data.get("gender", "Masculino")
-        )
+        
+        # Configurar los valores del combobox con "Seleccionar género" como primera opción
+        gender_values = ["Seleccionar género", "Masculino", "Femenino"]
+        
+        # Determinar el valor inicial
+        initial_gender = "Seleccionar género"
+        if self.data and "gender" in self.data:
+            # Si es una edición, usar el valor existente
+            initial_gender = self.data["gender"]
+            # Asegurar que el valor existente esté en los valores del combobox
+            if initial_gender not in gender_values:
+                initial_gender = "Seleccionar género"
+        elif not self.data:
+            # Si es un nuevo formulario, usar "Seleccionar género"
+            initial_gender = "Seleccionar género"
+        
+        # Crear la variable de control
+        self.gender_var = ctk.StringVar(value=initial_gender)
+        
+        # Crear el combobox
         gender_combo = ctk.CTkComboBox(
             form,
-            values=["Masculino", "Femenino"],
+            values=gender_values,
             variable=self.gender_var,
             width=220,
             state="readonly",
@@ -235,48 +253,75 @@ class PersonForm(ctk.CTkToplevel):
 
         # Validación de campos obligatorios
         if not all([cedula, first_name, last_name, birth_date]):
-            messagebox.showerror("Error", "Todos los campos obligatorios deben llenarse")
+            # Identificar qué campos faltan
+            missing_fields = []
+            if not cedula: missing_fields.append("Cédula")
+            if not first_name: missing_fields.append("Nombre")
+            if not last_name: missing_fields.append("Apellidos")
+            if not birth_date: missing_fields.append("Fecha de Nacimiento")
+            if not gender or gender == "Seleccionar género": missing_fields.append("Género")
+            
+            error_msg = "Los siguientes campos son obligatorios:\n" + "\n".join(f"- {field}" for field in missing_fields)
+            messagebox.showerror("Campos obligatorios", error_msg)
             return
 
         # === Validaciones: Usa utils si están disponibles ===
         if HAS_VALIDATORS:
             try:
-                if not validar_cedula(cedula):
-                    messagebox.showerror("Error", "Cédula inválida")
+                # Validar cédula con provincia
+                valido_cedula, mensaje_cedula = validar_cedula(cedula, province)
+                if not valido_cedula:
+                    messagebox.showerror("Error de validación", mensaje_cedula)
                     return
 
-                if not validar_nombre(first_name):
-                    messagebox.showerror("Error", "Nombre inválido")
+                # Validar nombre
+                valido_nombre, mensaje_nombre = validar_nombre(first_name, "nombre")
+                if not valido_nombre:
+                    messagebox.showerror("Error de validación", mensaje_nombre)
                     return
 
-                if not validar_nombre(last_name):
-                    messagebox.showerror("Error", "Apellidos inválidos")
+                # Validar apellido
+                valido_apellido, mensaje_apellido = validar_nombre(last_name, "apellido")
+                if not valido_apellido:
+                    messagebox.showerror("Error de validación", mensaje_apellido)
                     return
 
-                if not validar_fecha(birth_date):
-                    messagebox.showerror("Error", "Fecha de nacimiento inválida")
+                # Validar fecha de nacimiento
+                valido_nacimiento, mensaje_nacimiento = validar_fecha(birth_date, "nacimiento")
+                if not valido_nacimiento:
+                    messagebox.showerror("Error de validación", mensaje_nacimiento)
                     return
 
-                if death_date and not validar_fecha(death_date):
-                    messagebox.showerror("Error", "Fecha de defunción inválida")
+                # Validar fecha de fallecimiento (si existe)
+                if death_date:
+                    valido_fallecimiento, mensaje_fallecimiento = validar_fecha(death_date, "fallecimiento")
+                    if not valido_fallecimiento:
+                        messagebox.showerror("Error de validación", mensaje_fallecimiento)
+                        return
+                    
+                    # Validar coherencia entre fechas
+                    valido_coherencia, mensaje_coherencia = validar_fechas_coherentes(birth_date, death_date)
+                    if not valido_coherencia:
+                        messagebox.showerror("Error de validación", mensaje_coherencia)
+                        return
+
+                # Validar género (convertir a formato M/F para validación)
+                gender_to_validate = "M" if gender == "Masculino" else "F" if gender == "Femenino" else gender
+                valido_genero, mensaje_genero = validar_genero(gender_to_validate)
+                if not valido_genero:
+                    messagebox.showerror("Error de validación", "Debe seleccionar un género válido (Masculino/Femenino)")
                     return
 
-                if death_date and not validar_fechas_coherentes(birth_date, death_date):
-                    messagebox.showerror(
-                        "Error", "La fecha de defunción debe ser posterior a la de nacimiento"
-                    )
+                # Validar provincia
+                valido_provincia, mensaje_provincia = validar_provincia(province)
+                if not valido_provincia:
+                    messagebox.showerror("Error de validación", mensaje_provincia)
                     return
 
-                if not validar_genero(gender):
-                    messagebox.showerror("Error", "Género inválido")
-                    return
-
-                if not validar_provincia(province):
-                    messagebox.showerror("Error", "Provincia inválida")
-                    return
-
-                if not validar_estado_civil(marital_status):
-                    messagebox.showerror("Error", "Estado civil inválido")
+                # Validar estado civil
+                valido_estado, mensaje_estado = validar_estado_civil(marital_status)
+                if not valido_estado:
+                    messagebox.showerror("Error de validación", mensaje_estado)
                     return
 
             except Exception as e:
@@ -284,31 +329,83 @@ class PersonForm(ctk.CTkToplevel):
                 return
         else:
             # === Validaciones fallback (sin utils) ===
-            if not cedula.isdigit() or not (9 <= len(cedula) <= 12):
-                messagebox.showerror(
-                    "Error", "La cédula debe tener entre 9 y 12 dígitos y contener solo números"
-                )
+            # Validar cédula
+            if not cedula.isdigit():
+                messagebox.showerror("Error de validación", "La cédula debe contener solo números")
                 return
-
-            if not first_name.isalpha() or len(first_name) < 2:
-                messagebox.showerror("Error", "Nombre inválido")
+            if not (9 <= len(cedula) <= 12):
+                messagebox.showerror("Error de validación", "La cédula debe tener entre 9 y 12 dígitos")
                 return
-
-            if not all(c.isalpha() or c.isspace() for c in last_name) or len(last_name.strip()) < 2:
-                messagebox.showerror("Error", "Apellidos inválidos")
+                
+            # Verificar que el primer dígito coincida con la provincia
+            provincia_digitos = {
+                "San José": "1",
+                "Alajuela": "2",
+                "Cartago": "3",
+                "Heredia": "4",
+                "Guanacaste": "5",
+                "Puntarenas": "6",
+                "Limón": "7"
+            }
+            
+            if province in provincia_digitos:
+                digito_esperado = provincia_digitos[province]
+                if cedula[0] != digito_esperado:
+                    provincia_correcta = next((prov for prov, dig in provincia_digitos.items() 
+                                            if dig == cedula[0]), None)
+                    if provincia_correcta:
+                        messagebox.showerror("Error de validación", 
+                                        f"Error de provincia: La cédula {cedula} corresponde a {provincia_correcta}, no a {province}")
+                    else:
+                        messagebox.showerror("Error de validación", 
+                                        f"El primer dígito de la cédula ({cedula[0]}) no corresponde a ninguna provincia válida")
+                    return
+            
+            # Validar nombre
+            if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]+$", first_name) or len(first_name.strip()) < 2:
+                messagebox.showerror("Error de validación", 
+                                "Nombre inválido (solo letras, espacios y guiones, mínimo 2 caracteres)")
                 return
-
+            
+            # Validar apellido
+            if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]+$", last_name) or len(last_name.strip()) < 2:
+                messagebox.showerror("Error de validación", 
+                                "Apellidos inválidos (solo letras, espacios y guiones, mínimo 2 caracteres)")
+                return
+            
+            # Validar fechas
             try:
-                datetime.datetime.strptime(birth_date, "%Y-%m-%d")
+                # Validar formato de fecha
+                birth_datetime = datetime.datetime.strptime(birth_date, "%Y-%m-%d")
+                
+                # Verificar rango de fechas (1810-01-01 a 2025-01-01)
+                min_fecha = datetime.datetime(1810, 1, 1)
+                max_fecha = datetime.datetime(2025, 1, 1)
+                
+                if birth_datetime < min_fecha or birth_datetime > max_fecha:
+                    messagebox.showerror("Error de validación", 
+                                    "La fecha de nacimiento debe estar entre 1810-01-01 y 2025-01-01")
+                    return
+                    
                 if death_date:
-                    datetime.datetime.strptime(death_date, "%Y-%m-%d")
-                    if birth_date >= death_date:
+                    death_datetime = datetime.datetime.strptime(death_date, "%Y-%m-%d")
+                    
+                    # Verificar rango de fechas para fallecimiento
+                    if death_datetime < min_fecha or death_datetime > max_fecha:
+                        messagebox.showerror("Error de validación", 
+                                        "La fecha de fallecimiento debe estar entre 1810-01-01 y 2025-01-01")
+                        return
+                    
+                    # Verificar coherencia entre fechas
+                    if birth_datetime >= death_datetime:
                         messagebox.showerror(
-                            "Error", "La fecha de defunción debe ser posterior a la de nacimiento"
+                            "Error de validación", 
+                            "La fecha de defunción debe ser posterior a la de nacimiento"
                         )
                         return
             except ValueError:
-                messagebox.showerror("Error", "Formato de fecha inválido. Use YYYY-MM-DD")
+                messagebox.showerror("Error de validación", 
+                                "Formato de fecha inválido. Use el formato YYYY-MM-DD")
                 return
 
         # === Todos los datos son válidos ===
@@ -317,7 +414,7 @@ class PersonForm(ctk.CTkToplevel):
             "first_name": first_name,
             "last_name": last_name,
             "birth_date": birth_date,
-            "gender": gender,
+            "gender": gender,  # Mantenemos "Masculino"/"Femenino" para la interfaz
             "province": province,
             "marital_status": marital_status,
             "death_date": death_date,

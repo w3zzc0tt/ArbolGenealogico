@@ -90,30 +90,27 @@ class PersonaService:
     
     @staticmethod
     def crear_persona(family: Family, cedula: str, first_name: str, last_name: str, 
-                     birth_date: str, death_date: str, gender: str, 
-                     province: str, marital_status: str) -> Tuple[bool, Optional[Person], Optional[str]]:
+                    birth_date: str, death_date: str, gender: str, 
+                    province: str, marital_status: str) -> Tuple[bool, Optional[Person], Optional[str]]:
         """Crea una nueva persona con validación completa"""
-        
-        # Validar todos los datos
+        # MODIFICACIÓN CLAVE: Pasar la provincia a la validación de cédula
         valido, error = validar_persona_completa(
             cedula, first_name, last_name, birth_date, 
             gender, province, marital_status, death_date
         )
-        
         if not valido:
             return False, None, error
-        
+    
         # Verificar que la cédula sea única
         if not Family.validate_cedula_unique(cedula, family):
             return False, None, "La cédula ya existe en la familia"
-        
+    
         # Crear la persona
         person = Person(cedula, first_name, last_name, birth_date, 
-                       death_date, gender, province, marital_status)
-        
+                    death_date, gender, province, marital_status)
+    
         # Agregar a la familia
         family.add_member(person)
-        
         return True, person, "Persona creada exitosamente"
     
     @staticmethod

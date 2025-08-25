@@ -3,12 +3,23 @@ import random
 
 class Person:
     def __init__(self, cedula, first_name, last_name, birth_date, gender, province, death_date=None, marital_status="Soltero/a"):
+        # === MODIFICACIÓN CLAVE AQUÍ ===
+        # Convertir "Masculino"/"Femenino" a "M"/"F" para mantener consistencia
+        if gender == "Masculino":
+            self.gender = "M"
+        elif gender == "Femenino":
+            self.gender = "F"
+        elif gender in ["M", "F"]:
+            self.gender = gender
+        else:
+            raise ValueError("El género debe ser 'M', 'F', 'Masculino' o 'Femenino'")
+        
+        # Resto del código como estaba
         self.cedula = cedula
         self.first_name = first_name
         self.last_name = last_name
         self.birth_date = birth_date
         self.death_date = death_date
-        self.gender = gender
         self.province = province
         self.marital_status = marital_status
         self.spouse = None
@@ -20,6 +31,10 @@ class Person:
         self.history = [f"Nació el {birth_date}"]
         if not self.alive:
             self.history.append(f"Falleció el {death_date}")
+        
+        # Atributos para simulación
+        self.emotional_health = 100
+        self.interests = self.generate_interests()
 
     def set_death_date(self, death_date: str):
         """Establece la fecha de defunción y actualiza estado"""
