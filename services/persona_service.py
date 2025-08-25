@@ -1,18 +1,58 @@
+# services/persona_service.py
 from typing import Tuple, Optional
 from models.family import Family
 from models.person import Person
 from utils.validators import validar_persona_completa
 
+def exportar_a_gedcom(family: Family) -> str:
+    """Exporta la familia a formato GEDCOM"""
+    gedcom_lines = ["0 HEAD", "1 GEDC", "2 VERS 5.5", "2 FORM LINEAGE-LINKED", "1 CHAR UTF-8"]
+    
+    # Exportar personas
+    for i, person in enumerate(family.members, 1):
+        ref = f"@I{i}@"
+        gedcom_lines.append(f"0 {ref} INDI")
+        gedcom_lines.append(f"1 NAME {person.first_name} {person.last_name}")
+        gedcom_lines.append(f"1 SEX {'M' if person.gender == 'Masculino' else 'F'}")
+        
+        if person.birth_date:
+            gedcom_lines.append("1 BIRT")
+            gedcom_lines.append(f"2 DATE {person.birth_date}")
+        
+        if not person.alive and person.death_date:
+            gedcom_lines.append("1 DEAT")
+            gedcom_lines.append(f"2 DATE {person.death_date}")
+        
+        # Relaciones familiares
+        if person.father or person.mother:
+            gedcom_lines.append(f"1 FAMC @F{person.cedula}@")
+        if person.children or person.spouse:
+            gedcom_lines.append(f"1 FAMS @F{person.cedula}@")
+    
+    # Exportar familias
+    for person in family.members:
+        if person.children or person.spouse:
+            fam_ref = f"@F{person.cedula}@"
+            gedcom_lines.append(f"0 {fam_ref} FAM")
+            
+            if person.father:
+                father_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == person.father.cedula][0]}@"
+                gedcom_lines.append(f"1 HUSB {father_ref}")
+            if person.mother:
+                mother_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == person.mother.cedula][0]}@"
+                gedcom_lines.append(f"1 WIFE {mother_ref}")
+            
+            for child in person.children:
+                child_ref = f"@I{[i+1 for i, p in enumerate(family.members) if p.cedula == child.cedula][0]}@"
+                gedcom_lines.append(f"1 CHIL {child_ref}")
+    
+    gedcom_lines.append("0 TRLR")
+    return "\n".join(gedcom_lines)
+
+
 class PersonaService:
     """Servicio para gestionar operaciones relacionadas con personas"""
-    def exportar_gedcom(family: Family) -> str:
-        """Exporta la familia a formato GEDCOM"""
-        gedcom_lines = ["0 HEAD", "1 SOUR ArbolGenealogicoApp", "1 GEDC", "2 VERS 5.5.1", "1 CHAR UTF-8"]
-        for person in family.members:
-            gedcom_lines.append(f"0 @{person.cedula}@ INDI")
-            gedcom_lines.append(f"1 NAME {person.first_name} /{person.last_name}/")
-            gedcom_lines.append
-            
+    
     @staticmethod
     def crear_persona(family: Family, cedula: str, first_name: str, last_name: str, 
                      birth_date: str, death_date: str, gender: str, 

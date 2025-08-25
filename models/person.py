@@ -77,3 +77,9 @@ class Person:
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.cedula})"
+    
+    def add_history(self, event: str):
+        """Agrega un evento manual al historial"""
+        from datetime import datetime
+        date = datetime.now().strftime("%Y-%m-%d")
+        self.history.append(f"{event} ({date})")

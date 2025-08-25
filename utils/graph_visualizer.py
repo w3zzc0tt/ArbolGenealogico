@@ -154,24 +154,18 @@ class FamilyGraphVisualizer:
                     if source in pos and target in pos:
                         x1, y1 = pos[source]
                         x2, y2 = pos[target]
-
-                        # Color y estilo según el tipo de relación
+                        
                         edge_data = self.G[source][target]
-                        relationship = edge_data.get('relationship')
-
-                        if relationship == 'parent':
-                            color = "#4CAF50"  # Verde para padre-hijo
-                            arrow = tk.LAST
-                            canvas.create_line(x1, y1, x2, y2, fill=color, width=2, arrow=arrow)
-                        elif relationship == 'spouse':
-                            color = "#FF6B6B"  # Rojo para cónyuges
-                            canvas.create_line(x1, y1, x2, y2, fill=color, width=2, dash=(4, 2))
-                        elif relationship == 'sibling':
-                            color = "#4A90E2"  # Azul para hermanos
-                            canvas.create_line(x1, y1, x2, y2, fill=color, width=1.5, dash=(4, 2))
-
+                        if edge_data.get('relationship') == 'parent':
+                            # Dibuja línea verde para padre/madre
+                            canvas.create_line(x1, y1, x2, y2, fill="#4CAF50", width=2, arrow=tk.LAST)
+                        elif edge_data.get('relationship') == 'spouse':
+                            # Dibuja línea roja para pareja
+                            canvas.create_line(x1, y1, x2, y2, fill="#FF6B6B", width=2, dash=(4, 2))
+                        elif edge_data.get('relationship') == 'sibling':
+                            # Dibuja línea azul para hermanos
+                            canvas.create_line(x1, y1, x2, y2, fill="#2ECC71", width=1, dash=(4, 2))
                 except Exception as e:
-                    print(f"Error dibujando conexión {edge}: {e}")
                     continue
 
             # Dibujar nodos (personas)

@@ -12,6 +12,7 @@ from models.family import Family
 from models.person import Person
 from gui.forms import PersonForm
 from services.relacion_service import RelacionService
+from gui.history_panel import HistoryPanel  # Importar el nuevo panel
 
 try:
     from utils.graph_visualizer import FamilyGraphVisualizer
@@ -189,8 +190,6 @@ class GenealogyApp:
                     messagebox.showerror("Error", "El padre debe ser masculino")
                     return
             
-            
-
             elif tipo_relacion == "madre":
                 if nueva_persona.gender == "Femenino":
                     # ✅ Solo pasa mother_cedula
@@ -270,18 +269,11 @@ class GenealogyApp:
         messagebox.showinfo(f"Relaciones de {person.first_name}", info)
 
     def setup_history_tab(self):
-        self.history_text = tk.Text(self.history_tab, bg="#2a2a2a", fg="white", font=("Consolas", 10))
-        self.history_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        self.update_history_tab()
+        # Crear el panel de historia
+        self.history_panel = HistoryPanel(self.history_tab, self.family)
 
     def update_history_tab(self):
-        self.history_text.delete(1.0, tk.END)
-        for person in self.family.members:
-            self.history_text.insert(tk.END, f"👤 {person}\n", "person")
-            for event in person.history:
-                self.history_text.insert(tk.END, f"  • {event}\n", "event")
-            self.history_text.insert(tk.END, "\n")
+        self.history_panel.update_history()
 
     def run(self):
         self.root.mainloop()

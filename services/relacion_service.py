@@ -190,6 +190,56 @@ class RelacionService:
         
         encontrar_descendientes(person)
         return descendants
+    
+    @staticmethod
+    def registrar_hijo_con_pareja(family: Family, parent_cedula: str, child_cedula: str) -> Tuple[bool, str]:
+        """
+        Registra un hijo para un padre/madre y automáticamente lo asigna al cónyuge
+        """
+        parent = family.get_member_by_cedula(parent_cedula)
+        child = family.get_member_by_cedula(child_cedula)
+        
+        if not parent or not child:
+            return False, "Una o más personas no existen en la familia"
+        
+        # Primero registrar al padre/madre con el hijo
+        if parent.gender == "Masculino":
+            exito, mensaje = RelacionService.registrar_padres(
+                family, 
+                child_cedula=child_cedula, 
+                father_cedula=parent_cedula
+            )
+        else:
+            exito, mensaje = RelacionService.registrar_padres(
+                family, 
+                child_cedula=child_cedula, 
+                mother_cedula=parent_cedula
+            )
+        
+        if not exito:
+            return False, mensaje
+        
+        # Ahora verificar si el padre/madre tiene cónyuge
+        if parent.spouse:
+            # El cónyuge también se convierte en padre/madre
+            spouse = parent.spouse
+            if spouse.gender == "Masculino":
+                exito_spouse, mensaje_spouse = RelacionService.registrar_padres(
+                    family, 
+                    child_cedula=child_cedula, 
+                    father_cedula=spouse.cedula
+                )
+            else:
+                exito_spouse, mensaje_spouse = RelacionService.registrar_padres(
+                    family, 
+                    child_cedula=child_cedula, 
+                    mother_cedula=spouse.cedula
+                )
+            
+            if exito_spouse:
+                return True, f"{mensaje} y {mensaje_spouse}"
+        
+        return True, mensaje
 
 # Funciones de utilidad para consultas
 def obtener_nacimientos_ultimos_10_años(family: Family) -> int:
