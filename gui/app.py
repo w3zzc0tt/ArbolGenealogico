@@ -13,6 +13,7 @@ from models.person import Person
 from gui.forms import PersonForm
 from services.relacion_service import RelacionService
 from gui.history_panel import HistoryPanel  # Importar el nuevo panel
+from services.persona_service import PersonaService  # IMPORTAR EL SERVICIO DE PERSONAS
 
 try:
     from utils.graph_visualizer import FamilyGraphVisualizer
@@ -24,7 +25,7 @@ except ImportError:
 
 class GenealogyApp:
     def __init__(self, root):
-        self.root = root
+        self.root = root  # Guardar la ventana principal
         self.root.title("🌳 Árbol Genealógico Familiar")
         self.root.geometry("1200x800")
 
@@ -32,7 +33,6 @@ class GenealogyApp:
         ctk.set_default_color_theme("blue")
 
         self.family = Family(1, "Mi Familia")
-        self.selected_person = None
         self.create_widgets()
 
     def create_widgets(self):
@@ -94,51 +94,76 @@ class GenealogyApp:
         PersonForm(self.root, title="Agregar Persona Principal", on_save=on_save)
 
     def draw_tree(self):
-        self.tree_canvas.delete("all")
-        if not self.family.members:
-            self.tree_canvas.create_text(600, 400, text="No hay personas en el árbol", fill="white", font=("Arial", 16))
-            return
+        """Método en tu clase principal (app.py)"""
+        try:
+            # Verificar si el canvas existe
+            if hasattr(self, 'tree_canvas') and self.tree_canvas.winfo_exists():
+                # Crear una nueva instancia del visualizador para asegurar datos frescos
+                visualizer = FamilyGraphVisualizer()
+                
+                # ✅ CORRECCIÓN CLAVE: Nueva definición con orden correcto
+                def custom_show_menu(event, person):
+                    menu = tk.Menu(self.root, tearoff=0)
+                    menu.add_command(
+                        label="➕ Agregar Padre",
+                        command=lambda: self.abrir_formulario_relacion(person, "padre")
+                    )
+                    menu.add_command(
+                        label="➕ Agregar Madre",
+                        command=lambda: self.abrir_formulario_relacion(person, "madre")
+                    )
+                    menu.add_command(
+                        label="💍 Agregar Cónyuge",
+                        command=lambda: self.abrir_formulario_relacion(person, "conyuge")
+                    )
+                    menu.add_command(
+                        label="👶 Agregar Hijo",
+                        command=lambda: self.abrir_formulario_relacion(person, "hijo")
+                    )
+                    menu.add_command(
+                        label="🧍 Agregar Hermano",
+                        command=lambda: self.abrir_formulario_relacion(person, "hermano")
+                    )
+                    menu.add_separator()
+                    menu.add_command(
+                        label="🗑️ Eliminar Persona",
+                        command=lambda: self.eliminar_persona(person)
+                    )
+                    menu.add_command(
+                        label="🔍 Ver relaciones",
+                        command=lambda: self.mostrar_relaciones(person)
+                    )
+                    menu.tk_popup(event.x_root, event.y_root)
+                    menu.grab_release()
 
-        if HAS_VISUALIZER:
-            visualizer = FamilyGraphVisualizer()
-            
-            # ✅ CORRECCIÓN CLAVE: Nueva definición con orden correcto
-            def custom_show_menu(event, person):
-                menu = tk.Menu(self.root, tearoff=0)
-                menu.add_command(
-                    label="➕ Agregar Padre",
-                    command=lambda: self.abrir_formulario_relacion(person, "padre")
-                )
-                menu.add_command(
-                    label="➕ Agregar Madre",
-                    command=lambda: self.abrir_formulario_relacion(person, "madre")
-                )
-                menu.add_command(
-                    label="💍 Agregar Cónyuge",
-                    command=lambda: self.abrir_formulario_relacion(person, "conyuge")
-                )
-                menu.add_command(
-                    label="👶 Agregar Hijo",
-                    command=lambda: self.abrir_formulario_relacion(person, "hijo")
-                )
-                menu.add_command(
-                    label="🧍 Agregar Hermano",
-                    command=lambda: self.abrir_formulario_relacion(person, "hermano")
-                )
-                menu.add_separator()
-                menu.add_command(
-                    label="🔍 Ver relaciones",
-                    command=lambda: self.mostrar_relaciones(person)
-                )
-                menu.tk_popup(event.x_root, event.y_root)
-                menu.grab_release()
+                # ✅ Asignar el nuevo método con el orden correcto
+                visualizer._show_menu = custom_show_menu
+                
+                # Dibujar el árbol
+                visualizer.draw_family_tree(self.family, self.tree_canvas)
+            else:
+                # Recrear el canvas si no existe
+                self.recreate_tree_canvas()
+        except Exception as e:
+            print(f"Error al dibujar árbol: {e}")
+            # Intentar recrear el canvas
+            self.recreate_tree_canvas()
 
-            # ✅ Asignar el nuevo método con el orden correcto
-            visualizer._show_menu = custom_show_menu
+    def recreate_tree_canvas(self):
+        """Recrea el canvas del árbol en caso de que se haya destruido"""
+        try:
+            # Destruir canvas existente si existe
+            if hasattr(self, 'tree_canvas') and self.tree_canvas.winfo_exists():
+                self.tree_canvas.destroy()
             
-            visualizer.draw_family_tree(self.family, self.tree_canvas)
-        else:
-            self._draw_basic_tree()
+            # Crear un nuevo canvas
+            self.tree_canvas = tk.Canvas(self.tree_tab, bg="#2a2a2a", highlightthickness=0)
+            self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            # Intentar dibujar el árbol nuevamente
+            self.draw_tree()
+        except Exception as e:
+            print(f"Error al recrear el canvas: {e}")
 
     def _draw_basic_tree(self):
         canvas_width = self.tree_canvas.winfo_width() or 1200
@@ -248,6 +273,19 @@ class GenealogyApp:
 
         PersonForm(self.root, title=title, on_save=on_save)
 
+    def eliminar_persona(self, person):
+        """Método mejorado para eliminar una persona usando el servicio completo"""
+        if messagebox.askyesno("Confirmar", f"¿Eliminar a {person.first_name} {person.last_name}?"):
+            # Usar el servicio de eliminación completo
+            exito, mensaje = PersonaService.eliminar_persona(self.family, person.cedula)
+            
+            if exito:
+                messagebox.showinfo("Éxito", mensaje)
+                self.draw_tree()
+                self.update_history_tab()
+            else:
+                messagebox.showerror("Error", mensaje)
+
     def mostrar_relaciones(self, person):
         """Muestra un popup con las relaciones de la persona"""
         relaciones = []
@@ -268,8 +306,8 @@ class GenealogyApp:
         messagebox.showinfo(f"Relaciones de {person.first_name}", info)
 
     def setup_history_tab(self):
-        # Crear el panel de historia
-        self.history_panel = HistoryPanel(self.history_tab, self.family)
+        # CREAR EL PANEL DE HISTORIA CON SELF COMO PADRE (NO self.history_tab)
+        self.history_panel = HistoryPanel(self, self.family)
 
     def update_history_tab(self):
         self.history_panel.update_history()

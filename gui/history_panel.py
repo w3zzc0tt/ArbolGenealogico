@@ -2,6 +2,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
+from services.persona_service import PersonaService  # IMPORTAR EL SERVICIO DE PERSONAS
 
 class HistoryPanel:
     def __init__(self, parent, family):
@@ -13,7 +14,7 @@ class HistoryPanel:
         # Frame principal
         self.frame = ctk.CTkFrame(self.parent)
         self.frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
+        
         # Texto del historial
         self.history_text = ctk.CTkTextbox(
             self.frame,
@@ -163,9 +164,15 @@ class HistoryPanel:
             else:
                 messagebox.showerror("Error", "Cédula no encontrada.")
         
+        # CREAR Y CONFIGURAR LA VENTANA EMERGENTE CORRECTAMENTE
         search_window = ctk.CTkToplevel(self.parent)
         search_window.title("Buscar Persona por Cédula")
         search_window.geometry("300x150")
+        
+        # Configuración crítica para ventanas modales
+        search_window.transient(self.parent)  # Hacer que la ventana sea transitoria
+        search_window.grab_set()  # Capturar el foco
+        search_window.focus_force()  # Forzar el foco
         
         ctk.CTkLabel(search_window, text="Ingrese la cédula:").pack(pady=10)
         entry = ctk.CTkEntry(search_window, placeholder_text="Ej: 123456789")
@@ -177,6 +184,9 @@ class HistoryPanel:
             command=on_search,
             fg_color="#1db954"
         ).pack(pady=10)
+        
+        # Esperar a que la ventana se cierre antes de continuar
+        self.parent.wait_window(search_window)
 
     def ver_detalles_persona(self):
         def on_view():
@@ -221,17 +231,38 @@ class HistoryPanel:
                 detail_window.title(f"Detalles de {persona.first_name}")
                 detail_window.geometry("400x500")
                 
+                # Configuración crítica para ventanas modales
+                detail_window.transient(self.parent)
+                detail_window.grab_set()
+                detail_window.focus_force()
+                
                 text_widget = tk.Text(detail_window, bg="#2a2a2a", fg="white", font=("Arial", 10))
                 text_widget.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
                 text_widget.insert(tk.END, info)
                 text_widget.config(state="disabled")
                 
+                # Botón para cerrar
+                ctk.CTkButton(
+                    detail_window,
+                    text="Cerrar",
+                    command=detail_window.destroy,
+                    fg_color="#e74c3c"
+                ).pack(pady=10)
+                
+                # Esperar a que la ventana se cierre
+                self.parent.wait_window(detail_window)
             else:
                 messagebox.showerror("Error", "Cédula no encontrada.")
         
+        # CREAR Y CONFIGURAR LA VENTANA EMERGENTE CORRECTAMENTE
         search_window = ctk.CTkToplevel(self.parent)
         search_window.title("Ver Detalles de Persona")
         search_window.geometry("300x150")
+        
+        # Configuración crítica para ventanas modales
+        search_window.transient(self.parent)
+        search_window.grab_set()
+        search_window.focus_force()
         
         ctk.CTkLabel(search_window, text="Ingrese la cédula:").pack(pady=10)
         entry = ctk.CTkEntry(search_window, placeholder_text="Ej: 123456789")
@@ -243,6 +274,9 @@ class HistoryPanel:
             command=on_view,
             fg_color="#1db954"
         ).pack(pady=10)
+        
+        # Esperar a que la ventana se cierre
+        self.parent.wait_window(search_window)
 
     def eliminar_persona(self):
         def on_delete():
@@ -251,30 +285,31 @@ class HistoryPanel:
                 messagebox.showerror("Error", "Ingrese una cédula")
                 return
                 
-            persona = self.family.get_member_by_cedula(cedula)
-            if not persona:
-                messagebox.showerror("Error", "Cédula no encontrada.")
-                return
-                
-            if messagebox.askyesno("Confirmar", f"¿Eliminar a {persona.first_name} {persona.last_name}?"):
-                # Eliminar relaciones primero
-                if persona.father:
-                    if persona in persona.father.children:
-                        persona.father.children.remove(persona)
-                if persona.mother:
-                    if persona in persona.mother.children:
-                        persona.mother.children.remove(persona)
-                if persona.spouse:
-                    persona.spouse.spouse = None
-                # Eliminar de la familia
-                self.family.members.remove(persona)
-                messagebox.showinfo("Éxito", f"{persona.first_name} eliminado correctamente")
+            # USAR EL SERVICIO COMPLETO DE ELIMINACIÓN
+            exito, mensaje = PersonaService.eliminar_persona(self.family, cedula)
+            
+            if exito:
+                messagebox.showinfo("Éxito", mensaje)
+                # Actualizar historial y árbol
                 self.update_history()
-                self.parent.draw_tree()  # Actualizar árbol
+                try:
+                    # Intentar actualizar el árbol de forma segura
+                    if hasattr(self.parent, 'draw_tree'):
+                        self.parent.draw_tree()
+                except Exception as e:
+                    print(f"Error al actualizar el árbol: {e}")
+            else:
+                messagebox.showerror("Error", mensaje)
         
+        # CREAR Y CONFIGURAR LA VENTANA EMERGENTE CORRECTAMENTE
         delete_window = ctk.CTkToplevel(self.parent)
         delete_window.title("Eliminar Persona")
         delete_window.geometry("300x150")
+        
+        # Configuración crítica para ventanas modales
+        delete_window.transient(self.parent)
+        delete_window.grab_set()
+        delete_window.focus_force()
         
         ctk.CTkLabel(delete_window, text="Cédula de la persona a eliminar:").pack(pady=10)
         entry = ctk.CTkEntry(delete_window, placeholder_text="Ej: 123456789")
@@ -287,6 +322,9 @@ class HistoryPanel:
             fg_color="#e74c3c",
             hover_color="#c0392b"
         ).pack(pady=10)
+        
+        # Esperar a que la ventana se cierre
+        self.parent.wait_window(delete_window)
 
     def actualizar_arbol(self):
         self.parent.draw_tree()

@@ -132,20 +132,30 @@ class FamilyGraphVisualizer:
     def draw_family_tree(self, family, canvas: tk.Canvas):
         """Dibuja el árbol familiar en el canvas de tkinter"""
         try:
+            # Verificar si el canvas aún existe
+            if not canvas.winfo_exists():
+                return
+                
+            # Limpiar canvas solo si existe
             canvas.delete("all")
-
+            
             if not family.members:
-                canvas.create_text(
-                    600, 400,
-                    text="No hay personas en el árbol",
-                    font=("Arial", 16),
-                    fill="white"
-                )
+                if canvas.winfo_exists():
+                    canvas.create_text(
+                        600, 400,
+                        text="No hay personas en el árbol",
+                        font=("Arial", 16),
+                        fill="white"
+                    )
                 return
 
             # Construir grafo y calcular layout
             self.build_family_graph(family)
             pos = self.calculate_hierarchical_layout(family)
+            
+            # Verificar si el canvas sigue existiendo después de construir el grafo
+            if not canvas.winfo_exists():
+                return
 
             # Dibujar conexiones primero (líneas)
             for edge in self.G.edges():
@@ -171,6 +181,10 @@ class FamilyGraphVisualizer:
             # Dibujar nodos (personas)
             for cedula, (x, y) in pos.items():
                 try:
+                    # Verificar que el canvas aún exista antes de dibujar
+                    if not canvas.winfo_exists():
+                        return
+                        
                     person = next((p for p in family.members if p.cedula == cedula), None)
                     if not person:
                         continue
@@ -205,13 +219,19 @@ class FamilyGraphVisualizer:
                     continue
 
         except Exception as e:
+            # Manejar errores sin intentar dibujar en un canvas inexistente
             print(f"Error crítico al dibujar árbol: {e}")
-            canvas.create_text(
-                600, 400,
-                text=f"Error al dibujar árbol: {str(e)}",
-                font=("Arial", 12),
-                fill="red"
-            )
+            try:
+                if canvas.winfo_exists():
+                    canvas.create_text(
+                        600, 400,
+                        text=f"Error al dibujar árbol: {str(e)}",
+                        font=("Arial", 12),
+                        fill="red"
+                    )
+            except:
+                # Si no podemos dibujar en el canvas, solo imprimimos el error
+                print(f"Error crítico al dibujar árbol: {e}")
 
     def _show_menu(self, event, person):
         """Placeholder - será reemplazado en app.py"""
