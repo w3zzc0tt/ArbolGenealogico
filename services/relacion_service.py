@@ -1,3 +1,4 @@
+# services/relacion_service.py - VERSIÓN CORREGIDA
 from typing import Tuple, Optional
 from models.family import Family
 from models.person import Person
@@ -31,11 +32,11 @@ class RelacionService:
         if father_cedula and not father:
             return False, "El padre seleccionado no existe en la familia"
         
-        # Validar género para los padres proporcionados
-        if mother and mother.gender != "Femenino":
+        # CORREGIDO: Validar género con ambos formatos
+        if mother and not RelacionService._es_femenino(mother.gender):
             return False, "La persona seleccionada como madre debe ser mujer"
         
-        if father and father.gender != "Masculino":
+        if father and not RelacionService._es_masculino(father.gender):
             return False, "La persona seleccionada como padre debe ser hombre"
         
         # Establecer relaciones
@@ -49,10 +50,20 @@ class RelacionService:
             if child not in father.children:
                 father.children.append(child)
         
-        # ✅ ACTUALIZAR HERMANOS AUTOMÁTICAMENTE
+        # Actualizar hermanos automáticamente
         RelacionService._actualizar_hermanos(child, family)
         
         return True, "Relación de padres registrada exitosamente"
+
+    @staticmethod
+    def _es_masculino(gender: str) -> bool:
+        """Verifica si el género es masculino en cualquier formato"""
+        return gender in ["M", "Masculino"]
+    
+    @staticmethod
+    def _es_femenino(gender: str) -> bool:
+        """Verifica si el género es femenino en cualquier formato"""
+        return gender in ["F", "Femenino"]
 
     @staticmethod
     def _actualizar_hermanos(person: Person, family: Family):
@@ -64,7 +75,8 @@ class RelacionService:
                 for hermano in padre.children:
                     if hermano != person and hermano not in person.siblings:
                         person.siblings.append(hermano)
-                        hermano.siblings.append(person)
+                        if person not in hermano.siblings:
+                            hermano.siblings.append(person)
     
     @staticmethod
     def registrar_pareja(family: Family, person1_cedula: str, 
@@ -79,10 +91,13 @@ class RelacionService:
         if person1 == person2:
             return False, "No se puede registrar pareja consigo mismo"
         
-        if person1.gender == person2.gender:
-            return False, "No se puede registrar pareja del mismo género"
+        # CORREGIDO: Usar funciones auxiliares para validar géneros
+        if RelacionService._es_masculino(person1.gender) and RelacionService._es_masculino(person2.gender):
+            return False, "No se puede registrar pareja del mismo género (ambos masculinos)"
+        if RelacionService._es_femenino(person1.gender) and RelacionService._es_femenino(person2.gender):
+            return False, "No se puede registrar pareja del mismo género (ambas femeninas)"
         
-        # ✅ CORRECCIÓN: Verificar si ya están registrados como pareja
+        # Verificar si ya están registrados como pareja
         if person1.spouse == person2 and person2.spouse == person1:
             # Asegurar que el estado civil esté correcto
             if "Casado" not in person1.marital_status:
@@ -91,11 +106,17 @@ class RelacionService:
                 person2.marital_status = "Casado/a"
             return True, "Pareja ya registrada"
         
+        # Verificar si alguno ya tiene pareja
+        if person1.spouse and person1.spouse != person2:
+            return False, f"{person1.first_name} ya tiene pareja"
+        if person2.spouse and person2.spouse != person1:
+            return False, f"{person2.first_name} ya tiene pareja"
+        
         # Establecer relación
         person1.spouse = person2
         person2.spouse = person1
         
-        # ✅ CORRECCIÓN: Asegurar que el estado civil se actualice correctamente
+        # Actualizar estado civil
         person1.marital_status = "Casado/a"
         person2.marital_status = "Casado/a"
         
@@ -208,7 +229,7 @@ class RelacionService:
             return False, "Una o más personas no existen en la familia"
         
         # Primero registrar al padre/madre con el hijo
-        if parent.gender == "Masculino":
+        if RelacionService._es_masculino(parent.gender):
             exito, mensaje = RelacionService.registrar_padres(
                 family, 
                 child_cedula=child_cedula, 
@@ -228,7 +249,7 @@ class RelacionService:
         if parent.spouse:
             # El cónyuge también se convierte en padre/madre
             spouse = parent.spouse
-            if spouse.gender == "Masculino":
+            if RelacionService._es_masculino(spouse.gender):
                 exito_spouse, mensaje_spouse = RelacionService.registrar_padres(
                     family, 
                     child_cedula=child_cedula, 
@@ -313,6 +334,7 @@ def obtener_estadisticas_familia(family: Family) -> dict:
         'fallecidos': fallecidos,
         'promedio_edad': round(promedio_edad, 2)
     }
+
 def obtener_personas_por_estado_civil(family: Family, estado_civil: str) -> list:
     """Obtiene personas por estado civil"""
     return [p for p in family.members if p.marital_status.lower() == estado_civil.lower()]

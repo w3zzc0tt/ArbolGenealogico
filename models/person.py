@@ -27,6 +27,7 @@ class Person:
         self.father = None
         self.children = []
         self.siblings = []
+        self.events = []
         self.alive = death_date is None
         self.history = [f"Nació el {birth_date}"]
         if not self.alive:

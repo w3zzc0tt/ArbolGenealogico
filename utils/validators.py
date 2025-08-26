@@ -1,3 +1,4 @@
+# utils/validators.py - VERSIÓN CORREGIDA
 import re
 import datetime
 from typing import Tuple, Optional
@@ -55,14 +56,14 @@ def validar_fecha(fecha_str: str, tipo: str = "nacimiento") -> Tuple[bool, Optio
     except ValueError:
         return False, f"Formato de fecha {tipo} inválido. Use YYYY-MM-DD"
     
-    # Rango permitido: 1810-01-01 a 2025-01-01
+    # RANGO CORREGIDO: 1810-01-01 a fecha actual + 1 año
     min_fecha = datetime.datetime(1810, 1, 1)
-    max_fecha = datetime.datetime(2025, 1, 1)
+    max_fecha = datetime.datetime.now() + datetime.timedelta(days=365)
     
     if fecha < min_fecha:
         return False, f"La fecha de {tipo} no puede ser anterior a 1810-01-01"
     if fecha > max_fecha:
-        return False, f"La fecha de {tipo} no puede ser posterior a 2025-01-01"
+        return False, f"La fecha de {tipo} no puede ser posterior a {max_fecha.strftime('%Y-%m-%d')}"
     
     return True, None
 
@@ -88,7 +89,9 @@ def validar_fechas_coherentes(nacimiento: str, fallecimiento: Optional[str]) -> 
         return False, "Formato de fechas inválido"
 
 def validar_genero(genero: str) -> Tuple[bool, Optional[str]]:
-    if genero not in ["M", "F", "Masculino", "Femenino"]:
+    """CORREGIDO: Ahora acepta tanto M/F como Masculino/Femenino"""
+    generos_validos = ["M", "F", "Masculino", "Femenino"]
+    if genero not in generos_validos:
         return False, "Debe seleccionar un género válido (Masculino/Femenino)"
     return True, None
 
@@ -101,7 +104,7 @@ def validar_provincia(provincia: str) -> Tuple[bool, Optional[str]]:
 
 def validar_estado_civil(estado_civil: str) -> Tuple[bool, Optional[str]]:
     """Valida que el estado civil sea válido"""
-    estados_validos = ["Casado/a", "Divorciado/a", "Soltero/a", "Viudo/a"]
+    estados_validos = ["Casado/a", "Divorciado/a", "Soltero/a", "Viudo/a", "Unión Libre"]
     if estado_civil not in estados_validos:
         return False, f"Estado civil inválido. Debe ser uno de: {', '.join(estados_validos)}"
     return True, None

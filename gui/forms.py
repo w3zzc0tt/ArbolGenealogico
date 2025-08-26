@@ -1,11 +1,11 @@
-# forms.py
+# gui/forms.py - VERSIÓN CORREGIDA
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
 import datetime
 import sys
 import os
-import re  # Aseguramos que re está importado para las validaciones
+import re
 
 # Añadir el directorio raíz del proyecto para importar utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -96,25 +96,23 @@ class PersonForm(ctk.CTkToplevel):
         self.birth_entry.grid(row=3, column=1, padx=10, pady=6, sticky="ew")
         self.birth_entry.insert(0, self.data.get("birth_date", ""))
 
-        # Género - CÓDIGO CORREGIDO AQUÍ
+        # Género - CÓDIGO CORREGIDO
         ctk.CTkLabel(form, text="Género:", font=("Arial", 12)).grid(
             row=4, column=0, sticky="w", padx=10, pady=6
         )
         
-        # Configurar los valores del combobox con "Seleccionar género" como primera opción
-        gender_values = ["Seleccionar género", "Masculino", "Femenino"]
+        # Configurar los valores del combobox
+        gender_values = ["Masculino", "Femenino"]
         
         # Determinar el valor inicial
-        initial_gender = "Seleccionar género"
+        initial_gender = "Masculino"  # Valor por defecto
         if self.data and "gender" in self.data:
-            # Si es una edición, usar el valor existente
-            initial_gender = self.data["gender"]
-            # Asegurar que el valor existente esté en los valores del combobox
-            if initial_gender not in gender_values:
-                initial_gender = "Seleccionar género"
-        elif not self.data:
-            # Si es un nuevo formulario, usar "Seleccionar género"
-            initial_gender = "Seleccionar género"
+            # Manejar diferentes formatos de género
+            data_gender = self.data["gender"]
+            if data_gender in ["M", "Masculino"]:
+                initial_gender = "Masculino"
+            elif data_gender in ["F", "Femenino"]:
+                initial_gender = "Femenino"
         
         # Crear la variable de control
         self.gender_var = ctk.StringVar(value=initial_gender)
@@ -236,7 +234,7 @@ class PersonForm(ctk.CTkToplevel):
         if self.status_var.get() == "Fallecido":
             self.death_frame.grid()
         else:
-            self.death_entry.delete(0, "end")  # Limpiar si se cambia a "Vivo"
+            self.death_entry.delete(0, "end")
             self.death_frame.grid_remove()
 
     def save(self):
@@ -252,20 +250,24 @@ class PersonForm(ctk.CTkToplevel):
         death_date = self.death_entry.get().strip() if status == "Fallecido" else None
 
         # Validación de campos obligatorios
-        if not all([cedula, first_name, last_name, birth_date]):
-            # Identificar qué campos faltan
-            missing_fields = []
-            if not cedula: missing_fields.append("Cédula")
-            if not first_name: missing_fields.append("Nombre")
-            if not last_name: missing_fields.append("Apellidos")
-            if not birth_date: missing_fields.append("Fecha de Nacimiento")
-            if not gender or gender == "Seleccionar género": missing_fields.append("Género")
-            
+        missing_fields = []
+        if not cedula: 
+            missing_fields.append("Cédula")
+        if not first_name: 
+            missing_fields.append("Nombre")
+        if not last_name: 
+            missing_fields.append("Apellidos")
+        if not birth_date: 
+            missing_fields.append("Fecha de Nacimiento")
+        if not gender or gender == "Seleccionar género": 
+            missing_fields.append("Género")
+        
+        if missing_fields:
             error_msg = "Los siguientes campos son obligatorios:\n" + "\n".join(f"- {field}" for field in missing_fields)
             messagebox.showerror("Campos obligatorios", error_msg)
             return
 
-        # === Validaciones: Usa utils si están disponibles ===
+        # === Validaciones mejoradas ===
         if HAS_VALIDATORS:
             try:
                 # Validar cédula con provincia
@@ -305,11 +307,10 @@ class PersonForm(ctk.CTkToplevel):
                         messagebox.showerror("Error de validación", mensaje_coherencia)
                         return
 
-                # Validar género (convertir a formato M/F para validación)
-                gender_to_validate = "M" if gender == "Masculino" else "F" if gender == "Femenino" else gender
-                valido_genero, mensaje_genero = validar_genero(gender_to_validate)
+                # Validar género - CORREGIDO: Ahora acepta "Masculino"/"Femenino"
+                valido_genero, mensaje_genero = validar_genero(gender)
                 if not valido_genero:
-                    messagebox.showerror("Error de validación", "Debe seleccionar un género válido (Masculino/Femenino)")
+                    messagebox.showerror("Error de validación", "Debe seleccionar un género válido")
                     return
 
                 # Validar provincia
@@ -328,7 +329,7 @@ class PersonForm(ctk.CTkToplevel):
                 messagebox.showerror("Error", f"Error en validación: {str(e)}")
                 return
         else:
-            # === Validaciones fallback (sin utils) ===
+            # === Validaciones fallback mejoradas ===
             # Validar cédula
             if not cedula.isdigit():
                 messagebox.showerror("Error de validación", "La cédula debe contener solo números")
@@ -340,7 +341,7 @@ class PersonForm(ctk.CTkToplevel):
             # Verificar que el primer dígito coincida con la provincia
             provincia_digitos = {
                 "San José": "1",
-                "Alajuela": "2",
+                "Alajuela": "2", 
                 "Cartago": "3",
                 "Heredia": "4",
                 "Guanacaste": "5",
@@ -373,18 +374,21 @@ class PersonForm(ctk.CTkToplevel):
                                 "Apellidos inválidos (solo letras, espacios y guiones, mínimo 2 caracteres)")
                 return
             
-            # Validar fechas
+            # Validar fechas - CORREGIDO: Rango actualizado
             try:
-                # Validar formato de fecha
                 birth_datetime = datetime.datetime.strptime(birth_date, "%Y-%m-%d")
                 
-                # Verificar rango de fechas (1810-01-01 a 2025-01-01)
+                # Verificar rango de fechas actualizado (1810-01-01 a fecha actual + 1 año)
                 min_fecha = datetime.datetime(1810, 1, 1)
-                max_fecha = datetime.datetime(2025, 1, 1)
+                max_fecha = datetime.datetime.now() + datetime.timedelta(days=365)
                 
-                if birth_datetime < min_fecha or birth_datetime > max_fecha:
+                if birth_datetime < min_fecha:
                     messagebox.showerror("Error de validación", 
-                                    "La fecha de nacimiento debe estar entre 1810-01-01 y 2025-01-01")
+                                    "La fecha de nacimiento no puede ser anterior a 1810-01-01")
+                    return
+                if birth_datetime > max_fecha:
+                    messagebox.showerror("Error de validación", 
+                                    f"La fecha de nacimiento no puede ser posterior a {max_fecha.strftime('%Y-%m-%d')}")
                     return
                     
                 if death_date:
@@ -393,14 +397,14 @@ class PersonForm(ctk.CTkToplevel):
                     # Verificar rango de fechas para fallecimiento
                     if death_datetime < min_fecha or death_datetime > max_fecha:
                         messagebox.showerror("Error de validación", 
-                                        "La fecha de fallecimiento debe estar entre 1810-01-01 y 2025-01-01")
+                                        f"La fecha de fallecimiento debe estar entre 1810-01-01 y {max_fecha.strftime('%Y-%m-%d')}")
                         return
                     
                     # Verificar coherencia entre fechas
                     if birth_datetime >= death_datetime:
                         messagebox.showerror(
                             "Error de validación", 
-                            "La fecha de defunción debe ser posterior a la de nacimiento"
+                            "La fecha de fallecimiento debe ser posterior a la de nacimiento"
                         )
                         return
             except ValueError:
@@ -408,13 +412,13 @@ class PersonForm(ctk.CTkToplevel):
                                 "Formato de fecha inválido. Use el formato YYYY-MM-DD")
                 return
 
-        # === Todos los datos son válidos ===
+        # === Datos validados correctamente ===
         data = {
             "cedula": cedula,
             "first_name": first_name,
             "last_name": last_name,
             "birth_date": birth_date,
-            "gender": gender,  # Mantenemos "Masculino"/"Femenino" para la interfaz
+            "gender": gender,  # Mantener "Masculino"/"Femenino" 
             "province": province,
             "marital_status": marital_status,
             "death_date": death_date,

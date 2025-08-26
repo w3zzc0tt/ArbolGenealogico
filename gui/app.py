@@ -184,6 +184,7 @@ class GenealogyApp:
             self.tree_canvas.create_text(x, y, text=f"{person.first_name}\n{person.last_name}", fill="white", font=("Arial", 10, "bold"))
             self.tree_canvas.create_text(x, y+25, text=person.cedula, fill="lightgray", font=("Arial", 8))
 
+    # Fragmento de app.py - MÉTODO CORREGIDO
     def abrir_formulario_relacion(self, persona, tipo_relacion):
         def on_save(data):
             # Crear la nueva persona
@@ -192,7 +193,7 @@ class GenealogyApp:
                 first_name=data["first_name"],
                 last_name=data["last_name"],
                 birth_date=data["birth_date"],
-                gender=data["gender"],
+                gender=data["gender"],  # Ahora maneja "Masculino"/"Femenino" correctamente
                 province=data["province"],
                 death_date=data["death_date"],
                 marital_status=data["marital_status"]
@@ -206,13 +207,20 @@ class GenealogyApp:
             # Agregar a la familia
             self.family.add_or_update_member(nueva_persona)
 
+            # CORREGIDO: Usar funciones auxiliares para validar género
+            def es_masculino(gender):
+                return gender in ["M", "Masculino"]
+            
+            def es_femenino(gender):
+                return gender in ["F", "Femenino"]
+
             # Establecer la relación según el tipo
             exito = False
             mensaje = ""
 
             if tipo_relacion == "padre":
-                if nueva_persona.gender == "Masculino":
-                    # ✅ Solo pasa father_cedula
+                if es_masculino(nueva_persona.gender):
+                    # Solo pasa father_cedula
                     exito, mensaje = RelacionService.registrar_padres(
                         self.family,
                         child_cedula=persona.cedula,
@@ -220,11 +228,12 @@ class GenealogyApp:
                     )
                 else:
                     messagebox.showerror("Error", "El padre debe ser masculino")
+                    self.family.members.remove(nueva_persona)  # Eliminar si falla
                     return
             
             elif tipo_relacion == "madre":
-                if nueva_persona.gender == "Femenino":
-                    # ✅ Solo pasa mother_cedula
+                if es_femenino(nueva_persona.gender):
+                    # Solo pasa mother_cedula
                     exito, mensaje = RelacionService.registrar_padres(
                         self.family,
                         child_cedula=persona.cedula,
@@ -232,6 +241,7 @@ class GenealogyApp:
                     )
                 else:
                     messagebox.showerror("Error", "La madre debe ser femenina")
+                    self.family.members.remove(nueva_persona)  # Eliminar si falla
                     return
 
             elif tipo_relacion == "conyuge":
@@ -242,7 +252,7 @@ class GenealogyApp:
                 )
 
             elif tipo_relacion == "hijo":
-                # ✅ USO CORRECTO: child_cedula es la NUEVA persona (hijo)
+                # USO CORRECTO: child_cedula es la NUEVA persona (hijo)
                 exito, mensaje = RelacionService.registrar_hijo_con_pareja(
                     self.family,
                     persona.cedula,
@@ -250,7 +260,7 @@ class GenealogyApp:
                 )
 
             elif tipo_relacion == "hermano":
-                # ✅ USO CORRECTO: child_cedula es la NUEVA persona (hermano)
+                # USO CORRECTO: child_cedula es la NUEVA persona (hermano)
                 exito, mensaje = RelacionService.registrar_padres(
                     family=self.family,
                     child_cedula=nueva_persona.cedula,
@@ -266,7 +276,8 @@ class GenealogyApp:
             else:
                 messagebox.showerror("Error", mensaje)
                 # Si falló, eliminar la persona recién creada
-                self.family.members.remove(nueva_persona)
+                if nueva_persona in self.family.members:
+                    self.family.members.remove(nueva_persona)
 
         # Abrir formulario para NUEVA persona
         title_map = {
