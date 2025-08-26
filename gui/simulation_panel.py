@@ -7,6 +7,7 @@ import time
 from models.simulation_config import SimulationConfig
 from services.simulacion_service import SimulacionService
 from utils.graph_visualizer import FamilyGraphVisualizer
+from utils.timeline_visualizer import TimelineVisualizer
 
 class SimulationPanel:
     def __init__(self, parent, family):
@@ -105,23 +106,39 @@ class SimulationPanel:
         thread.start()
     
     def run_simulation(self):
+        """Ciclo de simulación mejorado"""
+        last_birthday = time.time()
+        last_events = time.time()
+        
         while self.running:
-            # Ejecutar ciclo de simulación
-            eventos = SimulacionService.ejecutar_ciclo_simulacion(
-                self.simulated_family, 
-                self.config
-            )
+            current_time = time.time()
             
-            # Agregar eventos al historial
-            for evento in eventos:
-                self.event_text.insert("end", f"{evento}\n")
-                self.event_text.see("end")
+            # Cumpleaños cada 10 segundos
+            if current_time - last_birthday >= 10:
+                birthday_events = SimulacionService.ejecutar_ciclo_cumpleanos(self.simulated_family)
+                for evento in birthday_events:
+                    self.event_text.insert("end", f"{evento}\n")
+                    self.event_text.see("end")
+                last_birthday = current_time
+            
+            # Otros eventos cada 5 segundos
+            if current_time - last_events >= 5:
+                eventos = SimulacionService.ejecutar_ciclo_simulacion(
+                    self.simulated_family, 
+                    self.config
+                )
+                
+                for evento in eventos:
+                    self.event_text.insert("end", f"{evento}\n")
+                    self.event_text.see("end")
+                
+                last_events = current_time
             
             # Redibujar árbol
             self.draw_tree()
             
-            # Esperar tiempo real configurado
-            time.sleep(self.config.real_time_per_year)
+            # Esperar intervalo mínimo
+            time.sleep(0.5)  # 500ms entre actualizaciones visuales
     
     def pausar_simulacion(self):
         self.running = False
@@ -182,3 +199,62 @@ class SimulationPanel:
         visualizer._show_menu = custom_show_menu
         
         visualizer.draw_family_tree(self.simulated_family, self.tree_canvas)
+    
+    def agregar_boton_timeline(self):
+        """Agrega botón para ver línea de tiempo"""
+        timeline_btn = ctk.CTkButton(
+            self.button_frame,
+            text="⏰ Línea de Tiempo",
+            command=self.mostrar_timeline_seleccionada,
+            fg_color="#9b59b6"
+        )
+        timeline_btn.pack(side=tk.LEFT, padx=5)
+
+    def mostrar_timeline_seleccionada(self):
+        """Muestra línea de tiempo de persona seleccionada"""
+        # Implementar selección de persona
+        # Por simplicidad, mostrar de la primera persona
+        if self.simulated_family and self.simulated_family.members:
+            person = self.simulated_family.members[0]
+            TimelineVisualizer.create_timeline_window(person)
+
+    def setup_stats_panel(self):
+        """Panel de estadísticas en tiempo real"""
+        stats_frame = ctk.CTkFrame(self.frame)
+        stats_frame.pack(fill="x", padx=5, pady=5)
+        
+        # Labels de estadísticas
+        self.stats_labels = {}
+        stats = [
+            ("👥 Total", "total_people"),
+            ("💚 Vivos", "alive_count"),
+            ("💔 Fallecidos", "deceased_count"),
+            ("💍 Casados", "married_count"),
+            ("👶 Menores", "children_count"),
+            ("🔥 Año", "current_year")
+        ]
+        
+        for i, (label, key) in enumerate(stats):
+            stat_label = ctk.CTkLabel(stats_frame, text=f"{label}: 0")
+            stat_label.grid(row=0, column=i, padx=10, pady=5)
+            self.stats_labels[key] = stat_label
+
+    def update_stats_display(self):
+        """Actualiza estadísticas en pantalla"""
+        if not self.simulated_family:
+            return
+        
+        stats = {
+            'total_people': len(self.simulated_family.members),
+            'alive_count': len(self.simulated_family.get_living_members()),
+            'deceased_count': len(self.simulated_family.get_deceased_members()),
+            'married_count': len([p for p in self.simulated_family.members if p.spouse]),
+            'children_count': len([p for p in self.simulated_family.members 
+                                if p.alive and p.calculate_virtual_age() < 18]),
+            'current_year': self.simulated_family.current_year
+        }
+        
+        for key, value in stats.items():
+            if key in self.stats_labels:
+                label_text = f"{self.stats_labels[key].cget('text').split(':')[0]}: {value}"
+                self.stats_labels[key].configure(text=label_text)
