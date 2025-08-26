@@ -1,4 +1,4 @@
-# gui/forms.py - VERSIÓN CORREGIDA
+# gui/forms.py - VERSIÓN SIN LÍMITES DE FECHA
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
@@ -91,7 +91,7 @@ class PersonForm(ctk.CTkToplevel):
             row=3, column=0, sticky="w", padx=10, pady=6
         )
         self.birth_entry = ctk.CTkEntry(
-            form, placeholder_text="YYYY-MM-DD", width=220
+            form, placeholder_text="YYYY-MM-DD (cualquier año)", width=220
         )
         self.birth_entry.grid(row=3, column=1, padx=10, pady=6, sticky="ew")
         self.birth_entry.insert(0, self.data.get("birth_date", ""))
@@ -202,7 +202,7 @@ class PersonForm(ctk.CTkToplevel):
         self.death_frame.grid(row=8, column=1, sticky="ew", padx=10, pady=5)
         ctk.CTkLabel(self.death_frame, text="Fecha Fallec.:").pack(side="left")
         self.death_entry = ctk.CTkEntry(
-            self.death_frame, placeholder_text="YYYY-MM-DD", width=150
+            self.death_frame, placeholder_text="YYYY-MM-DD (cualquier año)", width=150
         )
         self.death_entry.pack(side="left", padx=5)
         if self.data.get("death_date"):
@@ -238,7 +238,7 @@ class PersonForm(ctk.CTkToplevel):
             self.death_frame.grid_remove()
 
     def save(self):
-        """Valida y guarda los datos del formulario"""
+        """Valida y guarda los datos del formulario - SIN LÍMITES DE FECHA"""
         cedula = self.cedula_entry.get().strip()
         first_name = self.first_name_entry.get().strip()
         last_name = self.last_name_entry.get().strip()
@@ -329,7 +329,7 @@ class PersonForm(ctk.CTkToplevel):
                 messagebox.showerror("Error", f"Error en validación: {str(e)}")
                 return
         else:
-            # === Validaciones fallback mejoradas ===
+            # === Validaciones fallback SIN LÍMITES DE FECHA ===
             # Validar cédula
             if not cedula.isdigit():
                 messagebox.showerror("Error de validación", "La cédula debe contener solo números")
@@ -374,31 +374,12 @@ class PersonForm(ctk.CTkToplevel):
                                 "Apellidos inválidos (solo letras, espacios y guiones, mínimo 2 caracteres)")
                 return
             
-            # Validar fechas - CORREGIDO: Rango actualizado
+            # ✅ VALIDACIÓN DE FECHAS SIN LÍMITES DE RANGO
             try:
                 birth_datetime = datetime.datetime.strptime(birth_date, "%Y-%m-%d")
-                
-                # Verificar rango de fechas actualizado (1810-01-01 a fecha actual + 1 año)
-                min_fecha = datetime.datetime(1810, 1, 1)
-                max_fecha = datetime.datetime.now() + datetime.timedelta(days=365)
-                
-                if birth_datetime < min_fecha:
-                    messagebox.showerror("Error de validación", 
-                                    "La fecha de nacimiento no puede ser anterior a 1810-01-01")
-                    return
-                if birth_datetime > max_fecha:
-                    messagebox.showerror("Error de validación", 
-                                    f"La fecha de nacimiento no puede ser posterior a {max_fecha.strftime('%Y-%m-%d')}")
-                    return
                     
                 if death_date:
                     death_datetime = datetime.datetime.strptime(death_date, "%Y-%m-%d")
-                    
-                    # Verificar rango de fechas para fallecimiento
-                    if death_datetime < min_fecha or death_datetime > max_fecha:
-                        messagebox.showerror("Error de validación", 
-                                        f"La fecha de fallecimiento debe estar entre 1810-01-01 y {max_fecha.strftime('%Y-%m-%d')}")
-                        return
                     
                     # Verificar coherencia entre fechas
                     if birth_datetime >= death_datetime:

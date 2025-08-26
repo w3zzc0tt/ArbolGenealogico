@@ -1,4 +1,4 @@
-# utils/validators.py - VERSIÓN CORREGIDA
+# utils/validators.py - VERSIÓN CORREGIDA SIN LÍMITES DE FECHA
 import re
 import datetime
 from typing import Tuple, Optional
@@ -41,7 +41,7 @@ def validar_cedula(cedula: str, provincia: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 def validar_fecha(fecha_str: str, tipo: str = "nacimiento") -> Tuple[bool, Optional[str]]:
-    """Valida que la fecha esté en el formato correcto y rango permitido"""
+    """Valida que la fecha esté en el formato correcto - SIN LÍMITES DE RANGO"""
     if not fecha_str:
         if tipo == "nacimiento":
             return False, "La fecha de nacimiento es obligatoria"
@@ -54,16 +54,10 @@ def validar_fecha(fecha_str: str, tipo: str = "nacimiento") -> Tuple[bool, Optio
     try:
         fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d")
     except ValueError:
-        return False, f"Formato de fecha {tipo} inválido. Use YYYY-MM-DD"
+        return False, f"Fecha {tipo} inválida. Verifique día, mes y año"
     
-    # RANGO CORREGIDO: 1810-01-01 a fecha actual + 1 año
-    min_fecha = datetime.datetime(1810, 1, 1)
-    max_fecha = datetime.datetime.now() + datetime.timedelta(days=365)
-    
-    if fecha < min_fecha:
-        return False, f"La fecha de {tipo} no puede ser anterior a 1810-01-01"
-    if fecha > max_fecha:
-        return False, f"La fecha de {tipo} no puede ser posterior a {max_fecha.strftime('%Y-%m-%d')}"
+    # ✅ CAMBIO PRINCIPAL: YA NO HAY LÍMITES DE RANGO
+    # Solo verificamos que sea una fecha válida del calendario
     
     return True, None
 
@@ -78,11 +72,6 @@ def validar_fechas_coherentes(nacimiento: str, fallecimiento: Optional[str]) -> 
         
         if fecha_fall <= fecha_nac:
             return False, "La fecha de fallecimiento debe ser posterior a la de nacimiento"
-        
-        # Verificar que la persona no tenga más de 120 años
-        edad = fecha_fall.year - fecha_nac.year - ((fecha_fall.month, fecha_fall.day) < (fecha_nac.month, fecha_nac.day))
-        if edad > 120:
-            return False, "Edad imposible: La persona no puede tener más de 120 años"
             
         return True, None
     except ValueError:
