@@ -88,7 +88,17 @@ class Person:
 
     def has_partner(self) -> bool:
         """Verifica si la persona tiene pareja"""
-        return self.spouse is not None and self.spouse.alive
+        # ✅ CORRECCIÓN: Verificar tanto spouse como estado civil
+        if self.spouse and self.spouse.alive and self.spouse.spouse == self:
+            return True
+        # Si el estado civil indica que está casado/a pero no hay spouse, corregir
+        if "Casado" in self.marital_status and not self.spouse:
+            self.marital_status = "Soltero/a"
+        return False
+
+    def is_married_to(self, other_person: 'Person') -> bool:
+        """Verifica si esta persona está casada con otra persona específica"""
+        return self.has_partner() and self.spouse == other_person
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.cedula})"

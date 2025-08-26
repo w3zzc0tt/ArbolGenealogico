@@ -82,15 +82,20 @@ class RelacionService:
         if person1.gender == person2.gender:
             return False, "No se puede registrar pareja del mismo género"
         
-        # Verificar si ya están registrados como pareja
-        if person1.spouse == person2:
-            return False, "Estas personas ya están registradas como pareja"
+        # ✅ CORRECCIÓN: Verificar si ya están registrados como pareja
+        if person1.spouse == person2 and person2.spouse == person1:
+            # Asegurar que el estado civil esté correcto
+            if "Casado" not in person1.marital_status:
+                person1.marital_status = "Casado/a"
+            if "Casado" not in person2.marital_status:
+                person2.marital_status = "Casado/a"
+            return True, "Pareja ya registrada"
         
         # Establecer relación
         person1.spouse = person2
         person2.spouse = person1
         
-        # Actualizar estado civil
+        # ✅ CORRECCIÓN: Asegurar que el estado civil se actualice correctamente
         person1.marital_status = "Casado/a"
         person2.marital_status = "Casado/a"
         

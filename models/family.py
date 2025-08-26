@@ -1,4 +1,5 @@
 import datetime
+import random
 from typing import Optional
 from .person import Person
 
@@ -77,3 +78,30 @@ class Family:
             parent.children.append(child)
         else:
             raise ValueError("Uno o ambos miembros no existen en la familia.")
+
+    def verificar_integridad(self) -> bool:
+        """Verifica la integridad del árbol familiar"""
+        errores = []
+        
+        for person in self.members:
+            # Verificar pareja
+            if person.spouse:
+                if person.spouse.spouse != person:
+                    errores.append(f"{person.first_name} tiene pareja pero no es recíproca")
+                
+                # Verificar estado civil
+                if "Casado" not in person.marital_status:
+                    errores.append(f"{person.first_name} tiene pareja pero estado civil es '{person.marital_status}'")
+            
+            # Verificar padres
+            if person.father and person not in person.father.children:
+                errores.append(f"{person.first_name} tiene padre pero no está en sus hijos")
+            if person.mother and person not in person.mother.children:
+                errores.append(f"{person.first_name} tiene madre pero no está en sus hijos")
+        
+        if errores:
+            for error in errores:
+                print(f"ERROR DE INTEGRIDAD: {error}")
+            return False
+        
+        return True

@@ -46,8 +46,15 @@ class GenealogyApp:
         self.tree_tab = self.notebook.add("Árbol Genealógico")
         self.history_tab = self.notebook.add("Historial")
 
+        self.simulation_tab = self.notebook.add("Simulación")
+
         self.setup_tree_tab()
         self.setup_history_tab()
+        self.setup_simulation_tab()
+
+    def setup_simulation_tab(self):
+        from gui.simulation_panel import SimulationPanel
+        self.simulation_panel = SimulationPanel(self.simulation_tab, self.family)
 
     def setup_tree_tab(self):
         frame = ctk.CTkFrame(self.tree_tab)
@@ -307,7 +314,8 @@ class GenealogyApp:
 
     def setup_history_tab(self):
         # CREAR EL PANEL DE HISTORIA CON SELF COMO PADRE (NO self.history_tab)
-        self.history_panel = HistoryPanel(self, self.family)
+        self.history_panel = HistoryPanel(self.history_tab, self.family)
+        self.history_panel.update_history()
 
     def update_history_tab(self):
         self.history_panel.update_history()

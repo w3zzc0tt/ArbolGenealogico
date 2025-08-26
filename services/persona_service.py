@@ -35,7 +35,7 @@ def exportar_a_gedcom(family: Family) -> str:
     for i, person in enumerate(family.members, 1):
         ref = f"@I{i}@"
         gedcom_lines.append(f"0 {ref} INDI")
-        gedcom_lines.append(f"1 NAME {person.first_name} {person.last_name}")
+        gedcom_lines.append(f"1 NAME {person.first_name} /{person.last_name}/")
         gedcom_lines.append(f"1 SEX {'M' if person.gender == 'Masculino' else 'F'}")
         
         if person.birth_date:
@@ -83,7 +83,6 @@ def exportar_a_gedcom(family: Family) -> str:
     
     gedcom_lines.append("0 TRLR")
     return "\n".join(gedcom_lines)
-
 
 class PersonaService:
     """Servicio para gestionar operaciones relacionadas con personas"""
