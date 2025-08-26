@@ -45,12 +45,17 @@ class GenealogyApp:
 
         self.tree_tab = self.notebook.add("Árbol Genealógico")
         self.history_tab = self.notebook.add("Historial")
-
         self.simulation_tab = self.notebook.add("Simulación")
+        self.consultas_tab = self.notebook.add("Consultas")
 
         self.setup_tree_tab()
         self.setup_history_tab()
         self.setup_simulation_tab()
+        self.setup_consultas_tab()
+
+    def setup_consultas_tab(self):
+        from gui.consultas_panel import ConsultasPanel
+        self.consultas_panel = ConsultasPanel(self.consultas_tab, self.family)
 
     def setup_simulation_tab(self):
         from gui.simulation_panel import SimulationPanel
