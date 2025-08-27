@@ -1,5 +1,6 @@
 import datetime
 import random
+import re
 
 class Person:
     def __init__(self, cedula, first_name, last_name, birth_date, gender, province, death_date=None, marital_status="Soltero/a"):
