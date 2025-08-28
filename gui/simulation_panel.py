@@ -10,7 +10,7 @@ from services.simulacion_service import SimulacionService
 from utils.graph_visualizer import FamilyGraphVisualizer  # ✅ CORRECCIÓN: Cambiado a gui.graph_visualizer
 from utils.timeline_visualizer import TimelineVisualizer  # ✅ CORRECCIÓN: Cambiado a gui.timeline_visualizer
 from gui.forms import RelationshipForm, PersonForm  # ✅ CORRECCIÓN: Importar formularios necesarios
-from utils.utils_service import calcular_compatibilidad_total  # ✅ IMPORTACIÓN CORREGIDA
+from services.utils_service import calcular_compatibilidad_total  # ✅ IMPORTACIÓN CORREGIDA
 
 class SimulationPanel:
     def __init__(self, parent, family, config: SimulationConfig = None):

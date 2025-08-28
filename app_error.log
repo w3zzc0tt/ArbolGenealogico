@@ -549,3 +549,45 @@ Traceback (most recent call last):
     visualizer.draw_tree(self.simulated_family, self.tree_canvas)
     ^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 14:14:12,922 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 14:14:12,977 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 14:14:12,979 - matplotlib - DEBUG - interactive is False
+2025-08-28 14:14:12,980 - matplotlib - DEBUG - platform is win32
+2025-08-28 14:14:13,156 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 14:14:13,955 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 14:14:17,501 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 14:14:17,511 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 14:14:19,333 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 14:14:19,334 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 14:14:19,923 - root - INFO - Ventana principal creada
+2025-08-28 14:14:21,335 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 14:14:21,335 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 14:18:58,027 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 14:18:58,051 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 14:18:58,055 - matplotlib - DEBUG - interactive is False
+2025-08-28 14:18:58,055 - matplotlib - DEBUG - platform is win32
+2025-08-28 14:18:58,081 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 14:18:58,159 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 14:18:58,275 - root - CRITICAL - Error FATAL al importar módulos: invalid syntax (relacion_service.py, line 5)
+Traceback (most recent call last):
+  File "c:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\main.py", line 35, in <module>
+    from gui.app import GenealogyApp
+  File "c:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\gui\app.py", line 14, in <module>
+    from services.relacion_service import RelacionService
+  File "c:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 5
+    from utils.utils service import verificar_requisitos_union
+                     ^^^^^^^
+SyntaxError: invalid syntax
+2025-08-28 14:36:03,160 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 14:36:03,181 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 14:36:03,184 - matplotlib - DEBUG - interactive is False
+2025-08-28 14:36:03,185 - matplotlib - DEBUG - platform is win32
+2025-08-28 14:36:03,205 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 14:36:03,262 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 14:36:03,548 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 14:36:03,552 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 14:36:03,859 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 14:36:03,860 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 14:36:03,932 - root - INFO - Ventana principal creada
+2025-08-28 14:36:04,395 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 14:36:04,395 - root - INFO - Iniciando bucle principal de la aplicación...
