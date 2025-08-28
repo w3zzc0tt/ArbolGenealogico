@@ -3,9 +3,24 @@ import random
 import re
 
 class Person:
-    def __init__(self, cedula, first_name, last_name, birth_date, gender, province, death_date=None, marital_status="Soltero/a"):
-        # === MODIFICACIÓN CLAVE AQUÍ ===
-        # Convertir "Masculino"/"Femenino" a "M"/"F" para mantener consistencia
+    """Clase que representa a una persona en el árbol genealógico"""
+    
+    def __init__(self, cedula, first_name, last_name, birth_date, gender, province, 
+                 death_date=None, marital_status="Soltero/a"):
+        """
+        Inicializa una nueva persona con sus datos básicos y relaciones familiares.
+        
+        Args:
+            cedula (str): Número de cédula único
+            first_name (str): Nombre de la persona
+            last_name (str): Apellido de la persona
+            birth_date (str): Fecha de nacimiento en formato YYYY-MM-DD
+            gender (str): Género ('M' o 'F')
+            province (str): Provincia de residencia
+            death_date (str, optional): Fecha de fallecimiento en formato YYYY-MM-DD
+            marital_status (str, optional): Estado civil
+        """
+        # Validar y normalizar género
         if gender == "Masculino":
             self.gender = "M"
         elif gender == "Femenino":
@@ -30,88 +45,99 @@ class Person:
         self.events = []
         self.alive = death_date is None
         self.history = [f"Nació el {birth_date}"]
+        
         if not self.alive:
             self.history.append(f"Falleció el {death_date}")
         
         # Atributos para simulación
         self.emotional_health = 100
         self.interests = self.generate_interests()
+        
+        # === Edad virtual para la simulación ===
+        self.virtual_age = self.calculate_age()  # Inicializar con la edad real
+
+    def calculate_age(self) -> int:
+        """Calcula la edad real basada en la fecha de nacimiento"""
+        if not self.birth_date:
+            return 20  # Edad por defecto si no hay fecha de nacimiento
+        
+        try:
+            birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
+            today = datetime.datetime.now()
+            return today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+        except (ValueError, TypeError) as e:
+            print(f"Error al calcular edad para {self.get_full_name()}: {e}")
+            return 20
+
+    def calculate_virtual_age(self) -> int:
+        """Calcula la edad virtual considerando el ciclo de simulación"""
+        return self.virtual_age
+
+    def incrementar_edad_virtual(self, years: int = 1) -> None:
+        """Incrementa la edad virtual en el número especificado de años"""
+        self.virtual_age += years
+
+    def generate_interests(self) -> list:
+        """Genera intereses aleatorios para la persona con categorías realistas"""
+        # Intereses organizados por categorías
+        interests_by_category = {
+            "Arte y Cultura": ["Pintura", "Escultura", "Teatro", "Cine", "Música clásica", "Literatura"],
+            "Deportes y Aire Libre": ["Fútbol", "Natación", "Ciclismo", "Senderismo", "Yoga", "Atletismo"],
+            "Tecnología y Ciencia": ["Programación", "Robótica", "Astronomía", "Electrónica", "Inteligencia Artificial", "Ciencia"],
+            "Gastronomía": ["Cocina", "Vinos", "Repostería", "Café", "Restaurantes", "Comida internacional"],
+            "Aprendizaje": ["Idiomas", "Historia", "Filosofía", "Psicología", "Matemáticas", "Economía"],
+            "Social": ["Voluntariado", "Política", "Activismo", "Redes sociales", "Eventos sociales", "Comunidad"],
+            "Entretenimiento": ["Videojuegos", "Series", "Libros", "Conciertos", "Festivales", "Bailar"],
+            "Salud y Bienestar": ["Meditación", "Nutrición", "Entrenamiento", "Mindfulness", "Terapias alternativas", "Yoga"]
+        }
+        
+        # Seleccionar categorías aleatorias
+        selected_categories = random.sample(list(interests_by_category.keys()), 2)
+        
+        # Obtener intereses de las categorías seleccionadas
+        interests = []
+        for category in selected_categories:
+            interests.extend(random.sample(interests_by_category[category], 2))
+        
+        # Asegurar que haya 3-4 intereses únicos
+        return list(set(interests))[:4]
 
     def set_death_date(self, death_date: str):
         """Establece la fecha de defunción y actualiza estado"""
         self.death_date = death_date
         self.alive = False
-        self.add_event("Fallecimiento", death_date)
-
-    def set_alive(self):
-        """Establece que la persona está viva"""
-        self.death_date = None
-        self.alive = True
-        self.add_event("Regreso a la vida")
-
-        # Atributos para simulación
-        self.emotional_health = 100
-        self.interests = self.generate_interests()
-
-    def generate_interests(self):
-        all_interests = ["Deportes", "Lectura", "Música", "Arte", "Tecnología", "Cocina", "Viajes", "Naturaleza"]
-        return random.sample(all_interests, 3)
-
-    def add_event(self, event_type, date=None):
-        if not date:
-            date = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.history.append(f"{event_type} ({date})")
-        self.history.sort(key=lambda x: x.split('(')[1].rstrip(')') if '(' in x else "")
-
-    def calculate_age(self):
-        try:
-            birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
-            today = datetime.datetime.now()
-            age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
-            return age
-        except:
-            return 0
+        self.history.append(f"Falleció el {death_date}")
 
     def get_full_name(self) -> str:
-        """Obtiene el nombre completo de la persona"""
+        """Devuelve el nombre completo de la persona"""
         return f"{self.first_name} {self.last_name}"
-
-    def can_have_children(self) -> bool:
-        """Determina si la persona puede tener hijos"""
-        if not self.alive:
-            return False
-        if self.gender == "F":
-            age = self.calculate_age()
-            return 18 <= age <= 45
-        else:
-            age = self.calculate_age()
-            return 18 <= age <= 65
 
     def has_partner(self) -> bool:
         """Verifica si la persona tiene pareja"""
-        # ✅ CORRECCIÓN: Verificar tanto spouse como estado civil
-        if self.spouse and self.spouse.alive and self.spouse.spouse == self:
-            return True
-        # Si el estado civil indica que está casado/a pero no hay spouse, corregir
-        if "Casado" in self.marital_status and not self.spouse:
-            self.marital_status = "Soltero/a"
-        return False
+        return self.spouse is not None and self.spouse.alive
 
     def is_married_to(self, other_person: 'Person') -> bool:
-        """Verifica si esta persona está casada con otra persona específica"""
+        """Verifica si la persona está casada con otra persona específica"""
         return self.has_partner() and self.spouse == other_person
 
     def __str__(self):
+        """Representación en cadena de la persona"""
         return f"{self.first_name} {self.last_name} ({self.cedula})"
-    
+
     def add_history(self, event: str):
         """Agrega un evento manual al historial"""
-        from datetime import datetime
-        date = datetime.now().strftime("%Y-%m-%d")
+        date = datetime.datetime.now().strftime("%Y-%m-%d")
         self.history.append(f"{event} ({date})")
 
     def add_major_life_event(self, event_type: str, details: str = "", date: str = None):
-        """Agrega un evento mayor de la vida con categorización"""
+        """
+        Agrega un evento mayor de la vida con categorización
+        
+        Args:
+            event_type (str): Tipo de evento (birth, marriage, divorce, death, etc.)
+            details (str, optional): Detalles adicionales del evento
+            date (str, optional): Fecha específica del evento
+        """
         if not date:
             date = datetime.datetime.now().strftime("%Y-%m-%d")
         
@@ -120,90 +146,418 @@ class Person:
             'birth': '👶',
             'marriage': '💍',
             'divorce': '💔',
-            'widowhood': '🖤',
-            'childbirth': '🍼',
-            'death': '⚱️',
-            'education': '🎓',
-            'career': '💼',
-            'health': '🏥',
-            'travel': '✈️',
-            'achievement': '🏆'
+            'death': '⚰️',
+            'childbirth': '👶',
+            'graduation': '🎓',
+            'retirement': '🏖️',
+            'widowhood': '🕯️',
+            'other': '📝'
         }
         
-        icon = event_categories.get(event_type, '📅')
-        formatted_event = f"{icon} {details} ({date})"
+        category_emoji = event_categories.get(event_type, '📝')
+        event_str = f"{category_emoji} {event_type.capitalize()}"
+        if details:
+            event_str += f": {details}"
         
-        # Agregar al historial manteniendo orden cronológico
-        self.history.append(formatted_event)
-        self.history.sort(key=lambda x: self._extract_date(x))
+        self.events.append({"evento": event_str, "fecha": date})
+        self.history.append(f"{event_str} ({date})")
         
-        # Mantener eventos categorizados
-        if not hasattr(self, 'life_events'):
-            self.life_events = {}
+    def add_event(self, event: str, date: str):
+        """Agrega un evento a la lista de eventos"""
+        self.events.append({"evento": event, "fecha": date})
         
-        if event_type not in self.life_events:
-            self.life_events[event_type] = []
+    def can_have_children(self) -> bool:
+        """Determina si la persona puede tener hijos"""
+        age = self.calculate_virtual_age()
+        return self.alive and self.gender == "F" and 18 <= age <= 45
+    
+    def get_relationship_to(self, other_person: 'Person', family: 'Family') -> str:
+        """
+        Determina la relación entre dos personas
         
-        self.life_events[event_type].append({
-            'date': date,
-            'details': details,
-            'age': getattr(self, 'virtual_age', self.calculate_age())
-        })
-
-    def get_life_timeline(self) -> list:
-        """Obtiene línea de tiempo organizada de eventos importantes"""
+        Args:
+            other_person (Person): La otra persona
+            family (Family): La familia a la que pertenecen
+            
+        Returns:
+            str: Descripción de la relación
+        """
+        if self == other_person:
+            return "Yo mismo"
+            
+        # Padre/Madre
+        if self == other_person.father:
+            return "Padre"
+        if self == other_person.mother:
+            return "Madre"
+            
+        # Hijo/Hija
+        if other_person in self.children:
+            return "Hijo/a"
+            
+        # Hermanos
+        if self.mother and other_person.mother and self.mother == other_person.mother:
+            if self.father and other_person.father and self.father == other_person.father:
+                return "Hermano/a"
+            return "Medio hermano/a (misma madre)"
+        if self.father and other_person.father and self.father == other_person.father:
+            return "Medio hermano/a (mismo padre)"
+            
+        # Abuelos
+        if self.father and self.father == other_person.father:
+            return "Abuelo paterno"
+        if self.mother and self.mother == other_person.mother:
+            return "Abuela materna"
+        
+        # Nietos
+        for child in self.children:
+            if other_person in child.children:
+                return "Nieto/a"
+        
+        # Tíos/Tías
+        if other_person.father and self in other_person.father.siblings:
+            return "Tío paterno"
+        if other_person.mother and self in other_person.mother.siblings:
+            return "Tío materno"
+        
+        # Sobrinos
+        for sibling in self.siblings:
+            if other_person in sibling.children:
+                return "Sobrino/a"
+        
+        # Primos
+        if self.father and other_person.father and self.father in other_person.father.siblings:
+            return "Primo/a paterno"
+        if self.mother and other_person.mother and self.mother in other_person.mother.siblings:
+            return "Primo/a materno"
+        
+        # Bisabuelos
+        if self.father and self.father.father and self.father.father == other_person.father:
+            return "Bisabuelo paterno"
+        if self.mother and self.mother.mother and self.mother.mother == other_person.mother:
+            return "Bisabuela materna"
+        
+        # Cuñados
+        if self.spouse and other_person in self.spouse.siblings:
+            return "Cuñado/a"
+        
+        return "Relación no identificada"
+    
+    def get_extended_family(self, family: 'Family', max_generations: int = 3) -> list:
+        """
+        Obtiene la familia extendida de una persona
+        
+        Args:
+            family (Family): La familia a la que pertenece
+            max_generations (int): Máximo de generaciones a incluir
+            
+        Returns:
+            list: Lista de personas en la familia extendida
+        """
+        extended_family = []
+        visited = set()
+        
+        def explore_relations(person, generation):
+            if generation > max_generations or person.cedula in visited:
+                return
+                
+            visited.add(person.cedula)
+            extended_family.append(person)
+            
+            # Explorar padres
+            if person.father:
+                explore_relations(person.father, generation + 1)
+            if person.mother:
+                explore_relations(person.mother, generation + 1)
+                
+            # Explorar hijos
+            for child in person.children:
+                explore_relations(child, generation + 1)
+                
+            # Explorar pareja
+            if person.spouse:
+                explore_relations(person.spouse, generation)
+                
+            # Explorar hermanos
+            for sibling in person.siblings:
+                if sibling.cedula not in visited:
+                    explore_relations(sibling, generation)
+                
+        explore_relations(self, 1)
+        return extended_family
+    
+    def get_family_tree(self, family: 'Family', max_generations: int = 3) -> dict:
+        """
+        Obtiene el árbol genealógico de la persona
+        
+        Args:
+            family (Family): La familia a la que pertenece
+            max_generations (int): Máximo de generaciones a incluir
+            
+        Returns:
+            dict: Árbol genealógico en formato de diccionario
+        """
+        def build_tree(person, generation):
+            if generation > max_generations:
+                return None
+                
+            tree = {
+                'person': {
+                    'cedula': person.cedula,
+                    'nombre': person.get_full_name(),
+                    'edad': person.calculate_age(),
+                    'edad_virtual': person.calculate_virtual_age(),
+                    'vivo': person.alive,
+                    'genero': person.gender,
+                    'estado_civil': person.marital_status
+                },
+                'padres': [],
+                'hijos': [],
+                'pareja': None
+            }
+            
+            # Agregar pareja
+            if person.spouse:
+                tree['pareja'] = {
+                    'cedula': person.spouse.cedula,
+                    'nombre': person.spouse.get_full_name(),
+                    'genero': person.spouse.gender
+                }
+            
+            # Agregar padres
+            if person.father:
+                tree['padres'].append({
+                    'relacion': 'padre',
+                    'nodo': build_tree(person.father, generation + 1)
+                })
+            if person.mother:
+                tree['padres'].append({
+                    'relacion': 'madre',
+                    'nodo': build_tree(person.mother, generation + 1)
+                })
+                
+            # Agregar hijos
+            for child in person.children:
+                tree['hijos'].append(build_tree(child, generation + 1))
+                
+            return tree
+            
+        return build_tree(self, 1)
+    
+    def get_timeline_events(self) -> list:
+        """
+        Obtiene los eventos en orden cronológico para la línea de tiempo
+        
+        Returns:
+            list: Lista de eventos ordenados por fecha
+        """
         timeline = []
         
-        # Evento de nacimiento
+        # Agregar nacimiento
         if self.birth_date:
             timeline.append({
-                'year': int(self.birth_date[:4]),
-                'age': 0,
-                'event': 'Nacimiento',
-                'type': 'birth',
-                'icon': '👶'
+                'fecha': self.birth_date,
+                'evento': 'Nacimiento',
+                'descripcion': f"Nació en {self.province}",
+                'categoria': 'birth'
             })
-        
-        # Procesar eventos del historial
-        for event in self.history:
-            date_match = re.search(r'\((\d{4}-\d{2}-\d{2})\)', event)
-            if date_match:
-                date_str = date_match.group(1)
-                year = int(date_str[:4])
-                age = year - int(self.birth_date[:4]) if self.birth_date else 0
-                
-                # Categorizar evento
-                if '💍' in event or 'matrimonio' in event.lower() or 'pareja' in event.lower():
-                    event_type = 'marriage'
-                    icon = '💍'
-                elif '👶' in event or 'nacimiento' in event.lower() or 'nació' in event.lower():
-                    event_type = 'childbirth'
-                    icon = '👶'
-                elif '💔' in event or 'viud' in event.lower() or 'fallecimiento' in event.lower():
-                    event_type = 'widowhood'
-                    icon = '💔'
-                elif '🎂' in event or 'cumpleaños' in event.lower():
-                    event_type = 'birthday'
-                    icon = '🎂'
-                else:
-                    event_type = 'general'
-                    icon = '📅'
-                
-                timeline.append({
-                    'year': year,
-                    'age': age,
-                    'event': event.replace(f'({date_str})', '').strip(),
-                    'type': event_type,
-                    'icon': icon
-                })
-        
-        # Ordenar cronológicamente
-        timeline.sort(key=lambda x: x['year'])
+            
+        # Agregar eventos registrados
+        for event in self.events:
+            # Extraer la categoría del evento
+            category = 'other'
+            for cat, emoji in [('birth', '👶'), ('marriage', '💍'), ('divorce', '💔'), 
+                              ('death', '⚰️'), ('childbirth', '👶'), ('graduation', '🎓'),
+                              ('retirement', '🏖️'), ('widowhood', '🕯️')]:
+                if emoji in event['evento']:
+                    category = cat
+                    break
+            
+            # Extraer el texto del evento
+            event_text = event['evento'].replace('👶', '').replace('💍', '').replace('💔', '').replace('⚰️', '') \
+                             .replace('🎓', '').replace('🏖️', '').replace('🕯️', '').strip()
+            
+            timeline.append({
+                'fecha': event['fecha'],
+                'evento': event_text,
+                'categoria': category
+            })
+            
+        # Agregar fallecimiento si aplica
+        if not self.alive and self.death_date:
+            timeline.append({
+                'fecha': self.death_date,
+                'evento': 'Fallecimiento',
+                'categoria': 'death'
+            })
+            
+        # Ordenar por fecha
+        timeline.sort(key=lambda x: x['fecha'])
         return timeline
-
-    def _extract_date(self, event_string: str) -> str:
-        """Extrae fecha de un string de evento para ordenamiento"""
-        date_match = re.search(r'\((\d{4}-\d{2}-\d{2})\)', event_string)
-        return date_match.group(1) if date_match else "9999-12-31"
     
+    def get_statistics(self) -> dict:
+        """
+        Obtiene estadísticas personales
+        
+        Returns:
+            dict: Diccionario con estadísticas de la persona
+        """
+        return {
+            'edad': self.calculate_age(),
+            'edad_virtual': self.virtual_age,
+            'estado_vital': 'Vivo' if self.alive else 'Fallecido',
+            'num_hijos': len(self.children),
+            'num_hermanos': len(self.siblings),
+            'salud_emocional': self.emotional_health,
+            'num_eventos': len(self.events),
+            'intereses_principales': self.interests[:3],
+            'estado_civil': self.marital_status,
+            'provincia': self.province,
+            'genero': 'Masculino' if self.gender == 'M' else 'Femenino'
+        }
     
+    def update_relationships(self, family: 'Family'):
+        """
+        Actualiza las relaciones familiares para mantener consistencia
+        
+        Args:
+            family (Family): La familia a la que pertenece
+        """
+        # Actualizar lista de hermanos
+        self.siblings = []
+        if self.mother:
+            for child in self.mother.children:
+                if child != self and child not in self.siblings:
+                    self.siblings.append(child)
+        if self.father:
+            for child in self.father.children:
+                if child != self and child not in self.siblings:
+                    self.siblings.append(child)
+                    
+        # Actualizar relación con pareja
+        if self.spouse and self not in self.spouse.children:
+            if self.gender == "M":
+                if self.alive:
+                    if self.spouse.alive:
+                        self.marital_status = "Casado"
+                    else:
+                        self.marital_status = "Viudo"
+                else:
+                    self.marital_status = "Fallecido"
+            else:
+                if self.alive:
+                    if self.spouse.alive:
+                        self.marital_status = "Casada"
+                    else:
+                        self.marital_status = "Viuda"
+                else:
+                    self.marital_status = "Fallecida"
+                
+    def validate_integrity(self, family: 'Family') -> bool:
+        """
+        Valida la integridad de las relaciones familiares
+        
+        Args:
+            family (Family): La familia a la que pertenece
+            
+        Returns:
+            bool: True si la integridad es correcta, False en caso contrario
+        """
+        errores = []
+        
+        # Verificar coherencia de estado vital
+        if self.alive and self.death_date:
+            errores.append(f"{self.first_name} está vivo pero tiene fecha de fallecimiento")
+        if not self.alive and not self.death_date:
+            errores.append(f"{self.first_name} está fallecido pero no tiene fecha de fallecimiento")
+            
+        # Verificar estado civil
+        if self.spouse and "Casado" not in self.marital_status and "Viudo" not in self.marital_status:
+            errores.append(f"{self.first_name} tiene pareja pero estado civil es '{self.marital_status}'")
+            
+        # Verificar padres
+        if self.father and self not in self.father.children:
+            errores.append(f"{self.first_name} tiene padre pero no está en sus hijos")
+        if self.mother and self not in self.mother.children:
+            errores.append(f"{self.first_name} tiene madre pero no está en sus hijos")
+            
+        # Verificar hijos
+        for child in self.children:
+            if self.gender == "M" and child.father != self:
+                errores.append(f"{self.first_name} tiene a {child.first_name} como hijo pero no es su padre")
+            if self.gender == "F" and child.mother != self:
+                errores.append(f"{self.first_name} tiene a {child.first_name} como hijo pero no es su madre")
+                
+        # Verificar pareja
+        if self.spouse and self.spouse.spouse != self:
+            errores.append(f"{self.first_name} tiene pareja pero no es recíproca")
+            
+        if errores:
+            for error in errores:
+                print(f"ERROR DE INTEGRIDAD: {error}")
+            return False
+            
+        return True
+    
+    def to_dict(self) -> dict:
+        """
+        Convierte la persona a un diccionario serializable
+        
+        Returns:
+            dict: Diccionario con los datos de la persona
+        """
+        return {
+            'cedula': self.cedula,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'birth_date': self.birth_date,
+            'death_date': self.death_date,
+            'gender': self.gender,
+            'province': self.province,
+            'marital_status': self.marital_status,
+            'alive': self.alive,
+            'emotional_health': self.emotional_health,
+            'interests': self.interests,
+            'virtual_age': self.virtual_age,
+            'father_cedula': self.father.cedula if self.father else None,
+            'mother_cedula': self.mother.cedula if self.mother else None,
+            'spouse_cedula': self.spouse.cedula if self.spouse else None,
+            'children_cedulas': [child.cedula for child in self.children],
+            'siblings_cedulas': [sibling.cedula for sibling in self.siblings],
+            'events': self.events,
+            'history': self.history
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict, family: 'Family') -> 'Person':
+        """
+        Crea una persona a partir de un diccionario
+        
+        Args:
+            data (dict): Diccionario con los datos de la persona
+            family (Family): La familia a la que pertenece
+            
+        Returns:
+            Person: Nueva instancia de Person
+        """
+        person = cls(
+            cedula=data['cedula'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            birth_date=data['birth_date'],
+            gender=data['gender'],
+            province=data['province'],
+            death_date=data['death_date'],
+            marital_status=data['marital_status']
+        )
+        
+        # Restaurar atributos adicionales
+        person.alive = data['alive']
+        person.emotional_health = data['emotional_health']
+        person.interests = data['interests']
+        person.virtual_age = data['virtual_age']
+        person.events = data['events']
+        person.history = data['history']
+        
+        # Las relaciones se establecerán después al cargar toda la familia
+        return person

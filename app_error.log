@@ -1,0 +1,551 @@
+2025-08-27 23:40:51,757 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-27 23:40:51,775 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-27 23:40:51,777 - matplotlib - DEBUG - interactive is False
+2025-08-27 23:40:51,778 - matplotlib - DEBUG - platform is win32
+2025-08-27 23:40:51,806 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-27 23:40:51,861 - root - INFO - CustomTkinter importado correctamente
+2025-08-27 23:40:51,901 - root - CRITICAL - No se pudo importar GenealogyApp: cannot import name 'RelacionService' from partially initialized module 'services.relacion_service' (most likely due to a circular import) (c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py)
+2025-08-27 23:40:51,901 - root - CRITICAL - Verifica la estructura del proyecto:
+2025-08-27 23:40:51,902 - root - CRITICAL - Debe tener la siguiente estructura:
+2025-08-27 23:40:51,902 - root - CRITICAL - proyecto/
+2025-08-27 23:40:52,016 - root - CRITICAL - Error FATAL al importar módulos: cannot import name 'RelacionService' from partially initialized module 'services.relacion_service' (most likely due to a circular import) (c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py)
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\main.py", line 35, in <module>
+    from gui.app import GenealogyApp
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\app.py", line 14, in <module>
+    from services.relacion_service import RelacionService
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 5, in <module>
+    from services.simulacion_service import SimulacionService
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 9, in <module>
+    from services.relacion_service import RelacionService
+ImportError: cannot import name 'RelacionService' from partially initialized module 'services.relacion_service' (most likely due to a circular import) (c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py)
+2025-08-28 00:32:56,723 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-28 00:32:56,741 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:32:56,742 - matplotlib - DEBUG - interactive is False
+2025-08-28 00:32:56,742 - matplotlib - DEBUG - platform is win32
+2025-08-28 00:32:56,768 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 00:32:56,822 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 00:32:56,863 - root - CRITICAL - No se pudo importar GenealogyApp: No module named 'services.utils_service'
+2025-08-28 00:32:56,863 - root - CRITICAL - Verifica la estructura del proyecto:
+2025-08-28 00:32:56,863 - root - CRITICAL - Debe tener la siguiente estructura:
+2025-08-28 00:32:56,864 - root - CRITICAL - proyecto/
+2025-08-28 00:32:56,937 - root - CRITICAL - Error FATAL al importar módulos: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\main.py", line 35, in <module>
+    from gui.app import GenealogyApp
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\app.py", line 14, in <module>
+    from services.relacion_service import RelacionService
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 5, in <module>
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 00:33:59,496 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-28 00:33:59,511 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:33:59,512 - matplotlib - DEBUG - interactive is False
+2025-08-28 00:33:59,513 - matplotlib - DEBUG - platform is win32
+2025-08-28 00:33:59,534 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 00:33:59,583 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 00:33:59,591 - root - CRITICAL - No se pudo importar GenealogyApp: No module named 'services.utils_service'
+2025-08-28 00:33:59,591 - root - CRITICAL - Verifica la estructura del proyecto:
+2025-08-28 00:33:59,591 - root - CRITICAL - Debe tener la siguiente estructura:
+2025-08-28 00:33:59,592 - root - CRITICAL - proyecto/
+2025-08-28 00:33:59,663 - root - CRITICAL - Error FATAL al importar módulos: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\main.py", line 35, in <module>
+    from gui.app import GenealogyApp
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\app.py", line 14, in <module>
+    from services.relacion_service import RelacionService
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 5, in <module>
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 00:49:13,413 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-28 00:49:13,437 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:49:13,438 - matplotlib - DEBUG - interactive is False
+2025-08-28 00:49:13,439 - matplotlib - DEBUG - platform is win32
+2025-08-28 00:49:13,455 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-28 00:49:13,463 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 00:49:13,474 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:49:13,476 - matplotlib - DEBUG - interactive is False
+2025-08-28 00:49:13,477 - matplotlib - DEBUG - platform is win32
+2025-08-28 00:49:13,503 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 00:49:13,519 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 00:49:13,553 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 00:49:14,009 - matplotlib - DEBUG - CACHEDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:49:14,009 - matplotlib - DEBUG - CACHEDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:49:14,012 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\pablo\.matplotlib\fontlist-v390.json
+2025-08-28 00:49:14,012 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\pablo\.matplotlib\fontlist-v390.json
+2025-08-28 00:49:14,415 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 00:49:14,415 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 00:49:14,416 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 00:49:14,416 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 00:49:14,588 - root - INFO - Ventana principal creada
+2025-08-28 00:49:14,597 - root - INFO - Ventana principal creada
+2025-08-28 00:49:15,518 - root - ERROR - Error inesperado al inicializar GenealogyApp
+2025-08-28 00:49:15,519 - root - ERROR - Detalles: No module named 'gui.graph_visualizer'
+2025-08-28 00:49:15,521 - root - ERROR - Error inesperado al inicializar GenealogyApp
+2025-08-28 00:49:15,521 - root - ERROR - Detalles: No module named 'gui.graph_visualizer'
+2025-08-28 00:57:21,072 - matplotlib - DEBUG - matplotlib data path: C:\Users\pablo\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\matplotlib\mpl-data
+2025-08-28 00:57:21,095 - matplotlib - DEBUG - CONFIGDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:57:21,098 - matplotlib - DEBUG - interactive is False
+2025-08-28 00:57:21,099 - matplotlib - DEBUG - platform is win32
+2025-08-28 00:57:21,175 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 00:57:21,259 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 00:57:21,443 - matplotlib - DEBUG - CACHEDIR=C:\Users\pablo\.matplotlib
+2025-08-28 00:57:21,446 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\pablo\.matplotlib\fontlist-v390.json
+2025-08-28 00:57:21,689 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 00:57:21,690 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 00:57:21,806 - root - INFO - Ventana principal creada
+2025-08-28 00:57:22,349 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 00:57:22,349 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 01:10:11,757 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:10:21,713 - root - ERROR - Error en simulación: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 125, in run_simulation
+    eventos = SimulacionService.ejecutar_ciclo_completo(
+        self.simulated_family,
+        self.config
+    )
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 504, in ejecutar_ciclo_completo
+    romance_events = SimulacionService.procesar_busqueda_parejas(family, config)
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 779, in procesar_busqueda_parejas
+    success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 101, in registrar_pareja
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 01:10:21,896 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:16:11,813 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:16:21,893 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:16:31,977 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:16:42,062 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:16:52,134 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:02,235 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:12,316 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:22,411 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:32,462 - root - ERROR - Error en simulación: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 125, in run_simulation
+    eventos = SimulacionService.ejecutar_ciclo_completo(
+        self.simulated_family,
+        self.config
+    )
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 504, in ejecutar_ciclo_completo
+    romance_events = SimulacionService.procesar_busqueda_parejas(family, config)
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 779, in procesar_busqueda_parejas
+    success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 101, in registrar_pareja
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 01:17:32,601 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:42,677 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:17:52,775 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:02,864 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:12,952 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:23,039 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:33,092 - root - ERROR - Error en simulación: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 125, in run_simulation
+    eventos = SimulacionService.ejecutar_ciclo_completo(
+        self.simulated_family,
+        self.config
+    )
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 504, in ejecutar_ciclo_completo
+    romance_events = SimulacionService.procesar_busqueda_parejas(family, config)
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 779, in procesar_busqueda_parejas
+    success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 101, in registrar_pareja
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 01:18:33,236 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:43,321 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:18:53,414 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:03,464 - root - ERROR - Error en simulación: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 125, in run_simulation
+    eventos = SimulacionService.ejecutar_ciclo_completo(
+        self.simulated_family,
+        self.config
+    )
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 504, in ejecutar_ciclo_completo
+    romance_events = SimulacionService.procesar_busqueda_parejas(family, config)
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 779, in procesar_busqueda_parejas
+    success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 101, in registrar_pareja
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 01:19:03,610 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:13,659 - root - ERROR - Error en simulación: No module named 'services.utils_service'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 125, in run_simulation
+    eventos = SimulacionService.ejecutar_ciclo_completo(
+        self.simulated_family,
+        self.config
+    )
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 504, in ejecutar_ciclo_completo
+    romance_events = SimulacionService.procesar_busqueda_parejas(family, config)
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\simulacion_service.py", line 779, in procesar_busqueda_parejas
+    success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 101, in registrar_pareja
+    from services.utils_service import verificar_requisitos_union
+ModuleNotFoundError: No module named 'services.utils_service'
+2025-08-28 01:19:13,803 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:23,891 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:33,970 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:44,060 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:19:54,153 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:04,236 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:14,316 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:24,394 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:34,460 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:44,534 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:20:54,608 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:04,676 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:14,760 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:24,839 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:34,909 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:44,979 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:21:55,046 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:22:05,105 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:22:15,171 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:22:25,236 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:22:35,303 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+2025-08-28 01:22:45,368 - root - ERROR - Error en simulación: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'
+Traceback (most recent call last):
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 141, in run_simulation
+    self.draw_tree()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\pablo\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 227, in draw_tree
+    visualizer.draw_tree(self.simulated_family, self.tree_canvas)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FamilyGraphVisualizer' object has no attribute 'draw_tree'

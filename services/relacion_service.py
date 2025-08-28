@@ -1,4 +1,4 @@
-# services/relacion_service.py - VERSIÓN CORREGIDA
+# services/relacion_service.py - VERSIÓN FINAL CORREGIDA
 from typing import Tuple, Optional
 from models.family import Family
 from models.person import Person
@@ -81,7 +81,7 @@ class RelacionService:
     @staticmethod
     def registrar_pareja(family: Family, person1_cedula: str, 
                         person2_cedula: str) -> Tuple[bool, str]:   
-        """Registra una unión de pareja entre dos personas"""
+        """Registra una unión de pareja entre dos personas con validación completa"""
         person1 = family.get_member_by_cedula(person1_cedula)
         person2 = family.get_member_by_cedula(person2_cedula)
         
@@ -96,6 +96,14 @@ class RelacionService:
             return False, "No se puede registrar pareja del mismo género (ambos masculinos)"
         if RelacionService._es_femenino(person1.gender) and RelacionService._es_femenino(person2.gender):
             return False, "No se puede registrar pareja del mismo género (ambas femeninas)"
+        
+        # ✅ CORRECCIÓN FINAL: Importar utils_service LOCALMENTE
+        from services.utils_service import verificar_requisitos_union
+        
+        # ✅ USAR la función desde utils_service
+        validation = verificar_requisitos_union(person1, person2, family)
+        if not validation[0]:
+            return False, validation[1]
         
         # Verificar si ya están registrados como pareja
         if person1.spouse == person2 and person2.spouse == person1:
@@ -119,6 +127,11 @@ class RelacionService:
         # Actualizar estado civil
         person1.marital_status = "Casado/a"
         person2.marital_status = "Casado/a"
+        
+        # Registrar evento en ambas personas
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        person1.add_event(f"Matrimonio con {person2.first_name}", current_date)
+        person2.add_event(f"Matrimonio con {person1.first_name}", current_date)
         
         return True, "Pareja registrada exitosamente"
     
@@ -154,42 +167,48 @@ class RelacionService:
                 return "Nieto/Nieta"
         
         # Tíos
-        if (person1.mother and person2.mother and 
-            person1.mother == person2.mother.father):
+        if person1.mother and person2.mother and person1.mother in person2.mother.siblings:
             return "Tío/Tía paterno"
-        if (person1.mother and person2.mother and 
-            person1.mother == person2.mother.mother):
+        if person1.mother and person2.father and person1.mother in person2.father.siblings:
+            return "Tío/Tía paterno"
+        if person1.father and person2.mother and person1.father in person2.mother.siblings:
+            return "Tío/Tía materno"
+        if person1.father and person2.father and person1.father in person2.father.siblings:
             return "Tío/Tía materno"
         
         # Sobrinos
-        for sibling in person1.children:
+        for sibling in person1.siblings:
             if person2 in sibling.children:
                 return "Sobrino/Sobrina"
         
         # Primos
         if (person1.mother and person2.mother and 
-            person1.mother.mother == person2.mother.mother):
-            return "Primo/Prima"
+            person1.mother in person2.mother.siblings):
+            return "Primo/Prima materno"
+        if (person1.father and person2.father and 
+            person1.father in person2.father.siblings):
+            return "Primo/Prima paterno"
         
         return "Relación no identificada"
     
     @staticmethod
     def obtener_primos_primer_grado(person: Person) -> list:
-        """Obtiene los primos de primer grado de una persona"""
+        """Obtiene los primos de primer grado de una persona (hijos de los hermanos de los padres)"""
         cousins = []
         
         # Obtener hermanos de los padres
-        if person.father and person.father.mother:
-            for sibling in person.father.mother.children:
-                if sibling != person.father and sibling.alive:
+        if person.father:
+            for sibling in person.father.siblings:
+                if sibling.alive:
                     cousins.extend([child for child in sibling.children if child.alive])
         
-        if person.mother and person.mother.mother:
-            for sibling in person.mother.mother.children:
-                if sibling != person.mother and sibling.alive:
+        if person.mother:
+            for sibling in person.mother.siblings:
+                if sibling.alive:
                     cousins.extend([child for child in sibling.children if child.alive])
         
-        return cousins
+        # Eliminar duplicados
+        return list(set(cousins))
     
     @staticmethod
     def obtener_antepasados_maternos(person: Person) -> list:
@@ -267,87 +286,96 @@ class RelacionService:
         
         return True, mensaje
 
-# Funciones de utilidad para consultas
-def obtener_nacimientos_ultimos_10_años(family: Family) -> int:
-    """Obtiene cuántas personas nacieron en los últimos 10 años"""
-    count = 0
-    for person in family.members:
-        if person.birth_date:
-            birth_year = int(person.birth_date[:4])
-            if family.current_year - birth_year <= 10:
-                count += 1
-    return count
-
-def obtener_parejas_con_hijos(family: Family, min_hijos: int = 2) -> list:
-    """Obtiene las parejas actuales con mínimo de hijos en común"""
-    couples = []
-    for person in family.members:
-        if person.spouse and person.alive and person.spouse.alive:
-            common_children = set(person.children) & set(person.spouse.children)
-            if len(common_children) >= min_hijos:
-                couples.append((person, person.spouse))
-    return couples
-
-def obtener_fallecidos_antes_50(family: Family) -> int:
-    """Obtiene cuántas personas fallecieron antes de cumplir 50 años"""
-    count = 0
-    for person in family.members:
-        if person.death_date and person.birth_date:
-            try:
+    # Funciones de utilidad para consultas
+    @staticmethod
+    def obtener_nacimientos_ultimos_10_años(family: Family) -> int:
+        """Obtiene cuántas personas nacieron en los últimos 10 años"""
+        count = 0
+        for person in family.members:
+            if person.birth_date:
                 birth_year = int(person.birth_date[:4])
-                death_year = int(person.death_date[:4])
-                if death_year - birth_year < 50:
+                if family.current_year - birth_year <= 10:
                     count += 1
-            except (ValueError, TypeError):
-                continue
-    return count
+        return count
 
-def buscar_personas_por_nombre(family: Family, nombre: str) -> list:
-    """Busca personas por nombre o apellido (búsqueda parcial, insensible a mayúsculas)"""
-    nombre = nombre.lower()
-    resultados = []
-    for person in family.members:
-        if (nombre in person.first_name.lower() or 
-            nombre in person.last_name.lower()):
-            resultados.append(person)
-    return resultados
+    @staticmethod
+    def obtener_parejas_con_hijos(family: Family, min_hijos: int = 2) -> list:
+        """Obtiene las parejas actuales con mínimo de hijos en común"""
+        couples = []
+        for person in family.members:
+            if person.spouse and person.alive and person.spouse.alive:
+                common_children = set(person.children) & set(person.spouse.children)
+                if len(common_children) >= min_hijos:
+                    couples.append((person, person.spouse))
+        return couples
 
-def obtener_personas_sin_relacion(family: Family) -> list:
-    """Obtiene personas sin relaciones familiares (sin padres, hijos, pareja o hermanos)"""
-    sin_relacion = []
-    for person in family.members:
-        if (not person.mother and not person.father and 
-            not person.children and not person.spouse and 
-            not person.siblings):
-            sin_relacion.append(person)
-    return sin_relacion
+    @staticmethod
+    def obtener_fallecidos_antes_50(family: Family) -> int:
+        """Obtiene cuántas personas fallecieron antes de cumplir 50 años"""
+        count = 0
+        for person in family.members:
+            if person.death_date and person.birth_date:
+                try:
+                    birth_year = int(person.birth_date[:4])
+                    death_year = int(person.death_date[:4])
+                    if death_year - birth_year < 50:
+                        count += 1
+                except (ValueError, TypeError):
+                    continue
+        return count
 
-def obtener_estadisticas_familia(family: Family) -> dict:
-    """Obtiene estadísticas generales de la familia"""
-    total = len(family.members)
-    vivos = len(family.get_living_members())
-    fallecidos = len(family.get_deceased_members())
-    promedio_edad = (sum(p.calculate_age() for p in family.get_living_members()) / vivos) if vivos > 0 else 0
-    return {
-        'total': total,
-        'vivos': vivos,
-        'fallecidos': fallecidos,
-        'promedio_edad': round(promedio_edad, 2)
-    }
-
-def obtener_personas_por_estado_civil(family: Family, estado_civil: str) -> list:
-    """Obtiene personas por estado civil"""
-    return [p for p in family.members if p.marital_status.lower() == estado_civil.lower()]
-
-def obtener_personas_por_provincia(family: Family, provincia: str) -> list:
-    """Obtiene personas por provincia"""
-    return [p for p in family.members if p.province.lower() == provincia.lower()] 
-
-def buscar_por_caracteristica(family: Family, caracteristica: str, valor) -> list:
-    """Busca personas por una característica específica"""
-    resultados = []
-    for person in family.members:
-        if hasattr(person, caracteristica):
-            if str(getattr(person, caracteristica)).lower() == str(valor).lower():
+    @staticmethod
+    def buscar_personas_por_nombre(family: Family, nombre: str) -> list:
+        """Busca personas por nombre o apellido (búsqueda parcial, insensible a mayúsculas)"""
+        nombre = nombre.lower()
+        resultados = []
+        for person in family.members:
+            if (nombre in person.first_name.lower() or 
+                nombre in person.last_name.lower()):
                 resultados.append(person)
-    return resultados
+        return resultados
+
+    @staticmethod
+    def obtener_personas_sin_relacion(family: Family) -> list:
+        """Obtiene personas sin relaciones familiares (sin padres, hijos, pareja o hermanos)"""
+        sin_relacion = []
+        for person in family.members:
+            if (not person.mother and not person.father and 
+                not person.children and not person.spouse and 
+                not person.siblings):
+                sin_relacion.append(person)
+        return sin_relacion
+
+    @staticmethod
+    def obtener_estadisticas_familia(family: Family) -> dict:
+        """Obtiene estadísticas generales de la familia"""
+        total = len(family.members)
+        vivos = len(family.get_living_members())
+        fallecidos = len(family.get_deceased_members())
+        promedio_edad = (sum(p.calculate_virtual_age() for p in family.get_living_members()) / vivos) if vivos > 0 else 0
+        return {
+            'total': total,
+            'vivos': vivos,
+            'fallecidos': fallecidos,
+            'promedio_edad': round(promedio_edad, 2)
+        }
+
+    @staticmethod
+    def obtener_personas_por_estado_civil(family: Family, estado_civil: str) -> list:
+        """Obtiene personas por estado civil"""
+        return [p for p in family.members if p.marital_status.lower() == estado_civil.lower()]
+
+    @staticmethod
+    def obtener_personas_por_provincia(family: Family, provincia: str) -> list:
+        """Obtiene personas por provincia"""
+        return [p for p in family.members if p.province.lower() == provincia.lower()] 
+
+    @staticmethod
+    def buscar_por_caracteristica(family: Family, caracteristica: str, valor) -> list:
+        """Busca personas por una característica específica"""
+        resultados = []
+        for person in family.members:
+            if hasattr(person, caracteristica):
+                if str(getattr(person, caracteristica)).lower() == str(valor).lower():
+                    resultados.append(person)
+        return resultados

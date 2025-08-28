@@ -55,16 +55,16 @@ class Family:
     @staticmethod
     def generate_name(gender: str) -> tuple:
         """Genera un nombre aleatorio según el género"""
-        male_names = ["Juan", "Carlos", "José", "Luis", "Miguel", "Pedro", "Ricardo", "Fernando", "Andrés", "Diego"]
-        female_names = ["María", "Ana", "Laura", "Sofía", "Isabel", "Carmen", "Elena", "Patricia", "Claudia", "Verónica"]
-        last_names = ["González", "Rodríguez", "Pérez", "López", "Martínez", "García", "Hernández", "Sánchez", "Ramírez", "Torres"]
+        male_names = ["Juan", "Carlos", "José", "Luis", "Miguel", "Pedro", "Ricardo", "Fernando", "Andrés", "Diego", "Mario", "Oscar", "Raúl", "Víctor", "Alberto"]
+        female_names = ["María", "Ana", "Laura", "Sofía", "Isabel", "Carmen", "Elena", "Patricia", "Claudia", "Verónica", "Gabriela", "Daniela", "Carolina", "Mónica", "Paula"]
+        surnames = ["Gómez", "Rodríguez", "Fernández", "Martínez", "Pérez", "López", "Sánchez", "García", "Díaz", "Hernández", "Jiménez", "Torres", "Ruiz", "Moreno", "Álvarez"]
         
-        if gender == "M":
+        if gender == "M" or gender == "Masculino":
             first_name = random.choice(male_names)
         else:
             first_name = random.choice(female_names)
-            
-        last_name = random.choice(last_names)
+        
+        last_name = random.choice(surnames)
         return first_name, last_name
 
     def add_relationship(self, parent_cedula: str, child_cedula: str) -> None:

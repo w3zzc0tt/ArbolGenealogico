@@ -6,7 +6,6 @@ from typing import Tuple, Optional
 from models.family import Family
 from models.person import Person
 from models.simulation_config import SimulationConfig
-from services.relacion_service import RelacionService
 from services.persona_service import PersonaService
 
 class SimulacionService:
@@ -23,8 +22,8 @@ class SimulacionService:
             person.emotional_health -= random.randint(1, 5)
         
         # Si está soltero/a por mucho tiempo, la salud emocional disminuye
-        if person.marital_status == "Soltero/a" and person.calculate_age() > 30:
-            years_single = family.current_year - int(person.birth_date[:4]) - 30
+        if person.marital_status == "Soltero/a" and person.calculate_virtual_age() > 30:
+            years_single = family.current_year - int(person.birth_date.split('-')[0]) - 30
             if years_single > 0:
                 person.emotional_health = max(10, person.emotional_health - (years_single * 2))
         
@@ -60,55 +59,11 @@ class SimulacionService:
     def manejar_hijos_menores(parent: Person, family: Family) -> None:
         """Maneja los hijos menores cuando un padre fallece"""
         for child in parent.children:
-            if child.alive and child.calculate_age() < 18:
+            if child.alive and child.calculate_virtual_age() < 18:
                 # Si el otro padre también falleció, buscar tutor
                 if (parent.gender == "M" and child.mother and not child.mother.alive) or \
                    (parent.gender == "F" and child.father and not child.father.alive):
-                    SimulacionService.encontrar_tutor_legal(child, family)
-
-    @staticmethod
-    def encontrar_tutor_legal(child: Person, family: Family) -> None:
-        """Busca un tutor legal para un niño"""
-        # Buscar abuelos
-        grandparents = []
-        if child.mother and child.mother.mother:
-            grandparents.append(child.mother.mother)
-        if child.mother and child.mother.father:
-            grandparents.append(child.mother.father)
-        if child.father and child.father.mother:
-            grandparents.append(child.father.mother)
-        if child.father and child.father.father:
-            grandparents.append(child.father.father)
-        
-        # Filtrar abuelos vivos
-        living_grandparents = [p for p in grandparents if p and p.alive]
-        
-        if living_grandparents:
-            guardian = random.choice(living_grandparents)
-            child.add_event(f"Tutor: {guardian.first_name} {guardian.last_name}", datetime.datetime.now().strftime("%Y-%m-%d"))
-            return
-        
-        # Buscar tías/tíos
-        aunts_uncles = []
-        if child.mother and child.mother.mother:
-            for sibling in child.mother.mother.children:
-                if sibling != child.mother and sibling.alive:
-                    aunts_uncles.append(sibling)
-        if child.father and child.father.mother:
-            for sibling in child.father.mother.children:
-                if sibling != child.father and sibling.alive:
-                    aunts_uncles.append(sibling)
-        
-        if aunts_uncles:
-            guardian = random.choice(aunts_uncles)
-            child.add_event(f"Tutor: {guardian.first_name} {guardian.last_name}", datetime.datetime.now().strftime("%Y-%m-%d"))
-            return
-        
-        # Si no hay familiares cercanos, asignar tutor aleatorio
-        living_members = [p for p in family.members if p.alive and p != child]
-        if living_members:
-            guardian = random.choice(living_members)
-            child.add_event(f"Tutor: {guardian.first_name} {guardian.last_name}", datetime.datetime.now().strftime("%Y-%m-%d"))
+                    SimulacionService.encontrar_tutor_legal_avanzado(child, family)
 
     @staticmethod
     def simular_nacimiento_mejorado(mother: Person, father: Person, family: Family) -> Tuple[bool, str]:
@@ -128,7 +83,7 @@ class SimulacionService:
             return False, f"Padre fuera de edad reproductiva ({father_age} años)"
         
         # Verificar compatibilidad
-        compatibility = SimulacionService.calcular_compatibilidad_completa(mother, father)
+        compatibility = SimulacionService.calcular_compatibilidad_total(mother, father)
         if not compatibility['compatible']:
             return False, f"Compatibilidad insuficiente ({compatibility['total']:.1f}%)"
         
@@ -136,7 +91,7 @@ class SimulacionService:
         gender = "F" if random.random() < 0.48 else "M"
         first_name, _ = Family.generate_name(gender)
         
-        # Apellido del padre
+        # Apellido del padre - HEREDAR CORRECTAMENTE
         last_name = father.last_name
         
         # Generar cédula única
@@ -148,7 +103,7 @@ class SimulacionService:
         province = father.province if random.random() < 0.6 else mother.province
         
         # Crear bebé
-        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        current_date = f"{family.current_year}-01-01"
         baby = Person(
             cedula=cedula,
             first_name=first_name,
@@ -158,6 +113,9 @@ class SimulacionService:
             province=province,
             marital_status="Soltero/a"
         )
+        
+        # Edad virtual inicial
+        baby.virtual_age = 0
         
         # Heredar algunos intereses de los padres
         parent_interests = list(set(mother.interests + father.interests))
@@ -170,11 +128,11 @@ class SimulacionService:
         baby_interests = ["Juegos", "Dibujo", "Música"]
         baby.interests.extend(random.sample(baby_interests, 1))
         
-        # Edad virtual inicial
-        baby.virtual_age = 0
+        # Agregar a la familia
+        family.add_or_update_member(baby)
         
-        # Agregar a la familia - CORREGIR MÉTODO
-        family.add_or_update_member(baby)  # ← CAMBIAR DE add_member a add_or_update_member
+        # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
+        from services.relacion_service import RelacionService
         
         # Registrar relaciones familiares
         success, message = RelacionService.registrar_padres(
@@ -216,7 +174,7 @@ class SimulacionService:
             person.add_event("Cumpleaños", sim_date)
             
             # Probabilidad de fallecimiento
-            age = person.calculate_age()
+            age = person.calculate_virtual_age()
             death_probability = config.death_probability_base
             if age > 60:
                 death_probability += 0.01 * (age - 60)
@@ -226,9 +184,12 @@ class SimulacionService:
                 if success:
                     eventos.append(message)
             
-            # Probabilidad de encontrar pareja
-            if (person.marital_status == "Soltero/a" and person.calculate_age() >= 18 and 
-                random.random() < config.find_partner_probability and not person.has_partner()):
+            # Probabilidad de encontrar pareja (solo para mayores de 18 años)
+            if (person.alive and 
+                person.calculate_virtual_age() >= 18 and 
+                person.marital_status == "Soltero/a" and 
+                random.random() < config.find_partner_probability and 
+                not person.has_partner()):
                 pareja_encontrada = SimulacionService.intentar_encontrar_pareja(person, family)
                 if pareja_encontrada:
                     eventos.append(f"{person.first_name} {person.last_name} encontró pareja")
@@ -258,35 +219,10 @@ class SimulacionService:
                     person.spouse.marital_status = "Casado/a"
         
         return eventos
-    
 
     @staticmethod
-    def intentar_encontrar_pareja(person: Person, family: Family) -> bool:
-        """Intenta encontrar una pareja para una persona soltera"""
-        if not person.alive or person.has_partner():
-            return False
-            
-        # Buscar posibles parejas
-        possible_partners = []
-        for potential in family.members:
-            if (potential != person and potential.alive and not potential.has_partner() and
-                potential.gender != person.gender):
-                # Verificar compatibilidad básica
-                if (abs(person.calculate_age() - potential.calculate_age()) <= 15 and
-                    len(set(person.interests) & set(potential.interests)) >= 2):
-                    possible_partners.append(potential)
-        
-        # Seleccionar una pareja al azar
-        if possible_partners:
-            partner = random.choice(possible_partners)
-            from services.relacion_service import RelacionService
-            success, _ = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
-            return success
-            
-        return False
-    
     def calcular_compatibilidad_total(person1: Person, person2: Person) -> dict:
-        """Sistema completo de compatibilidad"""
+        """Sistema completo de compatibilidad con 4 factores principales"""
         scores = {}
         
         # 1. Edad (30 puntos) - Diferencia máxima 15 años
@@ -309,7 +245,7 @@ class SimulacionService:
         scores['emotional'] = max(0, 25 - emotional_diff // 4)
         
         # 4. Genética (20 puntos) - No familiares directos
-        if es_compatible_geneticamente(person1, person2):
+        if SimulacionService.es_compatible_geneticamente(person1, person2):
             scores['genetic'] = 20
         else:
             scores['genetic'] = 0
@@ -318,64 +254,30 @@ class SimulacionService:
         
         return {
             'total': total,
-            'compatible': total >= 70,
+            'compatible': total >= 70,  # Umbral del 70%
             'breakdown': scores,
-            'recommendation': get_compatibility_message(total)
+            'common_interests': list(set(person1.interests) & set(person2.interests)),
+            'recommendation': SimulacionService.get_compatibility_message(total)
         }
 
+    @staticmethod
     def get_compatibility_message(score):
+        """Genera un mensaje descriptivo basado en el puntaje de compatibilidad"""
         if score >= 85:
-            return "💕 Pareja perfecta"
+            return "💕 Pareja perfecta - Compatibilidad excepcional en todos los aspectos"
         elif score >= 70:
-            return "💖 Muy compatible"
+            return "💖 Muy compatible - Tienen un buen potencial para una relación estable"
         elif score >= 50:
-            return "💛 Compatible con esfuerzo"
+            return "💛 Compatible con esfuerzo - Necesitarán trabajar en algunas áreas para mantener la relación"
         else:
-            return "💔 Incompatible"
-
-    @staticmethod
-    def es_pareja_compatible(person1: Person, person2: Person) -> bool:
-        """Determina si dos personas son compatibles para formar pareja"""
-        return SimulacionService.calcular_compatibilidad(person1, person2) >= 60
-
-    @staticmethod
-    def intentar_encontrar_pareja(person: Person, family: Family) -> bool:
-        """Intenta encontrar una pareja para una persona soltera"""
-        if not person.alive or person.has_partner():
-            return False
-            
-        # Buscar posibles parejas
-        possible_partners = []
-        for potential in family.members:
-            if (potential != person and potential.alive and 
-                not potential.has_partner() and
-                potential.gender != person.gender):
-                
-                # Verificar compatibilidad completa
-                age_diff = abs(person.calculate_age() - potential.calculate_age())
-                compatibility = SimulacionService.calcular_compatibilidad_total(person, potential)
-                
-                # Relajar requisitos para personas mayores
-                if age_diff <= 20 and compatibility >= 50:
-                    possible_partners.append(potential)
-        
-        # Seleccionar una pareja al azar
-        if possible_partners:
-            partner = random.choice(possible_partners)
-            success, _ = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
-            if success:
-                logger.info(f"{person.first_name} y {partner.first_name} formaron pareja (compatibilidad: {SimulacionService.calcular_compatibilidad_total(person, partner):.1f}%)")
-            return success
-            
-        return False
-        
+            return "💔 Incompatible - Altas probabilidades de conflictos y problemas en la relación"
 
     @staticmethod
     def es_compatible_geneticamente(person1: Person, person2: Person) -> bool:
         """Verifica compatibilidad genética para evitar riesgos en descendencia"""
         # Caso 1: Parientes directos
         if person1 in [person2.father, person2.mother, person2.spouse] or \
-        person2 in [person1.father, person1.mother, person1.spouse]:
+           person2 in [person1.father, person1.mother, person1.spouse]:
             return False
         
         # Caso 2: Hermanos
@@ -402,28 +304,166 @@ class SimulacionService:
             return False
         
         # Caso 4: Edad extrema
-        age_diff = abs(person1.calculate_age() - person2.calculate_age())
+        age_diff = abs(person1.calculate_virtual_age() - person2.calculate_virtual_age())
         if age_diff > 40:
             return False
         
         return True
 
     @staticmethod
+    def verificar_requisitos_union(person1: Person, person2: Person, family: Family) -> tuple:
+        """
+        Verifica todos los requisitos para una unión de pareja
+        
+        Returns:
+            tuple: (bool, str) - (Es compatible, Mensaje de resultado)
+        """
+        # 1. Verificar edad mínima (18 años)
+        if person1.calculate_virtual_age() < 18:
+            return False, f"{person1.first_name} debe ser mayor de 18 años ({person1.calculate_virtual_age()} años)"
+        if person2.calculate_virtual_age() < 18:
+            return False, f"{person2.first_name} debe ser mayor de 18 años ({person2.calculate_virtual_age()} años)"
+        
+        # 2. Verificar estado civil (no pueden estar unidos a otra persona)
+        if person1.has_partner():
+            return False, f"{person1.first_name} ya está en una relación"
+        if person2.has_partner():
+            return False, f"{person2.first_name} ya está en una relación"
+        
+        # 3. Verificar diferencia de edad (máximo 15 años)
+        age_diff = abs(person1.calculate_virtual_age() - person2.calculate_virtual_age())
+        if age_diff > 15:
+            return False, f"Diferencia de edad excesiva ({age_diff} años). Máximo permitido: 15 años"
+        
+        # 4. Verificar compatibilidad genética
+        if not SimulacionService.es_compatible_geneticamente(person1, person2):
+            return False, "Incompatibilidad genética detectada. No se recomienda la unión por riesgos en descendencia"
+        
+        # 5. Verificar compatibilidad emocional (intereses en común)
+        common_interests = set(person1.interests) & set(person2.interests)
+        if len(common_interests) < 2:
+            return False, f"Se requieren al menos 2 intereses en común. Tienen {len(common_interests)} interés(es) compartido(s)"
+        
+        # 6. Verificar índice de compatibilidad
+        compatibility = SimulacionService.calcular_compatibilidad_total(person1, person2)
+        if not compatibility['compatible']:
+            return False, f"Índice de compatibilidad insuficiente ({compatibility['total']:.1f}%). Mínimo requerido: 70%"
+        
+        return True, f"✅ {person1.first_name} y {person2.first_name} cumplen con todos los requisitos para formar pareja"
+
+    @staticmethod
+    def intentar_encontrar_pareja(person: Person, family: Family) -> bool:
+        """Intenta encontrar una pareja para una persona soltera, generando personas externas si es necesario"""
+        if not person.alive or person.has_partner():
+            return False
+        
+        possible_partners = []
+        for potential in family.members:
+            if (potential != person and 
+                potential.alive and 
+                not potential.has_partner() and 
+                potential.gender != person.gender):
+                
+                # Verificar compatibilidad completa
+                compatibility = SimulacionService.calcular_compatibilidad_total(person, potential)
+                
+                # Relajar requisitos para personas mayores
+                age_diff = abs(person.calculate_virtual_age() - potential.calculate_virtual_age())
+                if age_diff <= 20 and compatibility['total'] >= 50:
+                    possible_partners.append((potential, compatibility['total']))
+        
+        # Si hay parejas dentro de la familia, elegir la mejor
+        if possible_partners:
+            partner, _ = max(possible_partners, key=lambda x: x[1])
+            
+            # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
+            from services.relacion_service import RelacionService
+            
+            success, _ = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
+            if success:
+                logger.info(f"{person.first_name} y {partner.first_name} formaron pareja (compatibilidad: {compatibility['total']:.1f}%)")
+                return True
+        
+        # Si no hay parejas dentro de la familia, generar una persona externa
+        return SimulacionService.generar_persona_externa_para_pareja(person, family)
+    
+    @staticmethod
+    def generar_persona_externa_para_pareja(person: Person, family: Family) -> bool:
+        """Genera una persona externa para formar pareja con alguien de la familia"""
+        # Determinar género de la pareja
+        target_gender = "F" if person.gender == "M" else "M"
+    
+        # Generar cédula única
+        cedula = Family.generate_cedula()
+        while not Family.validate_cedula_unique(cedula, family):
+            cedula = Family.generate_cedula()
+    
+        # Generar nombre y apellido (diferente al de la familia actual)
+        first_name, _ = Family.generate_name(target_gender)
+        _, last_name = Family.generate_name("M")  # Usamos generador de nombres para obtener apellido
+    
+        # Generar edad (similar a la persona)
+        person_age = person.calculate_virtual_age()
+        age = max(18, min(80, person_age + random.randint(-5, 5)))
+    
+        # Calcular fecha de nacimiento
+        current_year = family.current_year
+        birth_year = current_year - age
+        birth_date = f"{birth_year}-01-01"
+    
+        # Determinar provincia (podría ser la misma o diferente)
+        provinces = ["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"]
+        province = random.choice(provinces)
+    
+        # Crear la persona externa
+        new_partner = Person(
+            cedula=cedula,
+            first_name=first_name,
+            last_name=last_name,
+            birth_date=birth_date,
+            gender=target_gender,
+            province=province,
+            marital_status="Soltero/a"
+        )
+    
+        # Establecer edad virtual
+        new_partner.virtual_age = age
+    
+        # Establecer intereses
+        base_interests = ["Trabajo", "Familia", "Deportes", "Lectura", "Música", "Viajes", "Arte", "Cocina", "Tecnología"]
+        new_partner.interests = random.sample(base_interests, min(3, len(base_interests)))
+    
+        # Establecer salud emocional
+        new_partner.emotional_health = random.randint(60, 90)
+    
+        # Agregar a la familia
+        family.add_or_update_member(new_partner)
+    
+        # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
+        from services.relacion_service import RelacionService
+        
+        # Registrar pareja
+        success, _ = RelacionService.registrar_pareja(family, person.cedula, new_partner.cedula)
+    
+        if success:
+            logger.info(f"{person.first_name} formó pareja con {new_partner.first_name} (persona externa)")
+            logger.info(f"Nueva persona generada: {new_partner.first_name} {new_partner.last_name}, edad: {new_partner.virtual_age}")
+            return True
+    
+        return False
+
+    @staticmethod
     def ejecutar_ciclo_cumpleanos(family: Family) -> list:
         """Ejecuta cumpleaños para todas las personas vivas"""
         eventos = []
-        current_date = datetime.datetime.now()
+        current_date = f"{family.current_year}-01-01"
         
         for person in family.get_living_members():
             # Incrementar edad virtual
-            person.virtual_age = getattr(person, 'virtual_age', person.calculate_age()) + 1
-            
-            # Actualizar año de nacimiento virtual para mantener consistencia
-            birth_year = int(person.birth_date[:4]) if person.birth_date else current_date.year - 20
-            person.virtual_birth_year = birth_year - person.virtual_age
+            person.incrementar_edad_virtual(1)
             
             # Registrar evento
-            person.add_event(f"Cumpleaños #{person.virtual_age}", current_date.strftime("%Y-%m-%d"))
+            person.add_event(f"Cumpleaños #{person.virtual_age}", current_date)
             eventos.append(f"🎂 {person.first_name} {person.last_name} cumple {person.virtual_age} años")
             
             # Efectos del envejecimiento
@@ -434,7 +474,7 @@ class SimulacionService:
     @staticmethod
     def _aplicar_efectos_edad(person: Person, eventos: list):
         """Aplica efectos del envejecimiento"""
-        edad = getattr(person, 'virtual_age', person.calculate_age())
+        edad = person.calculate_virtual_age()
         
         # Efectos por rango de edad
         if edad == 18:
@@ -477,7 +517,7 @@ class SimulacionService:
     @staticmethod
     def calcular_probabilidad_muerte(person: Person) -> float:
         """Calcula probabilidad de muerte basada en edad y salud"""
-        age = getattr(person, 'virtual_age', person.calculate_age())
+        age = person.calculate_virtual_age()
         
         # Probabilidad base por edad
         if age < 1:
@@ -504,12 +544,12 @@ class SimulacionService:
         elif person.emotional_health > 80:
             health_modifier = 0.8  # 20% menos probabilidad
         
-        # Modificador por estado civil (personas solas tienen mayor riesgo)
+        # Modificador por estado civil
         if person.marital_status == "Viudo/a" and age > 65:
             health_modifier *= 1.3
         elif person.marital_status == "Soltero/a" and age > 40:
-            years_single = age - 25  # Asumiendo soltería prolongada después de 25
-            health_modifier *= (1 + years_single * 0.01)  # 1% adicional por año solo
+            years_single = age - 25
+            health_modifier *= (1 + years_single * 0.01)
         
         return min(0.3, base_prob * health_modifier)  # Máximo 30%
 
@@ -525,7 +565,7 @@ class SimulacionService:
             if parent:
                 for grandparent in [parent.father, parent.mother]:
                     if grandparent and grandparent.alive:
-                        age = getattr(grandparent, 'virtual_age', grandparent.calculate_age())
+                        age = grandparent.calculate_virtual_age()
                         if age < 75:  # No muy mayores
                             grandparents.append((grandparent, 'abuelo', 10))
         
@@ -535,7 +575,7 @@ class SimulacionService:
             if parent and parent.father:
                 for sibling in parent.father.children:
                     if (sibling != parent and sibling.alive and 
-                        getattr(sibling, 'virtual_age', sibling.calculate_age()) < 50):
+                        sibling.calculate_virtual_age() < 50):
                         stability_score = 8
                         if sibling.spouse:
                             stability_score += 2
@@ -547,7 +587,7 @@ class SimulacionService:
         older_siblings = []
         for sibling in child.siblings:
             if (sibling.alive and 
-                getattr(sibling, 'virtual_age', sibling.calculate_age()) >= 18):
+                sibling.calculate_virtual_age() >= 18):
                 older_siblings.append((sibling, 'hermano/a', 6))
         
         # Combinar y ordenar por prioridad
@@ -567,7 +607,7 @@ class SimulacionService:
         # Si no hay familiares, buscar en la comunidad
         community_guardians = [p for p in family.members 
                             if (p.alive and p != child and 
-                                25 <= getattr(p, 'virtual_age', p.calculate_age()) <= 55 and
+                                25 <= p.calculate_virtual_age() <= 55 and
                                 p.emotional_health > 60)]
         
         if community_guardians:
@@ -597,11 +637,11 @@ class SimulacionService:
         eventos.append(f"💔 {person.first_name} queda viudo/a tras el fallecimiento de {deceased_spouse.first_name}")
         
         # Efectos a largo plazo
-        person.widowed_year = getattr(person, 'virtual_age', person.calculate_age())
+        person.widowed_year = person.calculate_virtual_age()
         person.remarriage_probability = 0.3  # 30% base de volverse a casar
         
         # Reducir probabilidad según edad
-        age = getattr(person, 'virtual_age', person.calculate_age())
+        age = person.calculate_virtual_age()
         if age > 60:
             person.remarriage_probability *= 0.5
         elif age > 70:
@@ -613,7 +653,7 @@ class SimulacionService:
     def procesar_efectos_solteria_prolongada(person: Person) -> list:
         """Procesa efectos de soledad prolongada"""
         eventos = []
-        age = getattr(person, 'virtual_age', person.calculate_age())
+        age = person.calculate_virtual_age()
         
         if person.marital_status == "Soltero/a" and age > 30:
             years_single = age - 25  # Asumiendo que la presión social inicia a los 25
@@ -639,8 +679,8 @@ class SimulacionService:
         
         # 1. Viudez del cónyuge
         if deceased.spouse and deceased.spouse.alive:
-            viudez_eventos = procesar_efectos_viudez(deceased.spouse, deceased)
-            eventos.extend(viudez_eventos)
+            viudez_events = SimulacionService.procesar_efectos_viudez(deceased.spouse, deceased)
+            eventos.extend(viudez_events)
         
         # 2. Huérfanos menores de edad
         menores = [child for child in deceased.children 
@@ -649,7 +689,7 @@ class SimulacionService:
         for menor in menores:
             # Si ambos padres murieron, buscar tutor
             if not menor.father.alive and not menor.mother.alive:
-                tutor_resultado = encontrar_tutor_legal(menor, family)
+                tutor_resultado = SimulacionService.encontrar_tutor_legal_avanzado(menor, family)
                 eventos.append(tutor_resultado[1])
         
         # 3. Impacto emocional en hijos adultos
@@ -665,7 +705,6 @@ class SimulacionService:
             eventos.append(f"😢 {hijo.first_name} está de luto por {deceased.first_name}")
         
         return eventos
-    
 
     @staticmethod
     def procesar_fallecimientos(family: Family) -> list:
@@ -681,12 +720,15 @@ class SimulacionService:
                 person.death_date = datetime.datetime.now().strftime("%Y-%m-%d")
                 person.add_event("Fallecimiento", person.death_date)
                 
-                # Efectos colaterales
+                # Registrar en eventos
+                eventos.append(f"⚰️ {person.first_name} {person.last_name} ha fallecido a los {person.calculate_virtual_age()} años")
+                
+                # Procesar efectos colaterales
                 if person.spouse and person.spouse.alive:
                     viudez_events = SimulacionService.procesar_efectos_viudez(person.spouse, person)
                     eventos.extend(viudez_events)
                 
-                # Huérfanos menores
+                # Manejar hijos menores
                 for child in person.children:
                     if child.alive and child.calculate_virtual_age() < 18:
                         both_parents_dead = (
@@ -697,8 +739,6 @@ class SimulacionService:
                             tutor_success, tutor_msg = SimulacionService.encontrar_tutor_legal_avanzado(child, family)
                             if tutor_success:
                                 eventos.append(tutor_msg)
-                
-                eventos.append(f"⚱️ {person.first_name} {person.last_name} ha fallecido a los {person.calculate_virtual_age()} años")
         
         return eventos
         
@@ -732,6 +772,9 @@ class SimulacionService:
                     possible_partners.sort(key=lambda x: x[1], reverse=True)
                     partner, compatibility_score = possible_partners[0]
                     
+                    # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
+                    from services.relacion_service import RelacionService
+                    
                     # Registrar pareja
                     success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula)
                     if success:
@@ -741,6 +784,7 @@ class SimulacionService:
         
         return eventos
     
+    @staticmethod
     def procesar_nacimientos(family: Family, config: SimulationConfig) -> list:
         """Procesa nacimientos de parejas"""
         eventos = []
