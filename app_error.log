@@ -900,3 +900,394 @@ AttributeError: 'GedcomParser' object has no attribute 'parse_gedcom_file'
 2025-08-28 20:10:48,657 - asyncio - INFO - Luis Carlos formó pareja con Verónica (persona externa)
 2025-08-28 20:10:48,659 - asyncio - INFO - Nueva persona generada: Verónica Cordero, edad: 28
 2025-08-28 20:10:48,659 - asyncio - INFO - Intereses comunes: ['Libros', 'Festivales']
+2025-08-28 20:30:12,157 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 20:30:12,166 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:30:12,168 - matplotlib - DEBUG - interactive is False
+2025-08-28 20:30:12,168 - matplotlib - DEBUG - platform is win32
+2025-08-28 20:30:12,182 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 20:30:12,277 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 20:30:12,568 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:30:12,570 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 20:30:12,772 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 20:30:12,773 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 20:30:12,870 - root - INFO - Ventana principal creada
+2025-08-28 20:30:13,533 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 20:30:13,592 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 20:30:13,592 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 20:32:08,717 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 20:32:08,749 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:32:08,754 - matplotlib - DEBUG - interactive is False
+2025-08-28 20:32:08,754 - matplotlib - DEBUG - platform is win32
+2025-08-28 20:32:08,783 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 20:32:08,850 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 20:32:09,287 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:32:09,290 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 20:32:09,661 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 20:32:09,661 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 20:32:09,761 - root - INFO - Ventana principal creada
+2025-08-28 20:32:10,311 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 20:32:10,360 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 20:32:10,361 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 20:32:21,147 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 20:32:28,345 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 20:32:51,619 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 20:32:51,644 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:32:51,648 - matplotlib - DEBUG - interactive is False
+2025-08-28 20:32:51,648 - matplotlib - DEBUG - platform is win32
+2025-08-28 20:32:51,679 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 20:32:51,742 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 20:32:52,043 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:32:52,047 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 20:32:52,428 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 20:32:52,429 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 20:32:52,493 - root - INFO - Ventana principal creada
+2025-08-28 20:32:52,981 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 20:32:53,033 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 20:32:53,034 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 20:33:17,286 - asyncio - INFO - Sofia Elena formó pareja con Mario (persona externa)
+2025-08-28 20:33:17,287 - asyncio - INFO - Nueva persona generada: Mario Quesada, edad: 23
+2025-08-28 20:33:17,287 - asyncio - INFO - Intereses comunes: ['Videojuegos', 'Idiomas']
+2025-08-28 20:33:18,554 - asyncio - INFO - Luis Carlos formó pareja con Carmen (persona externa)
+2025-08-28 20:33:18,554 - asyncio - INFO - Nueva persona generada: Carmen Trejos, edad: 35
+2025-08-28 20:33:18,554 - asyncio - INFO - Intereses comunes: ['Comida internacional', 'Vinos']
+2025-08-28 20:33:47,971 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 20:48:18,675 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 20:48:18,686 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:48:18,687 - matplotlib - DEBUG - interactive is False
+2025-08-28 20:48:18,687 - matplotlib - DEBUG - platform is win32
+2025-08-28 20:48:18,698 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 20:48:18,777 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 20:48:19,006 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:48:19,007 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 20:48:19,190 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 20:48:19,191 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 20:48:19,272 - root - INFO - Ventana principal creada
+2025-08-28 20:48:19,726 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 20:48:19,768 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 20:48:19,768 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 20:49:00,650 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 20:49:00,681 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:49:00,686 - matplotlib - DEBUG - interactive is False
+2025-08-28 20:49:00,686 - matplotlib - DEBUG - platform is win32
+2025-08-28 20:49:00,726 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 20:49:00,824 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 20:49:01,482 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 20:49:01,488 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 20:49:02,006 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 20:49:02,008 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 20:49:02,133 - root - INFO - Ventana principal creada
+2025-08-28 20:49:02,853 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 20:49:02,936 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 20:49:02,937 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 20:52:11,068 - asyncio - INFO - Luis Carlos formó pareja con Claudia (persona externa)
+2025-08-28 20:52:11,072 - asyncio - INFO - Nueva persona generada: Claudia Chaves, edad: 36
+2025-08-28 20:52:11,075 - asyncio - INFO - Intereses comunes: ['Psicología', 'Comida internacional']
+2025-08-28 20:52:55,938 - asyncio - INFO - Sofia Elena formó pareja con Juan (persona externa)
+2025-08-28 20:52:55,942 - asyncio - INFO - Nueva persona generada: Juan Castro, edad: 40
+2025-08-28 20:52:55,945 - asyncio - INFO - Intereses comunes: ['Voluntariado', 'Eventos sociales']
+2025-08-28 20:53:34,969 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 20:53:38,996 - asyncio - INFO - Luis Carlos formó pareja con Claudia (persona externa)
+2025-08-28 20:53:39,001 - asyncio - INFO - Nueva persona generada: Claudia Monge, edad: 39
+2025-08-28 20:53:39,002 - asyncio - INFO - Intereses comunes: ['Videojuegos', 'Terapias alternativas']
+2025-08-28 20:53:39,828 - asyncio - INFO - Sofia Elena formó pareja con Luis (persona externa)
+2025-08-28 20:53:39,828 - asyncio - INFO - Nueva persona generada: Luis Mendez, edad: 30
+2025-08-28 20:53:39,828 - asyncio - INFO - Intereses comunes: ['Fútbol', 'Festivales']
+2025-08-28 20:55:04,896 - asyncio - INFO - Oscar formó pareja con Gabriela (persona externa)
+2025-08-28 20:55:04,898 - asyncio - INFO - Nueva persona generada: Gabriela Picado, edad: 24
+2025-08-28 20:55:04,899 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Dibujo']
+2025-08-28 20:55:10,384 - asyncio - INFO - Isabel formó pareja con Mario (persona externa)
+2025-08-28 20:55:10,384 - asyncio - INFO - Nueva persona generada: Mario Mora, edad: 41
+2025-08-28 20:55:10,384 - asyncio - INFO - Intereses comunes: ['Música', 'Naturaleza']
+2025-08-28 20:55:28,330 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 21:13:03,470 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 21:13:03,489 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:13:03,496 - matplotlib - DEBUG - interactive is False
+2025-08-28 21:13:03,497 - matplotlib - DEBUG - platform is win32
+2025-08-28 21:13:03,515 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 21:13:03,616 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 21:13:03,908 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:13:03,911 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 21:13:04,102 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 21:13:04,103 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 21:13:04,227 - root - INFO - Ventana principal creada
+2025-08-28 21:13:04,798 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 21:13:04,861 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 21:13:04,861 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 21:14:35,988 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 21:14:36,023 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:14:36,033 - matplotlib - DEBUG - interactive is False
+2025-08-28 21:14:36,033 - matplotlib - DEBUG - platform is win32
+2025-08-28 21:14:36,064 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 21:14:36,142 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 21:14:36,493 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:14:36,496 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 21:14:36,833 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 21:14:36,834 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 21:14:36,958 - root - INFO - Ventana principal creada
+2025-08-28 21:14:37,451 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 21:14:37,499 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 21:14:37,500 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 21:18:13,956 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 21:18:13,969 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:18:13,970 - matplotlib - DEBUG - interactive is False
+2025-08-28 21:18:13,971 - matplotlib - DEBUG - platform is win32
+2025-08-28 21:18:13,988 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 21:18:14,095 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 21:18:14,401 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 21:18:14,403 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 21:18:14,607 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 21:18:14,608 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 21:18:14,714 - root - INFO - Ventana principal creada
+2025-08-28 21:18:15,295 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 21:18:15,370 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 21:18:15,370 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:02:22,489 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:02:22,684 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:02:22,689 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:02:22,691 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:02:22,969 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:02:24,605 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:02:25,685 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:02:25,705 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:02:28,457 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:02:28,458 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:02:29,684 - root - INFO - Ventana principal creada
+2025-08-28 22:02:31,644 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:02:31,896 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:02:31,896 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:02:57,023 - asyncio - INFO - Luis Carlos formó pareja con Verónica (persona externa)
+2025-08-28 22:02:57,024 - asyncio - INFO - Nueva persona generada: Verónica Araya, edad: 37
+2025-08-28 22:02:57,024 - asyncio - INFO - Intereses comunes: ['Terapias alternativas', 'Festivales']
+2025-08-28 22:03:03,203 - asyncio - INFO - Sofia Elena formó pareja con Andrés (persona externa)
+2025-08-28 22:03:03,203 - asyncio - INFO - Nueva persona generada: Andrés Mendez, edad: 29
+2025-08-28 22:03:03,203 - asyncio - INFO - Intereses comunes: ['Yoga', 'Entrenamiento']
+2025-08-28 22:03:21,118 - asyncio - INFO - Daniela formó pareja con Luis (persona externa)
+2025-08-28 22:03:21,119 - asyncio - INFO - Nueva persona generada: Luis Vega, edad: 20
+2025-08-28 22:03:21,119 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 22:03:21,652 - asyncio - INFO - Ricardo formó pareja con Daniela (persona externa)
+2025-08-28 22:03:21,653 - asyncio - INFO - Nueva persona generada: Daniela Salas, edad: 18
+2025-08-28 22:03:21,653 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Dibujo']
+2025-08-28 22:03:21,820 - asyncio - INFO - Fernando formó pareja con Isabel (persona externa)
+2025-08-28 22:03:21,821 - asyncio - INFO - Nueva persona generada: Isabel Monge, edad: 25
+2025-08-28 22:03:21,821 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Música']
+2025-08-28 22:03:22,469 - asyncio - INFO - María formó pareja con Ricardo (persona externa)
+2025-08-28 22:03:22,469 - asyncio - INFO - Nueva persona generada: Ricardo Ramírez, edad: 29
+2025-08-28 22:03:22,470 - asyncio - INFO - Intereses comunes: ['Música', 'Dibujo']
+2025-08-28 22:03:23,681 - asyncio - INFO - Claudia formó pareja con Mario (persona externa)
+2025-08-28 22:03:23,682 - asyncio - INFO - Nueva persona generada: Mario Picado, edad: 38
+2025-08-28 22:03:23,683 - asyncio - INFO - Intereses comunes: ['Música', 'Dibujo']
+2025-08-28 22:03:23,683 - asyncio - INFO - Carmen formó pareja con Raúl (persona externa)
+2025-08-28 22:03:23,683 - asyncio - INFO - Nueva persona generada: Raúl Solano, edad: 26
+2025-08-28 22:03:23,684 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Juegos']
+2025-08-28 22:03:33,732 - asyncio - INFO - Miguel formó pareja con Elena (persona externa)
+2025-08-28 22:03:33,733 - asyncio - INFO - Nueva persona generada: Elena Cordero, edad: 52
+2025-08-28 22:03:33,733 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Naturaleza']
+2025-08-28 22:03:34,490 - asyncio - INFO - Oscar formó pareja con Patricia (persona externa)
+2025-08-28 22:03:34,490 - asyncio - INFO - Nueva persona generada: Patricia Esquivel, edad: 18
+2025-08-28 22:03:34,490 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Dibujo']
+2025-08-28 22:03:34,491 - asyncio - INFO - Andrés formó pareja con Paula (persona externa)
+2025-08-28 22:03:34,492 - asyncio - INFO - Nueva persona generada: Paula Segura, edad: 18
+2025-08-28 22:03:34,492 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Cuentos']
+2025-08-28 22:03:39,095 - asyncio - INFO - Carolina formó pareja con Miguel (persona externa)
+2025-08-28 22:03:39,096 - asyncio - INFO - Nueva persona generada: Miguel Chaves, edad: 18
+2025-08-28 22:03:39,096 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Música']
+2025-08-28 22:03:39,432 - asyncio - INFO - Sofía formó pareja con José (persona externa)
+2025-08-28 22:03:39,433 - asyncio - INFO - Nueva persona generada: José Castro, edad: 32
+2025-08-28 22:03:39,433 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 22:03:39,703 - asyncio - INFO - Mario formó pareja con Ana (persona externa)
+2025-08-28 22:03:39,703 - asyncio - INFO - Nueva persona generada: Ana Villalobos, edad: 28
+2025-08-28 22:03:39,703 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Cuentos']
+2025-08-28 22:03:39,792 - asyncio - INFO - Laura formó pareja con Diego (persona externa)
+2025-08-28 22:03:39,793 - asyncio - INFO - Nueva persona generada: Diego Trejos, edad: 35
+2025-08-28 22:03:39,793 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 22:03:40,432 - asyncio - INFO - Diego formó pareja con Elena (persona externa)
+2025-08-28 22:03:40,432 - asyncio - INFO - Nueva persona generada: Elena Quesada, edad: 39
+2025-08-28 22:03:40,432 - asyncio - INFO - Intereses comunes: ['Juegos', 'Música']
+2025-08-28 22:03:41,973 - asyncio - INFO - Ricardo formó pareja con Ana (persona externa)
+2025-08-28 22:03:41,974 - asyncio - INFO - Nueva persona generada: Ana Carballo, edad: 28
+2025-08-28 22:03:41,974 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Naturaleza']
+2025-08-28 22:03:42,088 - asyncio - INFO - Fernando formó pareja con Paula (persona externa)
+2025-08-28 22:03:42,089 - asyncio - INFO - Nueva persona generada: Paula Rojas, edad: 33
+2025-08-28 22:03:42,089 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Música']
+2025-08-28 22:08:49,262 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:08:49,276 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:08:49,278 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:08:49,278 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:08:49,294 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:08:49,401 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:08:49,718 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:08:49,720 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:08:49,921 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:08:49,922 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:08:50,072 - root - INFO - Ventana principal creada
+2025-08-28 22:08:50,707 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:08:50,783 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:08:50,783 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:09:01,875 - asyncio - INFO - Sofia Elena formó pareja con Ricardo (persona externa)
+2025-08-28 22:09:01,876 - asyncio - INFO - Nueva persona generada: Ricardo Mora, edad: 25
+2025-08-28 22:09:01,876 - asyncio - INFO - Intereses comunes: ['Inteligencia Artificial', 'Astronomía']
+2025-08-28 22:09:02,304 - asyncio - INFO - Luis Carlos formó pareja con Elena (persona externa)
+2025-08-28 22:09:02,305 - asyncio - INFO - Nueva persona generada: Elena Rojas, edad: 33
+2025-08-28 22:09:02,306 - asyncio - INFO - Intereses comunes: ['Terapias alternativas', 'Conciertos']
+2025-08-28 22:12:20,114 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:12:20,134 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:12:20,137 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:12:20,138 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:12:20,170 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:12:20,233 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:12:20,548 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:12:20,550 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:12:20,876 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:12:20,876 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:12:20,965 - root - INFO - Ventana principal creada
+2025-08-28 22:12:21,515 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:12:21,572 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:12:21,572 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:12:34,099 - asyncio - INFO - Luis Carlos formó pareja con Carmen (persona externa)
+2025-08-28 22:12:34,100 - asyncio - INFO - Nueva persona generada: Carmen Solano, edad: 35
+2025-08-28 22:12:34,101 - asyncio - INFO - Intereses comunes: ['Cocina', 'Matemáticas']
+2025-08-28 22:12:35,512 - asyncio - INFO - Sofia Elena formó pareja con Andrés (persona externa)
+2025-08-28 22:12:35,513 - asyncio - INFO - Nueva persona generada: Andrés Aguilar, edad: 24
+2025-08-28 22:12:35,514 - asyncio - INFO - Intereses comunes: ['Política', 'Eventos sociales']
+2025-08-28 22:12:48,459 - gui.simulation_panel - INFO - Árbol de simulación limpiado exitosamente
+2025-08-28 22:24:08,013 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:24:08,029 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:24:08,029 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:24:08,030 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:24:08,044 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:24:08,165 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:24:08,206 - root - CRITICAL - Error FATAL al importar módulos: unexpected indent (relacion_service.py, line 283)
+Traceback (most recent call last):
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\main.py", line 35, in <module>
+    from gui.app import GenealogyApp
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\gui\app.py", line 14, in <module>
+    from services.relacion_service import RelacionService
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\services\relacion_service.py", line 283
+    if child not in father.children:
+IndentationError: unexpected indent
+2025-08-28 22:24:58,370 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:24:58,380 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:24:58,382 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:24:58,382 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:24:58,393 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:24:58,495 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:24:58,793 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:24:58,795 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:24:59,003 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:24:59,003 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:24:59,109 - root - INFO - Ventana principal creada
+2025-08-28 22:24:59,676 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:24:59,774 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:24:59,774 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:34:07,455 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:34:07,465 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:34:07,467 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:34:07,467 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:34:07,489 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:34:07,630 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:34:08,019 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:34:08,020 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:34:08,274 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:34:08,275 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:34:08,430 - root - INFO - Ventana principal creada
+2025-08-28 22:34:08,982 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:34:09,139 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:34:09,140 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:36:31,912 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:36:31,921 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:36:31,922 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:36:31,923 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:36:31,937 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:36:32,037 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:36:32,284 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:36:32,286 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:36:32,476 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:36:32,476 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:36:32,611 - root - INFO - Ventana principal creada
+2025-08-28 22:36:33,137 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:36:33,358 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:36:33,358 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:41:28,623 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:41:28,635 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:41:28,636 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:41:28,636 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:41:28,650 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:41:28,772 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:41:29,137 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:41:29,139 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:41:29,350 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:41:29,351 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:41:29,463 - root - INFO - Ventana principal creada
+2025-08-28 22:41:30,074 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:41:30,222 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:41:30,222 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:43:53,418 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:43:53,443 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:43:53,447 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:43:53,448 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:43:53,483 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:43:53,583 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:43:54,285 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:43:54,288 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:43:54,617 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:43:54,618 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:43:54,679 - root - INFO - Ventana principal creada
+2025-08-28 22:43:55,676 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:43:55,881 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:43:55,881 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:50:50,376 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:50:50,387 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:50:50,388 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:50:50,389 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:50:50,401 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:50:50,528 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:50:50,824 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:50:50,825 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:50:51,023 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:50:51,024 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:50:51,200 - root - INFO - Ventana principal creada
+2025-08-28 22:50:51,713 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:50:51,938 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:50:51,938 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:52:10,897 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:52:10,911 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:52:10,915 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:52:10,916 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:52:10,939 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:52:11,102 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:52:11,481 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:52:11,485 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:52:11,752 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:52:11,754 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:52:11,909 - root - INFO - Ventana principal creada
+2025-08-28 22:52:12,418 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:52:12,625 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:52:12,625 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 22:54:43,691 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 22:54:43,710 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:54:43,711 - matplotlib - DEBUG - interactive is False
+2025-08-28 22:54:43,711 - matplotlib - DEBUG - platform is win32
+2025-08-28 22:54:43,726 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 22:54:43,876 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 22:54:44,175 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 22:54:44,176 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 22:54:44,412 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 22:54:44,413 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 22:54:44,600 - root - INFO - Ventana principal creada
+2025-08-28 22:54:45,133 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 22:54:45,332 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 22:54:45,332 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 23:00:06,992 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 23:00:07,020 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 23:00:07,024 - matplotlib - DEBUG - interactive is False
+2025-08-28 23:00:07,025 - matplotlib - DEBUG - platform is win32
+2025-08-28 23:00:07,049 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 23:00:07,138 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 23:00:07,388 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 23:00:07,390 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 23:00:07,602 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 23:00:07,604 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 23:00:07,760 - root - INFO - Ventana principal creada
+2025-08-28 23:00:08,356 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 23:00:08,581 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 23:00:08,582 - root - INFO - Iniciando bucle principal de la aplicación...

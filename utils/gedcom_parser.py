@@ -1,10 +1,12 @@
 # utils/gedcom_parser.py
-from asyncio.log import logger
+import logging
 import re
 from typing import Dict, List, Optional
 from models.family import Family
 from models.person import Person
 from services.relacion_service import RelacionService
+
+logger = logging.getLogger(__name__)
 
 class GedcomParser:
     """Parser para archivos GEDCOM"""

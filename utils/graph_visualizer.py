@@ -27,36 +27,29 @@ class FamilyGraphVisualizer:
 
         # Agregar relaciones familiares
         for person in family.members:
-            # Relaciones padre-hijo (flechas hacia abajo)
+            # Relaciones padre-hijo (SOLO una dirección: padre → hijo)
             if person.father and person.father.cedula in [p.cedula for p in family.members]:
                 self.G.add_edge(person.father.cedula, person.cedula, relationship="parent")
-                # También agregar relación inversa hijo→padre
-                self.G.add_edge(person.cedula, person.father.cedula, relationship="child")
             if person.mother and person.mother.cedula in [p.cedula for p in family.members]:
                 self.G.add_edge(person.mother.cedula, person.cedula, relationship="parent")
-                # También agregar relación inversa hijo→madre
-                self.G.add_edge(person.cedula, person.mother.cedula, relationship="child")
 
-            # Relación de pareja (bidireccional, sin flechas)
+            # Relación de pareja (bidireccional, pero solo agregar una vez)
             if person.spouse and person.spouse.cedula in [p.cedula for p in family.members]:
-                # Solo agregar una vez para evitar duplicados
-                if not self.G.has_edge(person.cedula, person.spouse.cedula):
+                # Solo agregar si no existe ya (evita duplicados)
+                if not self.G.has_edge(person.cedula, person.spouse.cedula) and not self.G.has_edge(person.spouse.cedula, person.cedula):
                     self.G.add_edge(person.cedula, person.spouse.cedula, relationship="spouse")
-                if not self.G.has_edge(person.spouse.cedula, person.cedula):
-                    self.G.add_edge(person.spouse.cedula, person.cedula, relationship="spouse")
 
-            # Relación de hermanos (línea punteada)
+            # Relación de hermanos (solo agregar una vez entre cada par)
             for sibling in person.siblings:
                 if sibling.cedula in [p.cedula for p in family.members]:
-                    # Evitar duplicados bidireccionales
-                    if not self.G.has_edge(person.cedula, sibling.cedula) and not self.G.has_edge(sibling.cedula, person.cedula):
+                    # Evitar duplicados comparando cédulas alfabéticamente
+                    if person.cedula < sibling.cedula:  # Solo agregar una vez por par
                         self.G.add_edge(person.cedula, sibling.cedula, relationship="sibling")
-                        self.G.add_edge(sibling.cedula, person.cedula, relationship="sibling")
 
         return self.G
 
     def calculate_hierarchical_layout(self, family) -> Dict[str, Tuple[float, float]]:
-        """Calcula posiciones jerárquicas centradas y dentro del canvas"""
+        """Calcula posiciones jerárquicas mejoradas con mejor distribución espacial"""
         pos = {}
         levels = self._assign_levels(family)
 
@@ -68,14 +61,22 @@ class FamilyGraphVisualizer:
         adjusted_levels = {cedula: level - min_level for cedula, level in levels.items()}
         max_level = max(adjusted_levels.values()) if adjusted_levels else 0
 
+        # Dimensiones del canvas con espacio para la leyenda
         canvas_width = 1200
         canvas_height = 800
-        margin_top = 100
-        margin_bottom = 150
+        
+        # Reservar espacio para la leyenda (220px desde la derecha)
+        usable_width = canvas_width - 250  # Dejar 250px para la leyenda
+        margin_left = 50
+        margin_top = 80
+        margin_bottom = 100
+        
         available_height = canvas_height - margin_top - margin_bottom
+        available_width = usable_width - margin_left
 
+        # Calcular altura entre niveles
         if max_level == 0:
-            level_height = available_height
+            level_height = available_height / 2
         else:
             level_height = available_height / max_level if max_level > 0 else available_height
 
@@ -84,13 +85,39 @@ class FamilyGraphVisualizer:
         for cedula, level in adjusted_levels.items():
             level_nodes.setdefault(level, []).append(cedula)
 
-        # Posicionar nodos
+        # Posicionar nodos con mejor distribución
         for level, cedulas in level_nodes.items():
             y = margin_top + (level * level_height)
-            x_spacing = canvas_width / (len(cedulas) + 1)
-            for i, cedula in enumerate(cedulas):
-                x = (i + 1) * x_spacing
-                pos[cedula] = (x, y)
+            
+            # Distribución horizontal mejorada
+            if len(cedulas) == 1:
+                # Una sola persona: centrar en el espacio disponible
+                x = margin_left + available_width / 2
+                pos[cedulas[0]] = (x, y)
+            else:
+                # Múltiples personas: distribuir uniformemente
+                if len(cedulas) > 6:
+                    # Para familias grandes, usar dos filas
+                    row1_count = (len(cedulas) + 1) // 2
+                    row2_count = len(cedulas) - row1_count
+                    
+                    # Primera fila
+                    row1_spacing = available_width / (row1_count + 1)
+                    for i in range(row1_count):
+                        x = margin_left + (i + 1) * row1_spacing
+                        pos[cedulas[i]] = (x, y - 30)
+                    
+                    # Segunda fila
+                    row2_spacing = available_width / (row2_count + 1)
+                    for i in range(row2_count):
+                        x = margin_left + (i + 1) * row2_spacing
+                        pos[cedulas[row1_count + i]] = (x, y + 30)
+                else:
+                    # Distribución normal en una fila
+                    spacing = available_width / (len(cedulas) + 1)
+                    for i, cedula in enumerate(cedulas):
+                        x = margin_left + (i + 1) * spacing
+                        pos[cedula] = (x, y)
 
         return pos
 
@@ -165,44 +192,8 @@ class FamilyGraphVisualizer:
             if not canvas.winfo_exists():
                 return
 
-            # Dibujar conexiones primero (líneas) con colores distintivos
-            for edge in self.G.edges():
-                try:
-                    source, target = edge
-                    if source in pos and target in pos:
-                        x1, y1 = pos[source]
-                        x2, y2 = pos[target]
-                        
-                        edge_data = self.G[source][target]
-                        relationship = edge_data.get('relationship')
-                        
-                        if relationship == 'parent':
-                            # Línea AZUL FUERTE para relaciones padre/madre-hijo
-                            canvas.create_line(x1, y1, x2, y2, 
-                                             fill="#2196F3", width=3, arrow=tk.LAST,
-                                             arrowshape=(12, 15, 6))
-                        elif relationship == 'spouse':
-                            # Línea ROJA para relaciones de pareja
-                            canvas.create_line(x1, y1, x2, y2, 
-                                             fill="#E91E63", width=4, smooth=True)
-                            # Agregar pequeño corazón en el medio
-                            mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
-                            canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 12))
-                        elif relationship == 'sibling':
-                            # Línea VERDE para hermanos
-                            canvas.create_line(x1, y1, x2, y2, 
-                                             fill="#4CAF50", width=2, dash=(8, 4))
-                        elif relationship == 'child':
-                            # Línea NARANJA para hijos (dirección contraria a parent)
-                            canvas.create_line(x1, y1, x2, y2, 
-                                             fill="#FF9800", width=2, arrow=tk.LAST,
-                                             arrowshape=(10, 12, 5))
-                        else:
-                            # Línea gris por defecto para relaciones no definidas
-                            canvas.create_line(x1, y1, x2, y2, 
-                                             fill="#9E9E9E", width=1, dash=(2, 2))
-                except Exception as e:
-                    continue
+            # NUEVA LÓGICA: Dibujar conexiones familiares inteligentes
+            self._draw_family_connections(canvas, family, pos)
 
             # Dibujar nodos (personas)
             for cedula, (x, y) in pos.items():
@@ -269,7 +260,8 @@ class FamilyGraphVisualizer:
                 return
             
             # Posición de la leyenda (esquina superior derecha)
-            legend_x = 20
+            canvas_width = canvas.winfo_width() if canvas.winfo_width() > 1 else 1200
+            legend_x = canvas_width - 220  # 220 píxeles desde el borde derecho
             legend_y = 20
             
             # Fondo de la leyenda
@@ -290,10 +282,10 @@ class FamilyGraphVisualizer:
             
             # Elementos de la leyenda
             legend_items = [
-                ("Padre/Madre → Hijo", "#2196F3", "→", 3),
+                ("Padre/Madre → Hijo", "#1976D2", "→", 3),
                 ("Pareja 💕", "#E91E63", "━", 4),
+                ("Padres no casados", "#FF9800", "┅", 2),
                 ("Hermanos", "#4CAF50", "┅", 2),
-                ("Hijo → Padre", "#FF9800", "→", 2),
                 ("Otra relación", "#9E9E9E", "┉", 1)
             ]
             
@@ -326,6 +318,117 @@ class FamilyGraphVisualizer:
                 
         except Exception as e:
             print(f"Error dibujando leyenda: {e}")
+
+    def _draw_family_connections(self, canvas, family, pos):
+        """Dibuja conexiones familiares inteligentes con estructura jerárquica"""
+        try:
+            # 1. Primero dibujar relaciones de pareja/cónyuge
+            parejas_dibujadas = set()
+            puntos_medios_parejas = {}  # Para almacenar puntos medios de líneas de pareja
+            
+            # Recopilar todas las parejas únicas primero
+            parejas_unicas = set()
+            for person in family.members:
+                if person.spouse and person.cedula in pos and person.spouse.cedula in pos:
+                    pareja_id = tuple(sorted([person.cedula, person.spouse.cedula]))
+                    parejas_unicas.add(pareja_id)
+            
+            # Dibujar cada pareja única solo una vez
+            for pareja_id in parejas_unicas:
+                cedula1, cedula2 = pareja_id
+                if cedula1 in pos and cedula2 in pos:
+                    x1, y1 = pos[cedula1]
+                    x2, y2 = pos[cedula2]
+                    
+                    # Dibujar línea de pareja
+                    canvas.create_line(x1, y1, x2, y2, 
+                                     fill="#E91E63", width=4, smooth=True)
+                    
+                    # Calcular punto medio de la línea de pareja
+                    mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
+                    puntos_medios_parejas[pareja_id] = (mid_x, mid_y)
+                    
+                    # Agregar corazón en el medio con fondo blanco para mayor visibilidad
+                    canvas.create_oval(mid_x-8, mid_y-8, mid_x+8, mid_y+8, 
+                                     fill="white", outline="#E91E63", width=2)
+                    canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 12))
+                    parejas_dibujadas.add(pareja_id)
+            
+            # 2. Dibujar conexiones padre-hijo inteligentes
+            for person in family.members:
+                if person.cedula in pos:
+                    # Si la persona tiene ambos padres
+                    if (person.father and person.mother and 
+                        person.father.cedula in pos and person.mother.cedula in pos):
+                        
+                        # Verificar si los padres son pareja
+                        padre_cedula = person.father.cedula
+                        madre_cedula = person.mother.cedula
+                        pareja_id = tuple(sorted([padre_cedula, madre_cedula]))
+                        
+                        if pareja_id in puntos_medios_parejas:
+                            # Los padres están casados: conectar hijo al punto medio de la línea de pareja
+                            child_x, child_y = pos[person.cedula]
+                            parent_mid_x, parent_mid_y = puntos_medios_parejas[pareja_id]
+                            
+                            # Línea del punto medio de los padres al hijo
+                            canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
+                        else:
+                            # Los padres NO están casados: dibujar línea entre padres y luego al hijo
+                            padre_x, padre_y = pos[padre_cedula]
+                            madre_x, madre_y = pos[madre_cedula]
+                            child_x, child_y = pos[person.cedula]
+                            
+                            # Línea entre padres (relación no matrimonial)
+                            parent_mid_x, parent_mid_y = (padre_x + madre_x) / 2, (padre_y + madre_y) / 2
+                            canvas.create_line(padre_x, padre_y, madre_x, madre_y,
+                                             fill="#FF9800", width=2, dash=(10, 5))  # Naranja punteado
+                            
+                            # Línea del punto medio al hijo
+                            canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
+                    
+                    # Si la persona tiene solo un padre
+                    elif person.father and person.father.cedula in pos:
+                        padre_x, padre_y = pos[person.father.cedula]
+                        child_x, child_y = pos[person.cedula]
+                        canvas.create_line(padre_x, padre_y, child_x, child_y,
+                                         fill="#1976D2", width=3, arrow=tk.LAST,
+                                         arrowshape=(12, 15, 6))
+                    
+                    # Si la persona tiene solo una madre
+                    elif person.mother and person.mother.cedula in pos:
+                        madre_x, madre_y = pos[person.mother.cedula]
+                        child_x, child_y = pos[person.cedula]
+                        canvas.create_line(madre_x, madre_y, child_x, child_y,
+                                         fill="#1976D2", width=3, arrow=tk.LAST,
+                                         arrowshape=(12, 15, 6))
+            
+            # 3. Dibujar relaciones de hermanos
+            # Recopilar todas las relaciones de hermanos únicas primero
+            hermanos_unicos = set()
+            for person in family.members:
+                if person.siblings and person.cedula in pos:
+                    for sibling in person.siblings:
+                        if sibling.cedula in pos:
+                            hermano_id = tuple(sorted([person.cedula, sibling.cedula]))
+                            hermanos_unicos.add(hermano_id)
+            
+            # Dibujar cada relación de hermanos única solo una vez
+            for hermano_id in hermanos_unicos:
+                cedula1, cedula2 = hermano_id
+                if cedula1 in pos and cedula2 in pos:
+                    x1, y1 = pos[cedula1]
+                    x2, y2 = pos[cedula2]
+                    
+                    canvas.create_line(x1, y1, x2, y2,
+                                     fill="#4CAF50", width=2, dash=(8, 4))
+                                
+        except Exception as e:
+            print(f"Error dibujando conexiones familiares: {e}")
 
     def _show_menu(self, event, person):
         """Placeholder - será reemplazado en app.py"""
