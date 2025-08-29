@@ -591,3 +591,201 @@ SyntaxError: invalid syntax
 2025-08-28 14:36:03,932 - root - INFO - Ventana principal creada
 2025-08-28 14:36:04,395 - root - INFO - GenealogyApp inicializada correctamente
 2025-08-28 14:36:04,395 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 18:08:02,209 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 18:08:02,231 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:08:02,234 - matplotlib - DEBUG - interactive is False
+2025-08-28 18:08:02,235 - matplotlib - DEBUG - platform is win32
+2025-08-28 18:08:02,260 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 18:08:02,331 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 18:08:02,876 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:08:02,881 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 18:08:03,196 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 18:08:03,197 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 18:08:03,296 - root - INFO - Ventana principal creada
+2025-08-28 18:08:03,873 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 18:08:03,873 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 18:17:51,044 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 18:17:51,053 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:17:51,055 - matplotlib - DEBUG - interactive is False
+2025-08-28 18:17:51,055 - matplotlib - DEBUG - platform is win32
+2025-08-28 18:17:51,071 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 18:17:51,186 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 18:17:51,425 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:17:51,427 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 18:17:51,611 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 18:17:51,611 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 18:17:51,711 - root - INFO - Ventana principal creada
+2025-08-28 18:17:52,272 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 18:17:52,273 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 18:30:21,975 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 18:30:21,986 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:30:21,987 - matplotlib - DEBUG - interactive is False
+2025-08-28 18:30:21,987 - matplotlib - DEBUG - platform is win32
+2025-08-28 18:30:22,003 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 18:30:22,132 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 18:30:22,475 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:30:22,478 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 18:30:22,687 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 18:30:22,688 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 18:30:22,796 - root - INFO - Ventana principal creada
+2025-08-28 18:30:23,329 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 18:30:23,367 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 18:30:23,368 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 18:30:59,937 - gui.simulation_panel - ERROR - Error importando ejemplo: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+Traceback (most recent call last):
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 337, in importar_ejemplo
+    ejemplo_family = parser.parse_gedcom_file(ejemplo_path)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+2025-08-28 18:45:34,201 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 18:45:34,211 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:45:34,212 - matplotlib - DEBUG - interactive is False
+2025-08-28 18:45:34,214 - matplotlib - DEBUG - platform is win32
+2025-08-28 18:45:34,226 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 18:45:34,303 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 18:45:34,523 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:45:34,523 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 18:45:34,687 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 18:45:34,687 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 18:45:34,770 - root - INFO - Ventana principal creada
+2025-08-28 18:45:35,248 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 18:45:35,298 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 18:45:35,298 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 18:53:19,094 - gui.simulation_panel - ERROR - Error importando ejemplo: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+Traceback (most recent call last):
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 337, in importar_ejemplo
+    )
+      
+AttributeError: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+2025-08-28 18:53:51,117 - gui.simulation_panel - ERROR - Error importando ejemplo: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+Traceback (most recent call last):
+  File "C:\Users\USER\OneDrive\Escritorio\ArbolGenealogico\gui\simulation_panel.py", line 337, in importar_ejemplo
+    )
+      
+AttributeError: 'GedcomParser' object has no attribute 'parse_gedcom_file'
+2025-08-28 18:57:10,127 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 18:57:10,136 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:57:10,137 - matplotlib - DEBUG - interactive is False
+2025-08-28 18:57:10,137 - matplotlib - DEBUG - platform is win32
+2025-08-28 18:57:10,149 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 18:57:10,236 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 18:57:10,471 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 18:57:10,472 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 18:57:10,639 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 18:57:10,639 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 18:57:10,728 - root - INFO - Ventana principal creada
+2025-08-28 18:57:11,132 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 18:57:11,179 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 18:57:11,179 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 19:16:41,338 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 19:16:41,358 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 19:16:41,361 - matplotlib - DEBUG - interactive is False
+2025-08-28 19:16:41,362 - matplotlib - DEBUG - platform is win32
+2025-08-28 19:16:41,383 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 19:16:41,450 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 19:16:41,739 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 19:16:41,742 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 19:16:42,067 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 19:16:42,068 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 19:16:42,178 - root - INFO - Ventana principal creada
+2025-08-28 19:16:42,570 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 19:16:42,644 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 19:16:42,644 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 19:16:59,937 - asyncio - INFO - Sofia Elena formó pareja con Miguel (persona externa)
+2025-08-28 19:16:59,938 - asyncio - INFO - Nueva persona generada: Miguel Carballo, edad: 35
+2025-08-28 19:16:59,940 - asyncio - INFO - Intereses comunes: ['Videojuegos', 'Libros']
+2025-08-28 19:17:05,247 - asyncio - INFO - Luis Carlos formó pareja con Elena (persona externa)
+2025-08-28 19:17:05,250 - asyncio - INFO - Nueva persona generada: Elena Esquivel, edad: 43
+2025-08-28 19:17:05,262 - asyncio - INFO - Intereses comunes: ['Economía', 'Videojuegos']
+2025-08-28 19:25:55,484 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-28 19:25:55,492 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-28 19:25:55,494 - matplotlib - DEBUG - interactive is False
+2025-08-28 19:25:55,494 - matplotlib - DEBUG - platform is win32
+2025-08-28 19:25:55,506 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-28 19:25:55,588 - root - INFO - CustomTkinter importado correctamente
+2025-08-28 19:25:55,779 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-28 19:25:55,781 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-28 19:25:55,935 - root - INFO - Módulo gui.app importado correctamente
+2025-08-28 19:25:55,937 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-28 19:25:56,017 - root - INFO - Ventana principal creada
+2025-08-28 19:25:56,477 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-28 19:25:56,527 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-28 19:25:56,527 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-28 19:26:34,040 - asyncio - INFO - Luis Carlos formó pareja con Patricia (persona externa)
+2025-08-28 19:26:34,040 - asyncio - INFO - Nueva persona generada: Patricia Aguilar, edad: 36
+2025-08-28 19:26:34,042 - asyncio - INFO - Intereses comunes: ['Comunidad', 'Series']
+2025-08-28 19:26:35,087 - asyncio - INFO - Sofia Elena formó pareja con José (persona externa)
+2025-08-28 19:26:35,087 - asyncio - INFO - Nueva persona generada: José Castro, edad: 35
+2025-08-28 19:26:35,087 - asyncio - INFO - Intereses comunes: ['Eventos sociales', 'Filosofía']
+2025-08-28 19:26:59,651 - asyncio - INFO - Patricia formó pareja con Diego (persona externa)
+2025-08-28 19:26:59,652 - asyncio - INFO - Nueva persona generada: Diego Esquivel, edad: 22
+2025-08-28 19:26:59,652 - asyncio - INFO - Intereses comunes: ['Juegos', 'Cuentos']
+2025-08-28 19:27:04,734 - asyncio - INFO - Ana formó pareja con Oscar (persona externa)
+2025-08-28 19:27:04,734 - asyncio - INFO - Nueva persona generada: Oscar Picado, edad: 19
+2025-08-28 19:27:04,735 - asyncio - INFO - Intereses comunes: ['Música', 'Cuentos']
+2025-08-28 19:27:09,604 - asyncio - INFO - Mario formó pareja con Verónica (persona externa)
+2025-08-28 19:27:09,605 - asyncio - INFO - Nueva persona generada: Verónica Chaves, edad: 24
+2025-08-28 19:27:09,605 - asyncio - INFO - Intereses comunes: ['Juegos', 'Dibujo']
+2025-08-28 19:27:13,160 - asyncio - INFO - Luis formó pareja con Elena (persona externa)
+2025-08-28 19:27:13,160 - asyncio - INFO - Nueva persona generada: Elena Salas, edad: 35
+2025-08-28 19:27:13,160 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Dibujo']
+2025-08-28 19:27:30,027 - asyncio - INFO - Ricardo formó pareja con Paula (persona externa)
+2025-08-28 19:27:30,027 - asyncio - INFO - Nueva persona generada: Paula Rojas, edad: 21
+2025-08-28 19:27:30,027 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Juegos']
+2025-08-28 19:27:33,389 - asyncio - INFO - Luis formó pareja con Carmen (persona externa)
+2025-08-28 19:27:33,389 - asyncio - INFO - Nueva persona generada: Carmen Araya, edad: 28
+2025-08-28 19:27:33,389 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Música']
+2025-08-28 19:27:33,389 - asyncio - INFO - Oscar formó pareja con Patricia (persona externa)
+2025-08-28 19:27:33,390 - asyncio - INFO - Nueva persona generada: Patricia Cordero, edad: 21
+2025-08-28 19:27:33,390 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Juegos']
+2025-08-28 19:27:35,687 - asyncio - INFO - Mónica formó pareja con Alberto (persona externa)
+2025-08-28 19:27:35,687 - asyncio - INFO - Nueva persona generada: Alberto Solano, edad: 18
+2025-08-28 19:27:35,687 - asyncio - INFO - Intereses comunes: ['Música', 'Juegos']
+2025-08-28 19:27:42,770 - asyncio - INFO - Daniela formó pareja con Miguel (persona externa)
+2025-08-28 19:27:42,771 - asyncio - INFO - Nueva persona generada: Miguel Trejos, edad: 18
+2025-08-28 19:27:42,772 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Música']
+2025-08-28 19:27:46,159 - asyncio - INFO - Paula formó pareja con Carlos (persona externa)
+2025-08-28 19:27:46,159 - asyncio - INFO - Nueva persona generada: Carlos Herrera, edad: 28
+2025-08-28 19:27:46,160 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Dibujo']
+2025-08-28 19:27:48,605 - asyncio - INFO - Sofía formó pareja con Alberto (persona externa)
+2025-08-28 19:27:48,605 - asyncio - INFO - Nueva persona generada: Alberto Mora, edad: 40
+2025-08-28 19:27:48,606 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 19:27:49,854 - asyncio - INFO - Andrés formó pareja con Claudia (persona externa)
+2025-08-28 19:27:49,854 - asyncio - INFO - Nueva persona generada: Claudia Segura, edad: 39
+2025-08-28 19:27:49,855 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Naturaleza']
+2025-08-28 19:27:51,054 - asyncio - INFO - Miguel formó pareja con Carolina (persona externa)
+2025-08-28 19:27:51,055 - asyncio - INFO - Nueva persona generada: Carolina Villalobos, edad: 31
+2025-08-28 19:27:51,057 - asyncio - INFO - Intereses comunes: ['Juegos', 'Dibujo']
+2025-08-28 19:27:56,109 - asyncio - INFO - Claudia formó pareja con Ricardo (persona externa)
+2025-08-28 19:27:56,110 - asyncio - INFO - Nueva persona generada: Ricardo Ramírez, edad: 23
+2025-08-28 19:27:56,110 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 19:27:56,111 - asyncio - INFO - Juan formó pareja con Sofía (persona externa)
+2025-08-28 19:27:56,111 - asyncio - INFO - Nueva persona generada: Sofía Vega, edad: 30
+2025-08-28 19:27:56,111 - asyncio - INFO - Intereses comunes: ['Juegos', 'Dibujo']
+2025-08-28 19:28:04,107 - asyncio - INFO - Andrés formó pareja con Laura (persona externa)
+2025-08-28 19:28:04,107 - asyncio - INFO - Nueva persona generada: Laura Quesada, edad: 23
+2025-08-28 19:28:04,107 - asyncio - INFO - Intereses comunes: ['Cuentos', 'Dibujo']
+2025-08-28 19:28:06,791 - asyncio - INFO - Raúl formó pareja con Gabriela (persona externa)
+2025-08-28 19:28:06,792 - asyncio - INFO - Nueva persona generada: Gabriela Mendez, edad: 18
+2025-08-28 19:28:06,793 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Naturaleza']
+2025-08-28 19:28:06,793 - asyncio - INFO - Carlos formó pareja con Mónica (persona externa)
+2025-08-28 19:28:06,794 - asyncio - INFO - Nueva persona generada: Mónica Monge, edad: 18
+2025-08-28 19:28:06,794 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Naturaleza']
+2025-08-28 19:28:08,122 - asyncio - INFO - Carmen formó pareja con Diego (persona externa)
+2025-08-28 19:28:08,123 - asyncio - INFO - Nueva persona generada: Diego Carballo, edad: 19
+2025-08-28 19:28:08,124 - asyncio - INFO - Intereses comunes: ['Música', 'Juegos']
+2025-08-28 19:28:10,466 - asyncio - INFO - Sofía formó pareja con Víctor (persona externa)
+2025-08-28 19:28:10,466 - asyncio - INFO - Nueva persona generada: Víctor Salas, edad: 21
+2025-08-28 19:28:10,467 - asyncio - INFO - Intereses comunes: ['Dibujo', 'Juegos']
+2025-08-28 19:28:11,795 - asyncio - INFO - Mónica formó pareja con Miguel (persona externa)
+2025-08-28 19:28:11,795 - asyncio - INFO - Nueva persona generada: Miguel Rojas, edad: 38
+2025-08-28 19:28:11,795 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Juegos']
+2025-08-28 19:28:11,796 - asyncio - INFO - Diego formó pareja con Claudia (persona externa)
+2025-08-28 19:28:11,796 - asyncio - INFO - Nueva persona generada: Claudia Monge, edad: 37
+2025-08-28 19:28:11,797 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Arte']
+2025-08-28 19:28:20,350 - asyncio - INFO - Raúl formó pareja con Claudia (persona externa)
+2025-08-28 19:28:20,351 - asyncio - INFO - Nueva persona generada: Claudia Trejos, edad: 29
+2025-08-28 19:28:20,352 - asyncio - INFO - Intereses comunes: ['Naturaleza', 'Cuentos']
+2025-08-28 19:28:20,352 - asyncio - INFO - Luis formó pareja con Isabel (persona externa)
+2025-08-28 19:28:20,352 - asyncio - INFO - Nueva persona generada: Isabel Segura, edad: 26
+2025-08-28 19:28:20,353 - asyncio - INFO - Intereses comunes: ['Música', 'Dibujo']

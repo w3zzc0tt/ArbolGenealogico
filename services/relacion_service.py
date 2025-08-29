@@ -1,5 +1,6 @@
 # services/relacion_service.py - VERSIÓN FINAL CORREGIDA
 from typing import Tuple, Optional
+import datetime
 from models.family import Family
 from models.person import Person
 
@@ -80,8 +81,17 @@ class RelacionService:
     
     @staticmethod
     def registrar_pareja(family: Family, person1_cedula: str, 
-                        person2_cedula: str) -> Tuple[bool, str]:   
-        """Registra una unión de pareja entre dos personas con validación completa"""
+                        person2_cedula: str, es_simulacion: bool = False) -> Tuple[bool, str]:   
+        """
+        Registra una unión de pareja entre dos personas
+        
+        Args:
+            family: La familia donde registrar la pareja
+            person1_cedula: Cédula de la primera persona
+            person2_cedula: Cédula de la segunda persona  
+            es_simulacion: Si es True, aplica validaciones completas de simulación.
+                          Si es False, solo aplica validaciones básicas para construcción manual.
+        """
         person1 = family.get_member_by_cedula(person1_cedula)
         person2 = family.get_member_by_cedula(person2_cedula)
         
@@ -97,13 +107,26 @@ class RelacionService:
         if RelacionService._es_femenino(person1.gender) and RelacionService._es_femenino(person2.gender):
             return False, "No se puede registrar pareja del mismo género (ambas femeninas)"
         
-        # ✅ CORRECCIÓN FINAL: Importar utils_service LOCALMENTE
-        from services.utils_service import verificar_requisitos_union
-        
-        # ✅ USAR la función desde utils_service
-        validation = verificar_requisitos_union(person1, person2, family)
-        if not validation[0]:
-            return False, validation[1]
+        # Aplicar validaciones según el contexto
+        if es_simulacion:
+            # Para simulaciones: aplicar todas las validaciones completas
+            from services.utils_service import verificar_requisitos_union
+            validation = verificar_requisitos_union(person1, person2, family)
+            if not validation[0]:
+                return False, validation[1]
+        else:
+            # Para construcción manual: solo validaciones básicas
+            # 1. Verificar edad mínima (18 años)
+            if person1.calculate_virtual_age() < 18:
+                return False, f"{person1.first_name} debe ser mayor de 18 años ({person1.calculate_virtual_age()} años)"
+            if person2.calculate_virtual_age() < 18:
+                return False, f"{person2.first_name} debe ser mayor de 18 años ({person2.calculate_virtual_age()} años)"
+            
+            # 2. Verificar estado civil (no pueden estar unidos a otra persona)
+            if person1.has_partner():
+                return False, f"{person1.first_name} ya está en una relación"
+            if person2.has_partner():
+                return False, f"{person2.first_name} ya está en una relación"
         
         # Verificar si ya están registrados como pareja
         if person1.spouse == person2 and person2.spouse == person1:

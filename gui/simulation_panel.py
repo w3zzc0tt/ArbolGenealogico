@@ -1,510 +1,830 @@
 # gui/simulation_panel.py
-import customtkinter as ctk
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import messagebox
+import logging
 import threading
-import time
-import logging  # ✅ CORRECCIÓN CLAVE: Falta importar logging
+import datetime
+import os
+import random
 from models.simulation_config import SimulationConfig
 from services.simulacion_service import SimulacionService
-from utils.graph_visualizer import FamilyGraphVisualizer  # ✅ CORRECCIÓN: Cambiado a gui.graph_visualizer
-from utils.timeline_visualizer import TimelineVisualizer  # ✅ CORRECCIÓN: Cambiado a gui.timeline_visualizer
-from gui.forms import RelationshipForm, PersonForm  # ✅ CORRECCIÓN: Importar formularios necesarios
-from services.utils_service import calcular_compatibilidad_total  # ✅ IMPORTACIÓN CORREGIDA
+from utils.graph_visualizer import FamilyGraphVisualizer
+from utils.timeline_visualizer import TimelineVisualizer
+
+# ✅ CORRECCIÓN: Asegurar que logging esté importado
+logger = logging.getLogger(__name__)
+
+# gui/simulation_panel.py
+import tkinter as tk
+import customtkinter as ctk
+from tkinter import messagebox
+import logging
+import threading
+import datetime
+import os
+import random
+from models.simulation_config import SimulationConfig
+from services.simulacion_service import SimulacionService
+from utils.graph_visualizer import FamilyGraphVisualizer
+from utils.timeline_visualizer import TimelineVisualizer
+
+# ✅ CORRECCIÓN: Asegurar que logging esté importado
+logger = logging.getLogger(__name__)
 
 class SimulationPanel:
     def __init__(self, parent, family, config: SimulationConfig = None):
         self.parent = parent
         self.family = family
-        self.simulated_family = None
-        self.running = False
         self.config = config or SimulationConfig()
-        self.selected_person = None
+        self.simulated_family = None
+        self.simulation_events = []
+        self.running = False
+        self.paused = False
+        self.simulation_mode = "memory"  # "memory" o "file"
+        
+        # ✅ CORRECCIÓN: Inicializar referencias de UI como None
+        self.btn_start = None
+        self.btn_pause = None
+        self.btn_stop = None
+        self.btn_import_example = None
+        self.event_listbox = None
+        self.tree_canvas = None
+        self.stats_frame = None
+        self.mode_var = None
+        
         self.setup_ui()
     
     def setup_ui(self):
-        self.frame = ctk.CTkFrame(self.parent)
-        self.frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Panel de control
-        control_frame = ctk.CTkFrame(self.frame)
-        control_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        # Botones de control - ✅ DEFINIR button_frame AQUÍ
-        self.button_frame = ctk.CTkFrame(control_frame)  # ✅ AÑADIDO self.
-        self.button_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5, pady=5)
-        
-        self.btn_start = ctk.CTkButton(
-            self.button_frame,  # ✅ USAR self.button_frame
-            text="▶️ Iniciar Simulación",
-            command=self.iniciar_simulacion,
-            fg_color="#1db954"
-        )
-        self.btn_start.pack(side=tk.LEFT, padx=5)
-        
-        self.btn_pause = ctk.CTkButton(
-            self.button_frame,  # ✅ USAR self.button_frame
-            text="⏸️ Pausar",
-            command=self.pausar_simulacion,
-            fg_color="#3498db",
-            state="disabled"
-        )
-        self.btn_pause.pack(side=tk.LEFT, padx=5)
-        
-        self.btn_stop = ctk.CTkButton(
-            self.button_frame,  # ✅ USAR self.button_frame
-            text="⏹️ Detener",
-            command=self.detener_simulacion,
-            fg_color="#e74c3c",
-            state="disabled"
-        )
-        self.btn_stop.pack(side=tk.LEFT, padx=5)
-        
-        # Configuración de velocidad
-        speed_frame = ctk.CTkFrame(control_frame)
-        speed_frame.pack(side=tk.RIGHT, padx=5, pady=5)
-        
-        ctk.CTkLabel(speed_frame, text="Velocidad:").pack(side=tk.LEFT, padx=5)
-        
-        self.speed_var = ctk.StringVar(value="1x")
-        speed_options = ctk.CTkComboBox(
-            speed_frame,
-            values=["0.5x", "1x", "2x", "5x", "10x"],
-            variable=self.speed_var,
-            width=80,
-            state="readonly"
-        )
-        speed_options.pack(side=tk.LEFT, padx=5)
-        speed_options.set("1x")
-        
-        # Canvas para el árbol
-        self.tree_canvas = tk.Canvas(self.frame, bg="#2a2a2a", highlightthickness=0)
-        self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # Área de eventos
-        event_frame = ctk.CTkFrame(self.frame)
-        event_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        ctk.CTkLabel(event_frame, text="Eventos recientes:").pack(anchor="w", padx=5, pady=2)
-        
-        self.event_text = ctk.CTkTextbox(event_frame, height=100)
-        self.event_text.pack(fill=tk.X, padx=5, pady=2)
-
-        self.agregar_boton_timeline()
-        self.setup_stats_panel()
+        """Configura la interfaz de usuario del panel de simulación"""
+        try:
+            # Frame principal
+            main_frame = ctk.CTkFrame(self.parent)
+            main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            # Título
+            title_label = ctk.CTkLabel(
+                main_frame,
+                text="🎮 Simulación Genealógica",
+                font=("Arial", 20, "bold")
+            )
+            title_label.pack(pady=10)
+            
+            # Frame de control superior
+            control_frame = ctk.CTkFrame(main_frame)
+            control_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            # Botones de control
+            self.button_frame = ctk.CTkFrame(control_frame)
+            self.button_frame.pack(side=tk.LEFT, padx=5, pady=5)
+            
+            self.btn_start = ctk.CTkButton(
+                self.button_frame,
+                text="▶ Iniciar",
+                command=self.iniciar_simulacion,
+                fg_color="#1db954",
+                width=100
+            )
+            self.btn_start.pack(side=tk.LEFT, padx=2)
+            
+            self.btn_pause = ctk.CTkButton(
+                self.button_frame,
+                text="⏸ Pausar",
+                command=self.pausar_simulacion,
+                fg_color="#f39c12",
+                width=100,
+                state="disabled"
+            )
+            self.btn_pause.pack(side=tk.LEFT, padx=2)
+            
+            self.btn_stop = ctk.CTkButton(
+                self.button_frame,
+                text="⏹ Detener",
+                command=self.detener_simulacion,
+                fg_color="#e74c3c",
+                width=100,
+                state="disabled"
+            )
+            self.btn_stop.pack(side=tk.LEFT, padx=2)
+            
+            # Frame para botón de ejemplo
+            example_frame = ctk.CTkFrame(control_frame)
+            example_frame.pack(side=tk.RIGHT, padx=5, pady=5)
+            
+            self.btn_import_example = ctk.CTkButton(
+                example_frame,
+                text="📂 Importar Ejemplo",
+                command=self.importar_ejemplo,
+                fg_color="#3498db",
+                width=140
+            )
+            self.btn_import_example.pack(side=tk.LEFT, padx=2)
+            
+            # Frame para modo de simulación
+            mode_frame = ctk.CTkFrame(control_frame)
+            mode_frame.pack(side=tk.RIGHT, padx=5, pady=5)
+            
+            ctk.CTkLabel(mode_frame, text="Modo:").pack(side=tk.LEFT, padx=5)
+            
+            self.mode_var = ctk.StringVar(value="Memoria (Rápido)")
+            mode_combo = ctk.CTkComboBox(
+                mode_frame,
+                values=["Memoria (Rápido)", "Archivo (Persistente)"],
+                variable=self.mode_var,
+                width=150,
+                command=self.on_mode_change
+            )
+            mode_combo.pack(side=tk.LEFT, padx=5)
+            
+            # Frame principal dividido
+            content_frame = ctk.CTkFrame(main_frame)
+            content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+            
+            # Panel izquierdo - Árbol genealógico con scroll y zoom
+            left_panel = ctk.CTkFrame(content_frame)
+            left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            # Frame de título y controles de zoom
+            tree_header_frame = ctk.CTkFrame(left_panel)
+            tree_header_frame.pack(fill=tk.X, padx=5, pady=5)
+            
+            ctk.CTkLabel(tree_header_frame, text="🌳 Árbol Genealógico Simulado", font=("Arial", 14, "bold")).pack(side=tk.LEFT, pady=5)
+            
+            # Controles de zoom
+            zoom_frame = ctk.CTkFrame(tree_header_frame)
+            zoom_frame.pack(side=tk.RIGHT, padx=5)
+            
+            self.zoom_level = 1.0
+            self.min_zoom = 0.3
+            self.max_zoom = 3.0
+            
+            ctk.CTkButton(
+                zoom_frame,
+                text="🔍-",
+                command=self.zoom_out,
+                width=30,
+                height=25
+            ).pack(side=tk.LEFT, padx=2)
+            
+            self.zoom_label = ctk.CTkLabel(zoom_frame, text="100%", width=50)
+            self.zoom_label.pack(side=tk.LEFT, padx=2)
+            
+            ctk.CTkButton(
+                zoom_frame,
+                text="🔍+",
+                command=self.zoom_in,
+                width=30,
+                height=25
+            ).pack(side=tk.LEFT, padx=2)
+            
+            ctk.CTkButton(
+                zoom_frame,
+                text="⚡",
+                command=self.reset_zoom,
+                width=30,
+                height=25
+            ).pack(side=tk.LEFT, padx=2)
+            
+            ctk.CTkButton(
+                zoom_frame,
+                text="📐",
+                command=self.fit_to_screen,
+                width=30,
+                height=25
+            ).pack(side=tk.LEFT, padx=2)
+            
+            # Frame para canvas con scrollbars
+            canvas_frame = ctk.CTkFrame(left_panel)
+            canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            # Crear scrollbars
+            h_scrollbar = tk.Scrollbar(canvas_frame, orient=tk.HORIZONTAL)
+            h_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+            
+            v_scrollbar = tk.Scrollbar(canvas_frame, orient=tk.VERTICAL)
+            v_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            # Canvas principal con scrollbars
+            self.tree_canvas = tk.Canvas(
+                canvas_frame,
+                bg="#2a2a2a",
+                highlightthickness=0,
+                xscrollcommand=h_scrollbar.set,
+                yscrollcommand=v_scrollbar.set,
+                scrollregion=(0, 0, 2000, 2000)  # Región de scroll inicial grande
+            )
+            self.tree_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
+            # Configurar scrollbars
+            h_scrollbar.config(command=self.tree_canvas.xview)
+            v_scrollbar.config(command=self.tree_canvas.yview)
+            
+            # Bind eventos del mouse para scroll y zoom
+            self.bind_mouse_events()
+            
+            # Panel derecho - Eventos y estadísticas
+            right_panel = ctk.CTkFrame(content_frame)
+            right_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+            right_panel.configure(width=300)
+            
+            # Eventos de simulación
+            events_frame = ctk.CTkFrame(right_panel)
+            events_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            ctk.CTkLabel(events_frame, text="📋 Eventos de Simulación", font=("Arial", 12, "bold")).pack(pady=5)
+            
+            # Lista de eventos
+            events_list_frame = ctk.CTkFrame(events_frame)
+            events_list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            self.event_listbox = tk.Listbox(
+                events_list_frame,
+                bg="#3b3b3b",
+                fg="white",
+                selectbackground="#1db954",
+                font=("Consolas", 9),
+                height=15
+            )
+            self.event_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            
+            # Estadísticas
+            self.stats_frame = ctk.CTkFrame(right_panel)
+            self.stats_frame.pack(fill=tk.X, padx=5, pady=5)
+            
+            ctk.CTkLabel(self.stats_frame, text="📊 Estadísticas", font=("Arial", 12, "bold")).pack(pady=5)
+            
+            # Labels para estadísticas
+            self.stats_labels = {}
+            stats_info = [
+                ("Año actual:", "year"),
+                ("Miembros vivos:", "living"),
+                ("Total miembros:", "total"),
+                ("Parejas:", "couples"),
+                ("Nacimientos:", "births"),
+                ("Fallecimientos:", "deaths")
+            ]
+            
+            for label_text, key in stats_info:
+                frame = ctk.CTkFrame(self.stats_frame)
+                frame.pack(fill=tk.X, padx=5, pady=2)
+                
+                ctk.CTkLabel(frame, text=label_text).pack(side=tk.LEFT, padx=5)
+                label = ctk.CTkLabel(frame, text="0")
+                label.pack(side=tk.RIGHT, padx=5)
+                self.stats_labels[key] = label
+            
+            # ✅ CORRECCIÓN: Inicializar visualizador aquí
+            self.visualizer = None
+            
+            logger.info("UI del panel de simulación configurada correctamente")
+            
+        except Exception as e:
+            logger.error(f"Error configurando UI del panel de simulación: {e}", exc_info=True)
+            raise
+    
+    def bind_mouse_events(self):
+        """Configura eventos del mouse para el canvas"""
+        try:
+            # Scroll con rueda del mouse
+            self.tree_canvas.bind("<MouseWheel>", self.on_mouse_wheel)
+            self.tree_canvas.bind("<Button-4>", self.on_mouse_wheel)  # Linux
+            self.tree_canvas.bind("<Button-5>", self.on_mouse_wheel)  # Linux
+            
+            # Zoom con Ctrl + rueda del mouse
+            self.tree_canvas.bind("<Control-MouseWheel>", self.on_ctrl_mouse_wheel)
+            
+            # Arrastrar canvas
+            self.tree_canvas.bind("<ButtonPress-1>", self.on_canvas_drag_start)
+            self.tree_canvas.bind("<B1-Motion>", self.on_canvas_drag)
+            
+            # Focus para recibir eventos de teclado
+            self.tree_canvas.focus_set()
+            
+        except Exception as e:
+            logger.error(f"Error configurando eventos del mouse: {e}")
+    
+    def on_mouse_wheel(self, event):
+        """Maneja el scroll vertical con la rueda del mouse"""
+        try:
+            if event.delta:
+                delta = event.delta
+            elif event.num == 4:
+                delta = 120
+            elif event.num == 5:
+                delta = -120
+            else:
+                delta = 0
+            
+            self.tree_canvas.yview_scroll(int(-1 * (delta / 120)), "units")
+        except Exception as e:
+            logger.error(f"Error en scroll del mouse: {e}")
+    
+    def on_ctrl_mouse_wheel(self, event):
+        """Maneja el zoom con Ctrl + rueda del mouse"""
+        try:
+            if event.delta > 0 or event.num == 4:
+                self.zoom_in()
+            elif event.delta < 0 or event.num == 5:
+                self.zoom_out()
+        except Exception as e:
+            logger.error(f"Error en zoom del mouse: {e}")
+    
+    def on_canvas_drag_start(self, event):
+        """Inicia el arrastre del canvas"""
+        self.tree_canvas.scan_mark(event.x, event.y)
+    
+    def on_canvas_drag(self, event):
+        """Arrastra el canvas"""
+        self.tree_canvas.scan_dragto(event.x, event.y, gain=1)
+    
+    def zoom_in(self):
+        """Aumenta el zoom"""
+        try:
+            if self.zoom_level < self.max_zoom:
+                old_zoom = self.zoom_level
+                self.zoom_level = min(self.max_zoom, self.zoom_level * 1.2)
+                self.apply_zoom(old_zoom)
+        except Exception as e:
+            logger.error(f"Error en zoom in: {e}")
+    
+    def zoom_out(self):
+        """Disminuye el zoom"""
+        try:
+            if self.zoom_level > self.min_zoom:
+                old_zoom = self.zoom_level
+                self.zoom_level = max(self.min_zoom, self.zoom_level / 1.2)
+                self.apply_zoom(old_zoom)
+        except Exception as e:
+            logger.error(f"Error en zoom out: {e}")
+    
+    def reset_zoom(self):
+        """Resetea el zoom al 100%"""
+        try:
+            old_zoom = self.zoom_level
+            self.zoom_level = 1.0
+            self.apply_zoom(old_zoom)
+            
+            # Centrar la vista
+            self.tree_canvas.xview_moveto(0.3)
+            self.tree_canvas.yview_moveto(0.1)
+        except Exception as e:
+            logger.error(f"Error en reset zoom: {e}")
+    
+    def fit_to_screen(self):
+        """Ajusta el zoom para que todo el contenido sea visible"""
+        try:
+            # Actualizar canvas y obtener dimensiones
+            self.tree_canvas.update_idletasks()
+            bbox = self.tree_canvas.bbox("all")
+            
+            if not bbox:
+                return
+            
+            # Obtener dimensiones del canvas visible
+            canvas_width = self.tree_canvas.winfo_width()
+            canvas_height = self.tree_canvas.winfo_height()
+            
+            if canvas_width <= 1 or canvas_height <= 1:
+                return
+            
+            # Calcular dimensiones del contenido
+            content_width = bbox[2] - bbox[0]
+            content_height = bbox[3] - bbox[1]
+            
+            # Calcular zoom necesario con margen
+            margin_factor = 0.9  # 10% de margen
+            zoom_x = (canvas_width * margin_factor) / content_width
+            zoom_y = (canvas_height * margin_factor) / content_height
+            
+            # Usar el menor zoom para que todo encaje
+            new_zoom = min(zoom_x, zoom_y)
+            new_zoom = max(self.min_zoom, min(self.max_zoom, new_zoom))
+            
+            # Aplicar nuevo zoom
+            old_zoom = self.zoom_level
+            self.zoom_level = new_zoom
+            self.apply_zoom(old_zoom)
+            
+            # Centrar contenido
+            self.tree_canvas.xview_moveto(0.1)
+            self.tree_canvas.yview_moveto(0.1)
+            
+        except Exception as e:
+            logger.error(f"Error en fit to screen: {e}")
+    
+    def apply_zoom(self, old_zoom):
+        """Aplica el nivel de zoom actual al canvas"""
+        try:
+            # Actualizar etiqueta de zoom
+            zoom_percent = int(self.zoom_level * 100)
+            self.zoom_label.configure(text=f"{zoom_percent}%")
+            
+            # Escalar todo el contenido del canvas
+            scale_factor = self.zoom_level / old_zoom
+            self.tree_canvas.scale("all", 0, 0, scale_factor, scale_factor)
+            
+            # Actualizar región de scroll
+            bbox = self.tree_canvas.bbox("all")
+            if bbox:
+                margin = 100
+                scroll_region = (
+                    bbox[0] - margin,
+                    bbox[1] - margin,
+                    bbox[2] + margin,
+                    bbox[3] + margin
+                )
+                self.tree_canvas.configure(scrollregion=scroll_region)
+            
+        except Exception as e:
+            logger.error(f"Error aplicando zoom: {e}")
+    
+    def on_mode_change(self, selection):
+        """Cambia el modo de simulación"""
+        self.simulation_mode = "memory" if "Memoria" in selection else "file"
+        logger.info(f"Modo de simulación cambiado a: {self.simulation_mode}")
     
     def iniciar_simulacion(self):
-        # Crear copia del árbol para simulación
-        from copy import deepcopy
-        self.simulated_family = deepcopy(self.family)
-        self.simulated_family.current_year = self.family.current_year
-        
-        # ✅ CORRECCIÓN CLAVE: Configurar velocidad correctamente
-        speed = float(self.speed_var.get().replace('x', ''))
-        self.config.events_interval = 1 / speed  # Ajustar intervalo de eventos
-        
-        self.running = True
-        self.btn_start.configure(state="disabled")
-        self.btn_pause.configure(state="normal")
-        self.btn_stop.configure(state="normal")
-        
-        # Iniciar hilo de simulación
-        thread = threading.Thread(target=self.run_simulation, daemon=True)
-        thread.start()
+        """Inicia la simulación según el modo seleccionado"""
+        try:
+            if self.simulation_mode == "memory":
+                self.iniciar_simulacion_memoria()
+            else:
+                self.iniciar_simulacion_archivo()
+        except Exception as e:
+            logger.error(f"Error iniciando simulación: {e}", exc_info=True)
+            messagebox.showerror("Error", f"Error al iniciar simulación: {str(e)}")
     
-    def run_simulation(self):
-        """Ciclo de simulación mejorado - CORREGIDO"""
-        last_event = time.time()
-        while self.running:
-            current_time = time.time()
+    def iniciar_simulacion_memoria(self):
+        """Simulación en memoria - RÁPIDA"""
+        try:
+            import copy
             
-            # Procesar todos los eventos en un solo ciclo cada 10 segundos
-            if current_time - last_event >= 10:
-                try:
-                    # Ejecutar ciclo completo de simulación
-                    eventos = SimulacionService.ejecutar_ciclo_completo(
-                        self.simulated_family,
-                        self.config
-                    )
-                    
-                    # Mostrar eventos
-                    for evento in eventos:
-                        self.event_text.insert("end", f"{evento}\n")
-                        self.event_text.see("end")
-                        
-                    last_event = current_time
-                    
-                    # Actualizar estadísticas
-                    self.update_stats_display()
-                    
-                    # Redibujar árbol
-                    self.draw_tree()
-                    
-                except Exception as e:
-                    self.event_text.insert("end", f"Error en simulación: {str(e)}\n")
-                    logging.error(f"Error en simulación: {str(e)}", exc_info=True)  # ✅ Mejor logging
+            if not self.simulated_family:
+                # Crear copia profunda de la familia
+                self.simulated_family = copy.deepcopy(self.family)
+                self.simulated_family.current_year = self.family.current_year or 2024
+                
+                # Limpiar eventos anteriores
+                self.simulation_events.clear()
+                if self.event_listbox:
+                    self.event_listbox.delete(0, tk.END)
+                
+                self.add_simulation_event("🚀 Simulación iniciada en modo memoria")
             
-            # Esperar un poco para no saturar la CPU
-            time.sleep(0.1)
+            # Configurar controles
+            if self.btn_start:
+                self.btn_start.configure(state="disabled")
+            if self.btn_pause:
+                self.btn_pause.configure(state="normal")
+            if self.btn_stop:
+                self.btn_stop.configure(state="normal")
+            
+            self.running = True
+            self.paused = False
+            
+            # Actualizar visualización inicial
+            self.draw_tree()
+            self.update_stats_display()
+            
+            # Iniciar hilo de simulación
+            thread = threading.Thread(target=self.run_simulation, daemon=True)
+            thread.start()
+            
+        except Exception as e:
+            logger.error(f"Error en iniciar_simulacion_memoria: {e}", exc_info=True)
+            raise
+    
+    def iniciar_simulacion_archivo(self):
+        """Simulación basada en archivos - PERSISTENTE"""
+        try:
+            from utils.gedcom_parser import GedcomParser
+            
+            # 1. Exportar familia actual a GEDCOM temporal
+            temp_file = "simulations/temp_family.ged"
+            os.makedirs("simulations", exist_ok=True)
+            
+            success = self.family.export_to_gedcom(temp_file)
+            if not success:
+                messagebox.showerror("Error", "No se pudo exportar la familia")
+                return
+            
+            # 2. Leer el GEDCOM como nueva familia
+            with open(temp_file, 'r', encoding='utf-8') as file:
+                gedcom_content = file.read()
+            
+            # Crear nueva familia para la simulación
+            from models.family import Family
+            self.simulated_family = Family(id="simulated_family", name="Familia Simulada")
+            
+            # Parsear el contenido GEDCOM
+            self.simulated_family = GedcomParser.parse(self.simulated_family, gedcom_content)
+            
+            if not self.simulated_family:
+                messagebox.showerror("Error", "No se pudo cargar la familia desde GEDCOM")
+                return
+            
+            # 3. Configurar simulación
+            self.simulated_family.current_year = self.family.current_year or 2024
+            
+            # 4. Guardar estado inicial
+            self.save_simulation_state()
+            
+            self.add_simulation_event("🚀 Simulación iniciada en modo archivo")
+            
+        except Exception as e:
+            logger.error(f"Error en iniciar_simulacion_archivo: {e}", exc_info=True)
+            messagebox.showerror("Error", f"Error al iniciar simulación: {e}")
+    
+    def importar_ejemplo(self):
+        """Importa la familia de ejemplo y inicia la simulación automáticamente"""
+        try:
+            from utils.gedcom_parser import GedcomParser
+            
+            # Ruta del archivo de ejemplo
+            ejemplo_path = os.path.join("simulations", "ejemplo.ged")
+            
+            # Verificar que el archivo existe
+            if not os.path.exists(ejemplo_path):
+                messagebox.showerror(
+                    "Error", 
+                    f"No se encontró el archivo de ejemplo en: {ejemplo_path}\n"
+                    "Asegúrate de que el archivo ejemplo.ged existe en la carpeta simulations/"
+                )
+                return
+            
+            # Confirmar importación
+            response = messagebox.askyesno(
+                "Importar Ejemplo",
+                "¿Deseas cargar la familia de ejemplo?\n\n"
+                "Esto reemplazará la familia actual en la simulación y comenzará "
+                "una nueva simulación automáticamente.\n\n"
+                "Familia de ejemplo: Familia Rodríguez-González\n"
+                "• 9 miembros (3 generaciones)\n"
+                "• Incluye abuelos, padres e hijos\n"
+                "• Datos realistas para simulación"
+            )
+            
+            if not response:
+                return
+            
+            # Leer el archivo GEDCOM
+            with open(ejemplo_path, 'r', encoding='utf-8') as file:
+                gedcom_content = file.read()
+            
+            # Crear nueva familia para el ejemplo
+            from models.family import Family
+            ejemplo_family = Family(id="ejemplo_family", name="Familia Rodríguez-González")
+            
+            # Parsear el contenido GEDCOM
+            ejemplo_family = GedcomParser.parse(ejemplo_family, gedcom_content)
+            
+            if not ejemplo_family or not ejemplo_family.members:
+                messagebox.showerror("Error", "No se pudo cargar la familia de ejemplo")
+                return
+            
+            # Importar la familia de ejemplo
+            self.simulated_family = ejemplo_family
+            self.simulated_family.current_year = 2024  # Año base
+            
+            # Limpiar eventos anteriores
+            self.simulation_events.clear()
+            if self.event_listbox:
+                self.event_listbox.delete(0, tk.END)
+            
+            # Actualizar visualización
+            self.draw_tree()
+            self.update_stats_display()
+            
+            # Agregar evento de importación
+            self.add_simulation_event("📂 Familia de ejemplo importada exitosamente")
+            
+            # Mostrar información de la familia importada
+            living_members = len([p for p in self.simulated_family.members if p.alive])
+            total_members = len(self.simulated_family.members)
+            couples = len([p for p in self.simulated_family.members if p.has_partner()]) // 2
+            
+            info_event = f"👥 {living_members} miembros vivos de {total_members} totales, {couples} parejas"
+            self.add_simulation_event(info_event)
+            
+            # Configurar modo de simulación a memoria para velocidad
+            self.simulation_mode = "memory"
+            if self.mode_var:
+                self.mode_var.set("Memoria (Rápido)")
+            
+            # Mostrar confirmación
+            messagebox.showinfo(
+                "Ejemplo Cargado",
+                f"¡Familia de ejemplo cargada exitosamente!\n\n"
+                f"• {living_members} miembros vivos\n"
+                f"• {total_members} miembros totales\n"
+                f"• {couples} parejas\n\n"
+                "Usa el botón 'Iniciar' para comenzar la simulación."
+            )
+            
+        except Exception as e:
+            logger.error(f"Error importando ejemplo: {e}", exc_info=True)
+            messagebox.showerror("Error", f"Error al importar ejemplo: {str(e)}")
     
     def pausar_simulacion(self):
-        self.running = False
-        self.btn_start.configure(state="normal")
-        self.btn_pause.configure(state="disabled")
-        self.btn_stop.configure(state="normal")
+        """Pausa o reanuda la simulación"""
+        if self.paused:
+            self.paused = False
+            if self.btn_pause:
+                self.btn_pause.configure(text="⏸ Pausar")
+            self.add_simulation_event("▶ Simulación reanudada")
+        else:
+            self.paused = True
+            if self.btn_pause:
+                self.btn_pause.configure(text="▶ Reanudar")
+            self.add_simulation_event("⏸ Simulación pausada")
     
     def detener_simulacion(self):
+        """Detiene la simulación"""
         self.running = False
-        self.simulated_family = None
-        self.event_text.delete("1.0", "end")
-        self.tree_canvas.delete("all")
-        self.btn_start.configure(state="normal")
-        self.btn_pause.configure(state="disabled")
-        self.btn_stop.configure(state="disabled")
-        self.update_stats_display()
+        self.paused = False
+        
+        if self.btn_start:
+            self.btn_start.configure(state="normal")
+        if self.btn_pause:
+            self.btn_pause.configure(state="disabled", text="⏸ Pausar")
+        if self.btn_stop:
+            self.btn_stop.configure(state="disabled")
+        
+        self.add_simulation_event("⏹ Simulación detenida")
+    
+    def run_simulation(self):
+        """Ejecuta el bucle principal de simulación"""
+        try:
+            while self.running:
+                if not self.paused and self.simulated_family:
+                    # Ejecutar un ciclo de simulación
+                    eventos = SimulacionService.ejecutar_ciclo_completo(self.simulated_family, self.config)
+                    
+                    # Agregar eventos a la lista
+                    for evento in eventos:
+                        self.add_simulation_event(evento)
+                    
+                    # Actualizar visualización
+                    self.parent.after(0, self.draw_tree)
+                    self.parent.after(0, self.update_stats_display)
+                    
+                    # Avanzar un año
+                    self.simulated_family.current_year += 1
+                    
+                    # Dormir según la configuración
+                    threading.Event().wait(self.config.events_interval)
+                else:
+                    # Si está pausado, dormir un poco
+                    threading.Event().wait(0.1)
+                    
+        except Exception as e:
+            logger.error(f"Error en simulación: {e}", exc_info=True)
+            self.parent.after(0, lambda: self.add_simulation_event(f"❌ Error en simulación: {str(e)}"))
     
     def draw_tree(self):
-        if not self.simulated_family or not self.simulated_family.members:
-            return
-        
-        self.tree_canvas.delete("all")
-        
-        # Usar el visualizador para dibujar el árbol
-        visualizer = FamilyGraphVisualizer()
-        
-        # ✅ CORRECCIÓN CLAVE: Nueva definición con orden correcto
-        def custom_show_menu(event, person):
-            menu = tk.Menu(self.parent, tearoff=0)
-            menu.add_command(
-                label="➕ Agregar Padre",
-                command=lambda: self.abrir_formulario_relacion(person, "padre")
-            )
-            menu.add_command(
-                label="➕ Agregar Madre",
-                command=lambda: self.abrir_formulario_relacion(person, "madre")
-            )
-            menu.add_command(
-                label="💍 Agregar Cónyuge",
-                command=lambda: self.abrir_formulario_relacion(person, "conyuge")
-            )
-            menu.add_command(
-                label="👶 Agregar Hijo",
-                command=lambda: self.abrir_formulario_relacion(person, "hijo")
-            )
-            menu.add_command(
-                label="🧍 Agregar Hermano",
-                command=lambda: self.abrir_formulario_relacion(person, "hermano")
-            )
-            menu.add_separator()
-            menu.add_command(
-                label="📊 Ver Estadísticas",
-                command=lambda: self.mostrar_estadisticas_persona(person)
-            )
-            menu.add_command(
-                label="🔍 Ver Relaciones",
-                command=lambda: self.mostrar_relaciones(person)
-            )
-            menu.add_command(
-                label="⏰ Ver Línea de Tiempo",
-                command=lambda: TimelineVisualizer.create_timeline_window(person)
-            )
-            menu.add_separator()
-            menu.add_command(
-                label="✏️ Editar Persona",
-                command=lambda: self.abrir_formulario_edicion(person)
-            )
-            menu.add_command(
-                label="🗑️ Eliminar Persona",
-                command=lambda: self.eliminar_persona(person)
-            )
-            menu.tk_popup(event.x_root, event.y_root)
-            menu.grab_release()
-
-        # ✅ Asignar el nuevo método con el orden correcto
-        visualizer._show_menu = custom_show_menu
-        
-        # ✅ CORRECCIÓN: Método correcto para dibujar el árbol
-        visualizer.draw_tree(self.simulated_family, self.tree_canvas)
-    
-    def agregar_boton_timeline(self):
-        """Agrega botón para ver línea de tiempo"""
-        timeline_btn = ctk.CTkButton(
-            self.button_frame,
-            text="⏰ Línea de Tiempo",
-            command=self.mostrar_timeline_seleccionada,
-            fg_color="#9b59b6"
-        )
-        timeline_btn.pack(side=tk.LEFT, padx=5)
-
-    def mostrar_timeline_seleccionada(self):
-        """Muestra línea de tiempo de persona seleccionada"""
-        if not self.simulated_family or not self.simulated_family.members:
-            messagebox.showinfo("Información", "No hay personas en la familia para mostrar")
-            return
-            
-        # Crear ventana de selección
-        select_window = ctk.CTkToplevel(self.parent)
-        select_window.title("Seleccionar Persona")
-        select_window.geometry("400x300")
-        
-        # Frame para lista de personas
-        list_frame = ctk.CTkFrame(select_window)
-        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Scrollbar
-        scrollbar = ctk.CTkScrollbar(list_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Lista de personas
-        person_list = tk.Listbox(list_frame, yscrollcommand=scrollbar.set, font=("Arial", 12))
-        person_list.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        scrollbar.configure(command=person_list.yview)
-        
-        # Agregar personas a la lista
-        for person in self.simulated_family.members:
-            status = "Vivo" if person.alive else "Fallecido"
-            person_list.insert(tk.END, f"{person.first_name} {person.last_name} ({status})")
-        
-        # Botón de selección
-        def on_select():
-            selection = person_list.curselection()
-            if selection:
-                index = selection[0]
-                person = self.simulated_family.members[index]
-                TimelineVisualizer.create_timeline_window(person)
-                select_window.destroy()
-        
-        select_btn = ctk.CTkButton(
-            select_window, 
-            text="Ver Línea de Tiempo", 
-            command=on_select,
-            fg_color="#1db954"
-        )
-        select_btn.pack(pady=10)
-    
-    def setup_stats_panel(self):
-        """Panel de estadísticas en tiempo real"""
-        stats_frame = ctk.CTkFrame(self.frame)
-        stats_frame.pack(fill="x", padx=5, pady=5)
-        
-        # Labels de estadísticas
-        self.stats_labels = {}
-        stats = [
-            ("👥 Total", "total_people"),
-            ("💚 Vivos", "alive_count"),
-            ("💔 Fallecidos", "deceased_count"),
-            ("💍 Casados", "married_count"),
-            ("👶 Menores", "children_count"),
-            ("🔥 Año", "current_year")
-        ]
-        
-        for i, (label, key) in enumerate(stats):
-            stat_label = ctk.CTkLabel(stats_frame, text=f"{label}: 0")
-            stat_label.grid(row=0, column=i, padx=10, pady=5)
-            self.stats_labels[key] = stat_label
-    
-    def update_stats_display(self):
-        """Actualiza estadísticas en pantalla - CORREGIDO"""
-        if not self.simulated_family or not hasattr(self, 'stats_labels'):
-            return
-        
+        """Dibuja el árbol de la familia simulada con soporte para scroll y zoom"""
         try:
-            # ✅ CORRECCIÓN: Usar métodos correctos y calculate_virtual_age
+            if not self.simulated_family or not hasattr(self, 'tree_canvas'):
+                return
+            
+            # Crear nuevo visualizador si no existe
+            if not self.visualizer:
+                self.visualizer = FamilyGraphVisualizer()
+            
+            # Limpiar canvas antes de dibujar
+            self.tree_canvas.delete("all")
+            
+            # ✅ USAR EL MÉTODO CORRECTO con Canvas
+            self.visualizer.draw_family_tree(self.simulated_family, self.tree_canvas)
+            
+            # Actualizar región de scroll después de dibujar
+            self.update_scroll_region()
+            
+        except Exception as e:
+            logger.error(f"Error al dibujar árbol en simulación: {e}", exc_info=True)
+            # Mostrar error en el canvas
+            if hasattr(self, 'tree_canvas'):
+                self.tree_canvas.delete("all")
+                self.tree_canvas.create_text(
+                    600, 400,
+                    text="Error al dibujar simulación",
+                    font=("Arial", 12),
+                    fill="red"
+                )
+    
+    def update_scroll_region(self):
+        """Actualiza la región de scroll basada en el contenido del canvas"""
+        try:
+            # Actualizar el canvas para asegurar que todos los elementos estén dibujados
+            self.tree_canvas.update_idletasks()
+            
+            # Obtener las dimensiones del contenido
+            bbox = self.tree_canvas.bbox("all")
+            
+            if bbox:
+                margin = 100
+                scroll_region = (
+                    bbox[0] - margin,
+                    bbox[1] - margin,
+                    bbox[2] + margin,
+                    bbox[3] + margin
+                )
+                self.tree_canvas.configure(scrollregion=scroll_region)
+                
+                # Si es la primera vez, centrar la vista
+                if not hasattr(self, '_initial_view_set'):
+                    self.tree_canvas.xview_moveto(0.2)
+                    self.tree_canvas.yview_moveto(0.1)
+                    self._initial_view_set = True
+            else:
+                # Si no hay contenido, usar una región por defecto
+                self.tree_canvas.configure(scrollregion=(0, 0, 1500, 1500))
+                
+        except Exception as e:
+            logger.error(f"Error actualizando región de scroll: {e}")
+
+    def update_stats_display(self):
+        """Actualiza las estadísticas mostradas"""
+        try:
+            if not self.simulated_family or not self.stats_labels:
+                return
+            
+            living_members = len([p for p in self.simulated_family.members if p.alive])
+            total_members = len(self.simulated_family.members)
+            couples = len([p for p in self.simulated_family.members if p.has_partner()]) // 2
+            
+            # Contar nacimientos y fallecimientos (simplificado)
+            births = len([p for p in self.simulated_family.members if p.calculate_virtual_age() < 1])
+            deaths = len([p for p in self.simulated_family.members if not p.alive])
+            
+            # Actualizar labels
             stats = {
-                'total_people': len(self.simulated_family.members),
-                'alive_count': sum(1 for p in self.simulated_family.members if p.alive),
-                'deceased_count': sum(1 for p in self.simulated_family.members if not p.alive),
-                'married_count': sum(1 for p in self.simulated_family.members if p.has_partner()),
-                'children_count': sum(1 for p in self.simulated_family.members 
-                                    if p.alive and p.calculate_virtual_age() < 18),
-                'current_year': getattr(self.simulated_family, 'current_year', 2024)
+                "year": str(self.simulated_family.current_year),
+                "living": str(living_members),
+                "total": str(total_members),
+                "couples": str(couples),
+                "births": str(births),
+                "deaths": str(deaths)
             }
             
             for key, value in stats.items():
                 if key in self.stats_labels:
-                    label_text = self.stats_labels[key].cget('text').split(':')[0]
-                    self.stats_labels[key].configure(text=f"{label_text}: {value}")
+                    self.stats_labels[key].configure(text=value)
+                    
         except Exception as e:
-            logging.error(f"Error actualizando estadísticas: {e}", exc_info=True)
+            logger.error(f"Error actualizando estadísticas: {e}", exc_info=True)
     
-    # ✅ NUEVOS MÉTODOS AGREGADOS
-    def abrir_formulario_relacion(self, person, relation_type):
-        """Abre el formulario para agregar una relación"""
-        RelationshipForm(self.parent, self.simulated_family, person, relation_type)
+    def add_simulation_event(self, event_text: str):
+        """Agrega un evento a la lista de eventos de simulación"""
+        try:
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            formatted_event = f"[{timestamp}] {event_text}"
+            
+            # Agregar a la lista interna
+            self.simulation_events.append(formatted_event)
+            
+            # Agregar al listbox visual si existe
+            if self.event_listbox:
+                self.event_listbox.insert(tk.END, formatted_event)
+                self.event_listbox.see(tk.END)
+                
+                # Limitar número de eventos mostrados
+                if self.event_listbox.size() > 1000:
+                    self.event_listbox.delete(0, 50)
+                    
+        except Exception as e:
+            logger.error(f"Error agregando evento de simulación: {e}", exc_info=True)
     
-    def mostrar_relaciones(self, person):
-        """Muestra todas las relaciones de una persona"""
-        if not self.simulated_family:
-            return
-            
-        relations = []
-        
-        # Padre/Madre
-        if person.father:
-            relations.append(f"Padre: {person.father.first_name} {person.father.last_name}")
-        if person.mother:
-            relations.append(f"Madre: {person.mother.first_name} {person.mother.last_name}")
-        
-        # Hijo/Hija
-        if person.children:
-            children = ", ".join([f"{c.first_name}" for c in person.children])
-            relations.append(f"Hijos: {children}")
-        
-        # Hermanos
-        if person.siblings:
-            siblings = ", ".join([f"{s.first_name}" for s in person.siblings])
-            relations.append(f"Hermanos: {siblings}")
-        
-        # Pareja
-        if person.spouse:
-            relations.append(f"Pareja: {person.spouse.first_name} {person.spouse.last_name} ({person.marital_status})")
-        
-        # Si no hay relaciones
-        if not relations:
-            relations.append("No hay relaciones registradas")
-        
-        # Mostrar en popup
-        relations_window = ctk.CTkToplevel(self.parent)
-        relations_window.title(f"Relaciones de {person.first_name}")
-        relations_window.geometry("400x300")
-        
-        # Configuración crítica para ventanas modales
-        relations_window.transient(self.parent)
-        relations_window.grab_set()
-        relations_window.focus_force()
-        
-        # Crear texto con scroll
-        text_frame = ctk.CTkFrame(relations_window)
-        text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        scrollbar = ctk.CTkScrollbar(text_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        text_widget = tk.Text(text_frame, yscrollcommand=scrollbar.set, 
-                             bg="#2a2a2a", fg="white", font=("Arial", 12))
-        text_widget.pack(fill=tk.BOTH, expand=True)
-        
-        scrollbar.configure(command=text_widget.yview)
-        
-        # Insertar relaciones
-        for relation in relations:
-            text_widget.insert(tk.END, f"• {relation}\n\n")
-        
-        text_widget.config(state="disabled")
-        
-        # Botón para cerrar
-        ctk.CTkButton(relations_window,
-                     text="Cerrar",
-                     command=relations_window.destroy,
-                     fg_color="#e74c3c").pack(pady=10)
-        
-        # Esperar a que la ventana se cierre
-        self.parent.wait_window(relations_window)
+    def save_simulation_state(self):
+        """Guarda el estado actual de la simulación"""
+        if self.simulation_mode == "file" and self.simulated_family:
+            try:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"simulations/simulation_{timestamp}.ged"
+                self.simulated_family.export_to_gedcom(filename)
+                logger.info(f"Estado de simulación guardado en: {filename}")
+            except Exception as e:
+                logger.error(f"Error guardando estado de simulación: {e}")
     
-    def mostrar_estadisticas_persona(self, person):
-        """Muestra estadísticas detalladas de una persona"""
-        stats = person.get_statistics()
-        
-        # Crear ventana de estadísticas
-        stats_window = ctk.CTkToplevel(self.parent)
-        stats_window.title(f"Estadísticas - {person.first_name} {person.last_name}")
-        stats_window.geometry("400x450")
-        
-        # Título
-        ctk.CTkLabel(stats_window, text=f"Estadísticas - {person.first_name} {person.last_name}", 
-                    font=("Arial", 16, "bold")).pack(pady=10)
-        
-        # Mostrar estadísticas
-        stats_frame = ctk.CTkFrame(stats_window)
-        stats_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-        
-        for key, value in stats.items():
-            if isinstance(value, float):
-                value = f"{value:.2f}"
-            ctk.CTkLabel(stats_frame, text=f"{key}:", font=("Arial", 12, "bold")).pack(anchor="w", padx=10)
-            ctk.CTkLabel(stats_frame, text=str(value), font=("Arial", 12)).pack(anchor="w", padx=20, pady=(0, 10))
-        
-        # ✅ Añadir sección de compatibilidad
-        ctk.CTkLabel(stats_frame, text="\nCompatibilidad:", font=("Arial", 12, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
-        
-        # Buscar pareja para mostrar compatibilidad
-        if person.spouse:
-            compatibility = calcular_compatibilidad_total(person, person.spouse)
+    def load_simulation_state(self, filename):
+        """Carga un estado de simulación guardado"""
+        try:
+            from utils.gedcom_parser import GedcomParser
             
-            ctk.CTkLabel(stats_frame, text=f"Con {person.spouse.first_name}:", font=("Arial", 11)).pack(anchor="w", padx=10)
-            ctk.CTkLabel(stats_frame, text=f"Total: {compatibility['total']:.1f}%", font=("Arial", 11)).pack(anchor="w", padx=20)
-            ctk.CTkLabel(stats_frame, text=f"Recomendación: {compatibility['recommendation']}", 
-                        font=("Arial", 11), wraplength=350).pack(anchor="w", padx=20)
+            # Leer el archivo GEDCOM
+            with open(filename, 'r', encoding='utf-8') as file:
+                gedcom_content = file.read()
             
-            # Mostrar desglose
-            ctk.CTkLabel(stats_frame, text="Desglose:", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=(5, 0))
-            for category, score in compatibility['breakdown'].items():
-                ctk.CTkLabel(stats_frame, text=f"- {category.capitalize()}: {score}", 
-                            font=("Arial", 10)).pack(anchor="w", padx=30)
+            # Crear nueva familia para cargar el estado
+            from models.family import Family
+            loaded_family = Family(id="loaded_family", name="Familia Cargada")
             
-            # Mostrar intereses en común
-            if 'common_interests' in compatibility and compatibility['common_interests']:
-                ctk.CTkLabel(stats_frame, text="Intereses en común:", font=("Arial", 10, "bold")).pack(anchor="w", padx=20, pady=(5, 0))
-                for interest in compatibility['common_interests']:
-                    ctk.CTkLabel(stats_frame, text=f"- {interest}", 
-                                font=("Arial", 10)).pack(anchor="w", padx=30)
-        
-        # Botón de cierre
-        ctk.CTkButton(stats_window, text="Cerrar", command=stats_window.destroy, 
-                     fg_color="#3498db").pack(pady=10)
-    
-    def abrir_formulario_edicion(self, person):
-        """Abre el formulario para editar una persona"""
-        def on_save(data):
-            # Actualizar los datos de la persona
-            person.cedula = data["cedula"]
-            person.first_name = data["first_name"]
-            person.last_name = data["last_name"]
-            person.birth_date = data["birth_date"]
-            person.gender = data["gender"]  # Ya está en formato M/F
-            person.province = data["province"]
-            person.marital_status = data["marital_status"]
-            person.death_date = data["death_date"]
+            # Parsear el contenido GEDCOM
+            self.simulated_family = GedcomParser.parse(loaded_family, gedcom_content)
             
-            # Actualizar estado de vida
-            person.alive = person.death_date is None
-            
-            # Actualizar árbol
-            self.draw_tree()
-            # Actualizar estadísticas
-            self.update_stats_display()
-        
-        PersonForm(
-            self.parent, 
-            self.simulated_family,
-            title=f"Editar {person.first_name}",
-            on_save=on_save,
-            data={
-                "cedula": person.cedula,
-                "first_name": person.first_name,
-                "last_name": person.last_name,
-                "birth_date": person.birth_date,
-                "gender": "Masculino" if person.gender == "M" else "Femenino",
-                "province": person.province,
-                "marital_status": person.marital_status,
-                "death_date": person.death_date,
-            }
-        )
-    
-    def eliminar_persona(self, person):
-        """Elimina una persona de la familia"""
-        from services.persona_service import PersonaService
-        
-        confirm = messagebox.askyesno("Confirmar eliminación", 
-                                    f"¿Está seguro de eliminar a {person.first_name} {person.last_name}?")
-        if confirm:
-            exito, mensaje = PersonaService.eliminar_persona(self.simulated_family, person.cedula)
-            if exito:
-                messagebox.showinfo("Éxito", mensaje)
-                # Actualizar árbol
+            if self.simulated_family:
                 self.draw_tree()
-                # Actualizar estadísticas
                 self.update_stats_display()
-            else:
-                messagebox.showerror("Error", mensaje)
+                logger.info(f"Estado de simulación cargado desde: {filename}")
+        except Exception as e:
+            logger.error(f"Error cargando estado de simulación: {e}")

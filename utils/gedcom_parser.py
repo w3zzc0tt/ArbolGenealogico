@@ -53,8 +53,8 @@ class GedcomParser:
                     'first_name': '',
                     'last_name': '',
                     'sex': '',
-                    'birth_date': '',
-                    'death_date': '',
+                    'birth_date': None,
+                    'death_date': None,
                     'family_id': None
                 }
             
@@ -73,10 +73,10 @@ class GedcomParser:
                     current_data['sex'] = 'Masculino' if value == 'M' else 'Femenino'
                 
                 elif tag == 'BIRT':
-                    current_data['birth_date'] = ''
+                    current_data['birth_date'] = None
                 
                 elif tag == 'DEAT':
-                    current_data['death_date'] = ''
+                    current_data['death_date'] = None
                 
                 elif tag == 'FAMC':
                     current_data['family_id'] = value[1:-1]  # Remover @
@@ -150,10 +150,7 @@ class GedcomParser:
         # Paso 1: Crear todas las personas
         person_map = {}
         for cedula, data in individuals.items():
-            # Determinar si está vivo
-            alive = not bool(data['death_date'])
-            
-            # Crear persona
+            # Crear persona (alive se determina automáticamente en el constructor)
             person = Person(
                 cedula=cedula,
                 first_name=data['first_name'],
