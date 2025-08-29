@@ -47,6 +47,8 @@ class SimulationPanel:
         self.btn_start = None
         self.btn_pause = None
         self.btn_stop = None
+        self.btn_step = None
+        self.btn_clear = None
         self.btn_import_example = None
         self.event_listbox = None
         self.tree_canvas = None
@@ -106,6 +108,25 @@ class SimulationPanel:
                 state="disabled"
             )
             self.btn_stop.pack(side=tk.LEFT, padx=2)
+            
+            # Botón para ejecutar un paso único (para especificación de ciclos de 10 segundos)
+            self.btn_step = ctk.CTkButton(
+                self.button_frame,
+                text="👣 Un Paso",
+                command=self.ejecutar_un_paso,
+                fg_color="#f39c12",
+                width=100
+            )
+            self.btn_step.pack(side=tk.LEFT, padx=2)
+            
+            self.btn_clear = ctk.CTkButton(
+                self.button_frame,
+                text="🗑️ Limpiar Árbol",
+                command=self.limpiar_arbol,
+                fg_color="#9b59b6",
+                width=120
+            )
+            self.btn_clear.pack(side=tk.LEFT, padx=2)
             
             # Frame para botón de ejemplo
             example_frame = ctk.CTkFrame(control_frame)
@@ -651,6 +672,139 @@ class SimulationPanel:
             self.btn_stop.configure(state="disabled")
         
         self.add_simulation_event("⏹ Simulación detenida")
+
+    def ejecutar_un_paso(self):
+        """Ejecuta un solo ciclo de simulación (especificación: ciclo de 10 segundos)"""
+        if not self.simulated_family:
+            # Crear copia de la familia si no existe
+            import copy
+            self.simulated_family = copy.deepcopy(self.family)
+            self.simulated_family.current_year = self.family.current_year or 2024
+            
+            if self.event_listbox:
+                self.event_listbox.delete(0, tk.END)
+            self.simulation_events.clear()
+            
+            self.add_simulation_event("👣 Modo paso a paso iniciado")
+        
+        try:
+            # Ejecutar un ciclo completo de simulación
+            eventos = SimulacionService.ejecutar_ciclo_completo(self.simulated_family, self.config)
+            
+            # Agregar eventos a la lista
+            for evento in eventos:
+                self.add_simulation_event(evento)
+            
+            # Avanzar un año
+            self.simulated_family.current_year += 1
+            
+            # Actualizar visualización
+            self.draw_tree()
+            self.update_stats_display()
+            
+            self.add_simulation_event(f"👣 Paso ejecutado - Año {self.simulated_family.current_year}")
+            
+        except Exception as e:
+            logger.error(f"Error en ejecutar_un_paso: {e}", exc_info=True)
+            self.add_simulation_event(f"❌ Error en paso: {str(e)}")
+    
+    def limpiar_arbol(self):
+        """Limpia el árbol simulado y resetea la simulación"""
+        try:
+            # Confirmar acción con el usuario
+            respuesta = messagebox.askyesno(
+                "Confirmar Limpieza",
+                "¿Estás seguro de que quieres limpiar el árbol de simulación?\n\n"
+                "Esto eliminará:\n"
+                "• El árbol genealógico simulado\n"
+                "• Todos los eventos de simulación\n"
+                "• Las estadísticas actuales\n\n"
+                "Podrás volver a importar o cargar un árbol después."
+            )
+            
+            if not respuesta:
+                return
+            
+            # Detener simulación si está corriendo
+            if self.running:
+                self.detener_simulacion()
+            
+            # Limpiar familia simulada
+            self.simulated_family = None
+            
+            # Limpiar eventos de simulación
+            self.simulation_events.clear()
+            if self.event_listbox:
+                self.event_listbox.delete(0, tk.END)
+            
+            # Limpiar canvas
+            if hasattr(self, 'tree_canvas') and self.tree_canvas:
+                self.tree_canvas.delete("all")
+                self.tree_canvas.create_text(
+                    600, 400,
+                    text="🌳 Árbol limpio\n\nUsa 'Importar Ejemplo' o carga\nuna familia para comenzar",
+                    font=("Arial", 14),
+                    fill="#7f8c8d",
+                    justify=tk.CENTER
+                )
+            
+            # Resetear estadísticas
+            self.reset_stats_display()
+            
+            # Resetear zoom
+            if hasattr(self, 'zoom_level'):
+                old_zoom = self.zoom_level
+                self.zoom_level = 1.0
+                if hasattr(self, 'zoom_label'):
+                    self.zoom_label.configure(text="100%")
+            
+            # Resetear controles
+            if self.btn_start:
+                self.btn_start.configure(state="normal")
+            if self.btn_pause:
+                self.btn_pause.configure(state="disabled", text="⏸ Pausar")
+            if self.btn_stop:
+                self.btn_stop.configure(state="disabled")
+            
+            # Resetear modo a memoria
+            self.simulation_mode = "memory"
+            if self.mode_var:
+                self.mode_var.set("Memoria (Rápido)")
+            
+            # Agregar evento de limpieza
+            self.add_simulation_event("🗑️ Árbol limpiado - Listo para nueva simulación")
+            
+            # Mostrar confirmación
+            messagebox.showinfo(
+                "Árbol Limpiado",
+                "✅ El árbol de simulación ha sido limpiado exitosamente.\n\n"
+                "Ahora puedes:\n"
+                "• Hacer cambios en el árbol principal\n"
+                "• Importar un ejemplo nuevo\n"
+                "• Iniciar una nueva simulación"
+            )
+            
+            logger.info("Árbol de simulación limpiado exitosamente")
+            
+        except Exception as e:
+            logger.error(f"Error limpiando árbol: {e}", exc_info=True)
+            messagebox.showerror("Error", f"Error al limpiar árbol: {str(e)}")
+    
+    def reset_stats_display(self):
+        """Resetea las estadísticas mostradas"""
+        try:
+            if not self.stats_labels:
+                return
+            
+            # Resetear todas las estadísticas a 0
+            for key in self.stats_labels:
+                if key == "year":
+                    self.stats_labels[key].configure(text="----")
+                else:
+                    self.stats_labels[key].configure(text="0")
+                    
+        except Exception as e:
+            logger.error(f"Error reseteando estadísticas: {e}")
     
     def run_simulation(self):
         """Ejecuta el bucle principal de simulación"""

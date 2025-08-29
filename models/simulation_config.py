@@ -1,8 +1,8 @@
 class SimulationConfig:
     def __init__(self):
-        # Tiempos
+        # Tiempos - ESPECIFICACIÓN: 10 segundos por ciclo
         self.birthday_interval = 10  # segundos reales = 1 año simulado
-        self.events_interval = 1    # ¡AHORA ES 10 SEGUNDOS!
+        self.events_interval = 10    # 10 SEGUNDOS POR CICLO según especificación
         
         # Probabilidades balanceadas
         self.birth_probability = 0.25  # 25% por ciclo para parejas compatibles

@@ -30,20 +30,28 @@ class FamilyGraphVisualizer:
             # Relaciones padre-hijo (flechas hacia abajo)
             if person.father and person.father.cedula in [p.cedula for p in family.members]:
                 self.G.add_edge(person.father.cedula, person.cedula, relationship="parent")
+                # También agregar relación inversa hijo→padre
+                self.G.add_edge(person.cedula, person.father.cedula, relationship="child")
             if person.mother and person.mother.cedula in [p.cedula for p in family.members]:
                 self.G.add_edge(person.mother.cedula, person.cedula, relationship="parent")
+                # También agregar relación inversa hijo→madre
+                self.G.add_edge(person.cedula, person.mother.cedula, relationship="child")
 
             # Relación de pareja (bidireccional, sin flechas)
             if person.spouse and person.spouse.cedula in [p.cedula for p in family.members]:
-                self.G.add_edge(person.cedula, person.spouse.cedula, relationship="spouse")
-                self.G.add_edge(person.spouse.cedula, person.cedula, relationship="spouse")
+                # Solo agregar una vez para evitar duplicados
+                if not self.G.has_edge(person.cedula, person.spouse.cedula):
+                    self.G.add_edge(person.cedula, person.spouse.cedula, relationship="spouse")
+                if not self.G.has_edge(person.spouse.cedula, person.cedula):
+                    self.G.add_edge(person.spouse.cedula, person.cedula, relationship="spouse")
 
-            # Relación de hermanos (opcional, línea punteada)
+            # Relación de hermanos (línea punteada)
             for sibling in person.siblings:
                 if sibling.cedula in [p.cedula for p in family.members]:
-                    # Evitar duplicados
-                    if not self.G.has_edge(person.cedula, sibling.cedula):
+                    # Evitar duplicados bidireccionales
+                    if not self.G.has_edge(person.cedula, sibling.cedula) and not self.G.has_edge(sibling.cedula, person.cedula):
                         self.G.add_edge(person.cedula, sibling.cedula, relationship="sibling")
+                        self.G.add_edge(sibling.cedula, person.cedula, relationship="sibling")
 
         return self.G
 
@@ -157,7 +165,7 @@ class FamilyGraphVisualizer:
             if not canvas.winfo_exists():
                 return
 
-            # Dibujar conexiones primero (líneas)
+            # Dibujar conexiones primero (líneas) con colores distintivos
             for edge in self.G.edges():
                 try:
                     source, target = edge
@@ -166,15 +174,33 @@ class FamilyGraphVisualizer:
                         x2, y2 = pos[target]
                         
                         edge_data = self.G[source][target]
-                        if edge_data.get('relationship') == 'parent':
-                            # Dibuja línea verde para padre/madre
-                            canvas.create_line(x1, y1, x2, y2, fill="#4CAF50", width=2, arrow=tk.LAST)
-                        elif edge_data.get('relationship') == 'spouse':
-                            # Dibuja línea roja para pareja
-                            canvas.create_line(x1, y1, x2, y2, fill="#FF6B6B", width=2, dash=(4, 2))
-                        elif edge_data.get('relationship') == 'sibling':
-                            # Dibuja línea azul para hermanos
-                            canvas.create_line(x1, y1, x2, y2, fill="#2ECC71", width=1, dash=(4, 2))
+                        relationship = edge_data.get('relationship')
+                        
+                        if relationship == 'parent':
+                            # Línea AZUL FUERTE para relaciones padre/madre-hijo
+                            canvas.create_line(x1, y1, x2, y2, 
+                                             fill="#2196F3", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
+                        elif relationship == 'spouse':
+                            # Línea ROJA para relaciones de pareja
+                            canvas.create_line(x1, y1, x2, y2, 
+                                             fill="#E91E63", width=4, smooth=True)
+                            # Agregar pequeño corazón en el medio
+                            mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
+                            canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 12))
+                        elif relationship == 'sibling':
+                            # Línea VERDE para hermanos
+                            canvas.create_line(x1, y1, x2, y2, 
+                                             fill="#4CAF50", width=2, dash=(8, 4))
+                        elif relationship == 'child':
+                            # Línea NARANJA para hijos (dirección contraria a parent)
+                            canvas.create_line(x1, y1, x2, y2, 
+                                             fill="#FF9800", width=2, arrow=tk.LAST,
+                                             arrowshape=(10, 12, 5))
+                        else:
+                            # Línea gris por defecto para relaciones no definidas
+                            canvas.create_line(x1, y1, x2, y2, 
+                                             fill="#9E9E9E", width=1, dash=(2, 2))
                 except Exception as e:
                     continue
 
@@ -218,6 +244,9 @@ class FamilyGraphVisualizer:
                     print(f"Error dibujando nodo {cedula}: {e}")
                     continue
 
+            # Agregar leyenda de colores de relaciones
+            self._draw_relationship_legend(canvas)
+
         except Exception as e:
             # Manejar errores sin intentar dibujar en un canvas inexistente
             print(f"Error crítico al dibujar árbol: {e}")
@@ -232,6 +261,71 @@ class FamilyGraphVisualizer:
             except:
                 # Si no podemos dibujar en el canvas, solo imprimimos el error
                 print(f"Error crítico al dibujar árbol: {e}")
+
+    def _draw_relationship_legend(self, canvas):
+        """Dibuja una leyenda explicando los colores de las relaciones"""
+        try:
+            if not canvas.winfo_exists():
+                return
+            
+            # Posición de la leyenda (esquina superior derecha)
+            legend_x = 20
+            legend_y = 20
+            
+            # Fondo de la leyenda
+            legend_bg = canvas.create_rectangle(
+                legend_x - 10, legend_y - 10,
+                legend_x + 200, legend_y + 140,
+                fill="#34495e", outline="#2c3e50", width=2
+            )
+            
+            # Título de la leyenda
+            canvas.create_text(
+                legend_x + 85, legend_y + 5,
+                text="🎨 Tipos de Relaciones",
+                font=("Arial", 10, "bold"),
+                fill="white",
+                anchor="center"
+            )
+            
+            # Elementos de la leyenda
+            legend_items = [
+                ("Padre/Madre → Hijo", "#2196F3", "→", 3),
+                ("Pareja 💕", "#E91E63", "━", 4),
+                ("Hermanos", "#4CAF50", "┅", 2),
+                ("Hijo → Padre", "#FF9800", "→", 2),
+                ("Otra relación", "#9E9E9E", "┉", 1)
+            ]
+            
+            y_offset = 25
+            for i, (label, color, symbol, width) in enumerate(legend_items):
+                item_y = legend_y + y_offset + (i * 20)
+                
+                # Dibujar línea de ejemplo
+                canvas.create_line(
+                    legend_x, item_y,
+                    legend_x + 25, item_y,
+                    fill=color, width=width
+                )
+                
+                # Si es una relación de pareja, agregar corazón
+                if "Pareja" in label:
+                    canvas.create_text(
+                        legend_x + 12, item_y,
+                        text="💕", font=("Arial", 8)
+                    )
+                
+                # Etiqueta
+                canvas.create_text(
+                    legend_x + 35, item_y,
+                    text=label,
+                    font=("Arial", 8),
+                    fill="white",
+                    anchor="w"
+                )
+                
+        except Exception as e:
+            print(f"Error dibujando leyenda: {e}")
 
     def _show_menu(self, event, person):
         """Placeholder - será reemplazado en app.py"""

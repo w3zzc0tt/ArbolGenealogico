@@ -101,6 +101,15 @@ class HistoryPanel:
             hover_color="#2c3e50"
         ).pack(fill=tk.X, padx=2, pady=2)
 
+        # Ver Timeline de Persona
+        ctk.CTkButton(
+            self.button_frame,
+            text="🕰️ Ver Timeline",
+            command=self.ver_timeline_persona,
+            fg_color="#9b59b6",
+            hover_color="#8e44ad"
+        ).pack(fill=tk.X, padx=2, pady=2)
+
         # Exportar a GEDCOM
         ctk.CTkButton(
             self.button_frame,
@@ -185,7 +194,47 @@ class HistoryPanel:
             fg_color="#1db954"
         ).pack(pady=10)
         
-        # Esperar a que la ventana se cierre antes de continuar
+        # Esperar a que la ventana se cierre
+        self.parent.wait_window(search_window)
+
+    def ver_timeline_persona(self):
+        """Muestra timeline cronológico de una persona"""
+        def on_timeline():
+            cedula = entry.get().strip()
+            if not cedula:
+                messagebox.showerror("Error", "Ingrese una cédula")
+                return
+                
+            persona = self.family.get_member_by_cedula(cedula)
+            if persona:
+                # Importar el visualizador de timeline
+                from utils.timeline_visualizer import TimelineVisualizer
+                TimelineVisualizer.create_timeline_window(persona)
+            else:
+                messagebox.showerror("Error", "Cédula no encontrada.")
+        
+        # Crear ventana de entrada
+        search_window = ctk.CTkToplevel(self.parent)
+        search_window.title("Ver Timeline de Persona")
+        search_window.geometry("300x150")
+        
+        # Configuración crítica para ventanas modales
+        search_window.transient(self.parent)
+        search_window.grab_set()
+        search_window.focus_force()
+        
+        ctk.CTkLabel(search_window, text="Ingrese la cédula:").pack(pady=10)
+        entry = ctk.CTkEntry(search_window, placeholder_text="Ej: 123456789")
+        entry.pack(pady=5)
+        
+        ctk.CTkButton(
+            search_window, 
+            text="Ver Timeline", 
+            command=on_timeline,
+            fg_color="#9b59b6"
+        ).pack(pady=10)
+        
+        # Esperar a que la ventana se cierre
         self.parent.wait_window(search_window)
 
     def ver_detalles_persona(self):

@@ -26,10 +26,10 @@ class TimelineVisualizer:
         )
         title_label.pack(pady=(0, 20))
         
-        # Obtener eventos
-        timeline = person.get_life_timeline()
+        # Obtener eventos de la timeline
+        timeline_events = person.get_timeline_events()
         
-        if not timeline:
+        if not timeline_events:
             no_events_label = ctk.CTkLabel(
                 main_frame,
                 text="No hay eventos registrados",
@@ -39,31 +39,53 @@ class TimelineVisualizer:
             return
         
         # Crear línea de tiempo visual
-        for i, event in enumerate(timeline):
+        for i, event in enumerate(timeline_events):
             # Frame para cada evento
             event_frame = ctk.CTkFrame(main_frame)
             event_frame.pack(fill=tk.X, pady=5, padx=10)
             
-            # Información del evento
-            year_label = ctk.CTkLabel(
+            # Información del evento - usar estructura actual de los eventos
+            date_label = ctk.CTkLabel(
                 event_frame,
-                text=f"{event['year']}",
+                text=f"{event['fecha']}",
                 font=ctk.CTkFont(size=16, weight="bold"),
-                width=80
+                width=120
             )
-            year_label.pack(side=tk.LEFT, padx=10, pady=10)
+            date_label.pack(side=tk.LEFT, padx=10, pady=10)
             
-            age_label = ctk.CTkLabel(
-                event_frame,
-                text=f"({event['age']} años)",
-                font=ctk.CTkFont(size=12),
-                width=80
-            )
-            age_label.pack(side=tk.LEFT, padx=5, pady=10)
+            # Calcular edad en el evento
+            try:
+                from datetime import datetime
+                birth_year = int(person.birth_date.split('-')[0])
+                event_year = int(event['fecha'].split('-')[0])
+                age_at_event = event_year - birth_year
+                
+                age_label = ctk.CTkLabel(
+                    event_frame,
+                    text=f"({age_at_event} años)",
+                    font=ctk.CTkFont(size=12),
+                    width=80
+                )
+                age_label.pack(side=tk.LEFT, padx=5, pady=10)
+            except:
+                # Si no se puede calcular la edad, continuar sin mostrarla
+                pass
+            
+            # Evento - usar emoji según categoría
+            category_emojis = {
+                'birth': '👶',
+                'marriage': '💍',
+                'divorce': '💔',
+                'death': '⚰️',
+                'other': '📝'
+            }
+            
+            category = event.get('categoria', 'other')
+            emoji = category_emojis.get(category, '📝')
             
             event_label = ctk.CTkLabel(
                 event_frame,
-                text=f"{event['icon']} {event['event']}",
+                text=f"{emoji} {event['evento']}",
                 font=ctk.CTkFont(size=14),
                 anchor="w"
             )
@@ -72,12 +94,11 @@ class TimelineVisualizer:
             # Color según tipo de evento
             colors = {
                 'birth': '#4CAF50',
-                'marriage': '#FF6B9D',
-                'childbirth': '#87CEEB',
-                'widowhood': '#696969',
-                'birthday': '#FFD700',
-                'general': '#E0E0E0'
+                'marriage': '#FF6B9D', 
+                'divorce': '#FF5722',
+                'death': '#424242',
+                'other': '#9E9E9E'
             }
             
-            color = colors.get(event['type'], '#E0E0E0')
+            color = colors.get(category, '#E0E0E0')
             event_frame.configure(border_color=color, border_width=2)
