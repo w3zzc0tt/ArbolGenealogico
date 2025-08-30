@@ -4,9 +4,10 @@ from typing import Optional
 from .person import Person
 
 class Family:
-    def __init__(self, id, name):
+    def __init__(self, id=None, name="Nueva Familia"):
         self.id = id
         self.name = name
+        self.description = ""  # Nueva descripción para la familia
         self.members = []
         self.current_year = datetime.datetime.now().year
 

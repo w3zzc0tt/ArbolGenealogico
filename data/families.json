@@ -1,0 +1,44 @@
+{
+  "1": {
+    "id": 1,
+    "name": "Familia Dinarte",
+    "description": "",
+    "members": [
+      {
+        "cedula": "504650480",
+        "first_name": "Jose Pablo",
+        "last_name": "Campos Dinarte",
+        "birth_date": "2006-05-24T00:00:00",
+        "death_date": null,
+        "gender": "M",
+        "province": "Guanacaste",
+        "marital_status": "Soltero/a",
+        "alive": true,
+        "father_cedula": "501230659",
+        "mother_cedula": null,
+        "spouse_cedula": null,
+        "children_cedulas": [],
+        "siblings_cedulas": []
+      },
+      {
+        "cedula": "501230659",
+        "first_name": "Santos Leon",
+        "last_name": "Campos Ruiz",
+        "birth_date": "1970-06-28T00:00:00",
+        "death_date": null,
+        "gender": "M",
+        "province": "Guanacaste",
+        "marital_status": "Soltero/a",
+        "alive": true,
+        "father_cedula": null,
+        "mother_cedula": null,
+        "spouse_cedula": null,
+        "children_cedulas": [
+          "504650480"
+        ],
+        "siblings_cedulas": []
+      }
+    ],
+    "current_year": 2025
+  }
+}

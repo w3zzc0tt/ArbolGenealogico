@@ -374,8 +374,8 @@ class ConsultasPanel:
                 self.persona_b_combo.update()
             
             # Forzar actualización del panel completo
-            self.update_idletasks()
-            self.update()
+            self.frame.update_idletasks()
+            self.frame.update()
         else:
             print("DEBUG: No hay personas, limpiando comboboxes")
             # No hay personas, limpiar comboboxes

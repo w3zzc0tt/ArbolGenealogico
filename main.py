@@ -2,6 +2,7 @@
 import logging
 import sys
 import traceback
+from tkinter import messagebox
 
 # Configurar logging para ver errores detallados
 logging.basicConfig(
