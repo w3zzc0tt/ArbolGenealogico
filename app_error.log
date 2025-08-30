@@ -150,3 +150,31 @@
 2025-08-29 23:56:19,641 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
 2025-08-29 23:56:19,959 - root - INFO - GenealogyApp inicializada correctamente
 2025-08-29 23:56:19,959 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-30 00:01:28,809 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-30 00:01:28,833 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-30 00:01:28,836 - matplotlib - DEBUG - interactive is False
+2025-08-30 00:01:28,836 - matplotlib - DEBUG - platform is win32
+2025-08-30 00:01:28,879 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-30 00:01:28,936 - root - INFO - CustomTkinter importado correctamente
+2025-08-30 00:01:29,261 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-30 00:01:29,264 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-30 00:01:29,590 - root - INFO - Módulo gui.app importado correctamente
+2025-08-30 00:01:29,591 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-30 00:01:29,668 - root - INFO - Ventana principal creada
+2025-08-30 00:01:30,519 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-30 00:01:30,851 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-30 00:01:30,851 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-30 00:04:58,450 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-30 00:04:58,508 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-30 00:04:58,522 - matplotlib - DEBUG - interactive is False
+2025-08-30 00:04:58,523 - matplotlib - DEBUG - platform is win32
+2025-08-30 00:04:58,596 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-30 00:04:58,671 - root - INFO - CustomTkinter importado correctamente
+2025-08-30 00:04:59,054 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-30 00:04:59,058 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-30 00:04:59,386 - root - INFO - Módulo gui.app importado correctamente
+2025-08-30 00:04:59,386 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-30 00:04:59,473 - root - INFO - Ventana principal creada
+2025-08-30 00:05:00,441 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-30 00:05:00,831 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-30 00:05:00,832 - root - INFO - Iniciando bucle principal de la aplicación...

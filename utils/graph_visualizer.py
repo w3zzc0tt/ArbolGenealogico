@@ -106,8 +106,8 @@ class FamilyGraphVisualizer:
                     person1 = next(p for p in family.members if p.cedula == person1_cedula)
                     person2 = next(p for p in family.members if p.cedula == person2_cedula)
                     
-                    # Reducir separación entre cónyuges para líneas más cortas
-                    couple_spacing = 45  # Reducido de 60 a 45px
+                    # Separación óptima entre cónyuges para visualizar la línea matrimonial
+                    couple_spacing = 65  # Aumentado para mejor visibilidad de la línea
                     
                     if person1.gender == 'M':
                         male_x = current_x
@@ -158,7 +158,7 @@ class FamilyGraphVisualizer:
                         'type': 'couple',
                         'level': level,
                         'members': [person.cedula, person.spouse.cedula],
-                        'width': 105  # Ajustado para el nuevo espaciado (45px + margen)
+                        'width': 125  # Ajustado para el nuevo espaciado (65px + margen)
                     }
                     level_units.append(unit)
                     processed_persons.add(person.cedula)
@@ -398,18 +398,47 @@ class FamilyGraphVisualizer:
                     x1, y1 = pos[cedula1]
                     x2, y2 = pos[cedula2]
                     
-                    # Dibujar línea de pareja
-                    canvas.create_line(x1, y1, x2, y2, 
-                                     fill="#E91E63", width=4, smooth=True)
+                    # Dibujar línea de pareja con lógica en L para evitar cruces
+                    if abs(y1 - y2) < 10:  # Están en el mismo nivel (parejas normales)
+                        # Línea horizontal directa con pequeño arco suave
+                        canvas.create_line(x1, y1, x2, y2, 
+                                         fill="#E91E63", width=4, smooth=True)
+                        
+                        # Punto medio normal
+                        mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
+                        
+                    else:
+                        # Están en diferentes niveles (relaciones de simulación)
+                        # Usar línea en L para evitar cruces con otras relaciones
+                        
+                        # Calcular punto de inflexión en L
+                        if abs(x1 - x2) > 50:  # Si hay separación horizontal significativa
+                            # Línea en L: vertical desde persona 1, luego horizontal, luego vertical a persona 2
+                            mid_y = y1 + (y2 - y1) * 0.5  # Punto medio vertical
+                            
+                            # Dibujar segmentos de la L
+                            canvas.create_line(x1, y1, x1, mid_y,
+                                             fill="#E91E63", width=4)  # Vertical desde persona 1
+                            canvas.create_line(x1, mid_y, x2, mid_y,
+                                             fill="#E91E63", width=4, smooth=True)  # Horizontal
+                            canvas.create_line(x2, mid_y, x2, y2,
+                                             fill="#E91E63", width=4)  # Vertical a persona 2
+                            
+                            # Punto medio en el segmento horizontal
+                            mid_x, mid_y = (x1 + x2) / 2, mid_y
+                        else:
+                            # Si están verticalmente alineados, línea directa
+                            canvas.create_line(x1, y1, x2, y2,
+                                             fill="#E91E63", width=4, smooth=True)
+                            mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
                     
-                    # Calcular punto medio de la línea de pareja
-                    mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
+                    # Almacenar punto medio para conexiones padre-hijo
                     puntos_medios_parejas[pareja_id] = (mid_x, mid_y)
                     
-                    # Agregar corazón en el medio con fondo blanco para mayor visibilidad
-                    canvas.create_oval(mid_x-8, mid_y-8, mid_x+8, mid_y+8, 
+                    # Agregar corazón en el punto medio con mejor contraste
+                    canvas.create_oval(mid_x-10, mid_y-10, mid_x+10, mid_y+10, 
                                      fill="white", outline="#E91E63", width=2)
-                    canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 12))
+                    canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 14))
                     parejas_dibujadas.add(pareja_id)
             
             # 2. Dibujar conexiones padre-hijo inteligentes con rutas optimizadas
