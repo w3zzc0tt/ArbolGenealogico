@@ -697,3 +697,533 @@ class RelacionService:
                 if str(getattr(person, caracteristica)).lower() == str(valor).lower():
                     resultados.append(person)
         return resultados
+
+    @staticmethod
+    def encontrar_familiares_por_tipo(persona_referencia: Person, family: Family, tipo_relacion: str) -> List[Person]:
+        """
+        Encuentra todos los familiares de un tipo específico para una persona de referencia.
+        
+        Args:
+            persona_referencia: Persona de referencia
+            family: Familia a la que pertenece
+            tipo_relacion: Tipo de relación a buscar (ej: "primo", "tío", "hermano", etc.)
+            
+        Returns:
+            List[Person]: Lista de personas que tienen esa relación
+        """
+        familiares = []
+        tipo_relacion = tipo_relacion.lower()
+        
+        # Buscar en toda la familia
+        for persona in family.members:
+            if persona.cedula == persona_referencia.cedula:
+                continue
+                
+            relacion = persona_referencia.get_relationship_to(persona, family).lower()
+            
+            # Verificar si la relación coincide con el tipo buscado
+            if tipo_relacion in relacion or relacion.startswith(tipo_relacion):
+                familiares.append(persona)
+        
+        return familiares
+
+    @staticmethod
+    def analizar_relacion_detallada(persona_a: Person, persona_b: Person, family: Family) -> dict:
+        """
+        Analiza en detalle la relación entre dos personas.
+        
+        Args:
+            persona_a: Primera persona
+            persona_b: Segunda persona
+            family: Familia a la que pertenecen
+            
+        Returns:
+            dict: Análisis detallado de la relación
+        """
+        relacion_a_b = persona_a.get_relationship_to(persona_b, family)
+        relacion_b_a = persona_b.get_relationship_to(persona_a, family)
+        
+        # Determinar grado de consanguinidad
+        grado = RelacionService._calcular_grado_consanguinidad(persona_a, persona_b)
+        
+        # Determinar línea familiar
+        linea = RelacionService._determinar_linea_familiar(persona_a, persona_b)
+        
+        return {
+            'persona_a': persona_a.get_full_name(),
+            'persona_b': persona_b.get_full_name(),
+            'relacion_a_hacia_b': relacion_a_b,
+            'relacion_b_hacia_a': relacion_b_a,
+            'grado_consanguinidad': grado,
+            'linea_familiar': linea,
+            'son_consanguineos': grado > 0,
+            'distancia_generacional': RelacionService._calcular_distancia_generacional(persona_a, persona_b)
+        }
+
+    @staticmethod
+    def _calcular_grado_consanguinidad(persona_a: Person, persona_b: Person) -> int:
+        """
+        Calcula el grado de consanguinidad entre dos personas.
+        
+        Returns:
+            int: Grado de consanguinidad (0 = sin relación, 1 = primer grado, etc.)
+        """
+        # Primer grado: padres-hijos
+        if (persona_a.father == persona_b or persona_a.mother == persona_b or
+            persona_b.father == persona_a or persona_b.mother == persona_a):
+            return 1
+        
+        # Segundo grado: hermanos, abuelos-nietos
+        if persona_a._are_siblings(persona_b):
+            return 2
+        
+        # Verificar abuelos-nietos
+        if RelacionService._es_abuelo_nieto(persona_a, persona_b):
+            return 2
+        
+        # Tercer grado: tíos-sobrinos
+        if RelacionService._es_tio_sobrino(persona_a, persona_b):
+            return 3
+        
+        # Cuarto grado: primos hermanos
+        if RelacionService._son_primos_hermanos(persona_a, persona_b):
+            return 4
+        
+        return 0  # Sin relación consanguínea directa
+
+    @staticmethod
+    def _determinar_linea_familiar(persona_a: Person, persona_b: Person) -> str:
+        """Determina si la relación es por línea paterna, materna o mixta"""
+        # Verificar línea paterna
+        if RelacionService._tienen_ancestro_paterno_comun(persona_a, persona_b):
+            return "Línea paterna"
+        
+        # Verificar línea materna
+        if RelacionService._tienen_ancestro_materno_comun(persona_a, persona_b):
+            return "Línea materna"
+        
+        # Verificar si hay relación mixta
+        if RelacionService._tienen_relacion_mixta(persona_a, persona_b):
+            return "Línea mixta"
+        
+        return "Sin línea familiar directa"
+
+    @staticmethod
+    def _calcular_distancia_generacional(persona_a: Person, persona_b: Person) -> int:
+        """Calcula la distancia generacional entre dos personas"""
+        # Asignar nivel generacional basado en ancestros
+        nivel_a = RelacionService._calcular_nivel_generacional(persona_a)
+        nivel_b = RelacionService._calcular_nivel_generacional(persona_b)
+        
+        return abs(nivel_a - nivel_b)
+
+    @staticmethod
+    def _calcular_nivel_generacional(persona: Person) -> int:
+        """Calcula el nivel generacional de una persona (0 = raíz)"""
+        nivel = 0
+        actual = persona
+        
+        # Contar generaciones hacia arriba
+        while actual.father or actual.mother:
+            nivel += 1
+            # Preferir padre, luego madre
+            actual = actual.father if actual.father else actual.mother
+            
+            # Evitar bucles infinitos
+            if nivel > 10:
+                break
+        
+        return nivel
+
+    @staticmethod
+    def _es_abuelo_nieto(persona_a: Person, persona_b: Person) -> bool:
+        """Verifica si hay relación abuelo-nieto"""
+        # A es abuelo de B
+        for hijo in persona_a.children:
+            if persona_b in hijo.children:
+                return True
+        
+        # B es abuelo de A
+        for hijo in persona_b.children:
+            if persona_a in hijo.children:
+                return True
+        
+        return False
+
+    @staticmethod
+    def _es_tio_sobrino(persona_a: Person, persona_b: Person) -> bool:
+        """Verifica si hay relación tío-sobrino"""
+        # A es tío de B (A es hermano de un padre de B)
+        if persona_b.father and persona_a._are_siblings(persona_b.father):
+            return True
+        if persona_b.mother and persona_a._are_siblings(persona_b.mother):
+            return True
+        
+        # B es tío de A
+        if persona_a.father and persona_b._are_siblings(persona_a.father):
+            return True
+        if persona_a.mother and persona_b._are_siblings(persona_a.mother):
+            return True
+        
+        return False
+
+    @staticmethod
+    def _son_primos_hermanos(persona_a: Person, persona_b: Person) -> bool:
+        """
+        Verifica si son primos hermanos usando la lógica de deducción:
+        Los primos son hijos de hermanos de los padres
+        """
+        # Verificar si los padres de A son hermanos de los padres de B
+        
+        # Caso 1: Padre de A es hermano del padre de B
+        if (persona_a.father and persona_b.father and 
+            persona_a.father._are_siblings(persona_b.father)):
+            return True
+        
+        # Caso 2: Padre de A es hermano de la madre de B
+        if (persona_a.father and persona_b.mother and 
+            persona_a.father._are_siblings(persona_b.mother)):
+            return True
+        
+        # Caso 3: Madre de A es hermana del padre de B
+        if (persona_a.mother and persona_b.father and 
+            persona_a.mother._are_siblings(persona_b.father)):
+            return True
+        
+        # Caso 4: Madre de A es hermana de la madre de B
+        if (persona_a.mother and persona_b.mother and 
+            persona_a.mother._are_siblings(persona_b.mother)):
+            return True
+        
+        return False
+
+    @staticmethod
+    def _tienen_ancestro_paterno_comun(persona_a: Person, persona_b: Person) -> bool:
+        """Verifica si comparten un ancestro por línea paterna"""
+        ancestros_a = RelacionService._obtener_ancestros_paternos(persona_a)
+        ancestros_b = RelacionService._obtener_ancestros_paternos(persona_b)
+        
+        return bool(ancestros_a.intersection(ancestros_b))
+
+    @staticmethod
+    def _tienen_ancestro_materno_comun(persona_a: Person, persona_b: Person) -> bool:
+        """Verifica si comparten un ancestro por línea materna"""
+        ancestros_a = RelacionService._obtener_ancestros_maternos(persona_a)
+        ancestros_b = RelacionService._obtener_ancestros_maternos(persona_b)
+        
+        return bool(ancestros_a.intersection(ancestros_b))
+
+    @staticmethod
+    def _tienen_relacion_mixta(persona_a: Person, persona_b: Person) -> bool:
+        """Verifica si tienen relación por ambas líneas"""
+        return (RelacionService._tienen_ancestro_paterno_comun(persona_a, persona_b) and
+                RelacionService._tienen_ancestro_materno_comun(persona_a, persona_b))
+
+    @staticmethod
+    def _obtener_ancestros_paternos(persona: Person, max_generaciones: int = 5) -> Set[str]:
+        """Obtiene todos los ancestros por línea paterna"""
+        ancestros = set()
+        actual = persona.father
+        generacion = 0
+        
+        while actual and generacion < max_generaciones:
+            ancestros.add(actual.cedula)
+            actual = actual.father
+            generacion += 1
+        
+        return ancestros
+
+    @staticmethod
+    def _obtener_ancestros_maternos(persona: Person, max_generaciones: int = 5) -> Set[str]:
+        """Obtiene todos los ancestros por línea materna"""
+        ancestros = set()
+        actual = persona.mother
+        generacion = 0
+        
+        while actual and generacion < max_generaciones:
+            ancestros.add(actual.cedula)
+            actual = actual.mother
+            generacion += 1
+        
+        return ancestros
+
+    @staticmethod
+    def generar_reporte_relaciones(persona_referencia: Person, family: Family) -> dict:
+        """
+        Genera un reporte completo de todas las relaciones de una persona.
+        
+        Args:
+            persona_referencia: Persona de referencia
+            family: Familia a la que pertenece
+            
+        Returns:
+            dict: Reporte completo de relaciones organizadas por tipo
+        """
+        reporte = {
+            'persona_referencia': persona_referencia.get_full_name(),
+            'primer_grado': {
+                'padres': [],
+                'hijos': []
+            },
+            'segundo_grado': {
+                'abuelos': [],
+                'nietos': [],
+                'hermanos': []
+            },
+            'tercer_grado': {
+                'bisabuelos': [],
+                'bisnietos': [],
+                'tios': [],
+                'sobrinos': []
+            },
+            'cuarto_grado': {
+                'primos': [],
+                'tios_abuelos': []
+            },
+            'afinidad': {
+                'conyuge': [],
+                'suegros': [],
+                'yernos_nueras': [],
+                'cunados': []
+            }
+        }
+        
+        # Clasificar a todas las personas de la familia
+        for persona in family.members:
+            if persona.cedula == persona_referencia.cedula:
+                continue
+                
+            relacion = persona_referencia.get_relationship_to(persona, family).lower()
+            
+            # Clasificar por grado
+            if any(word in relacion for word in ['padre', 'madre', 'hijo', 'hija']):
+                if 'padre' in relacion or 'madre' in relacion:
+                    reporte['primer_grado']['padres'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                else:
+                    reporte['primer_grado']['hijos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+            
+            elif any(word in relacion for word in ['abuelo', 'abuela', 'nieto', 'nieta', 'hermano', 'hermana']):
+                if 'abuelo' in relacion or 'abuela' in relacion:
+                    reporte['segundo_grado']['abuelos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                elif 'nieto' in relacion or 'nieta' in relacion:
+                    reporte['segundo_grado']['nietos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                else:
+                    reporte['segundo_grado']['hermanos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+            
+            elif any(word in relacion for word in ['tío', 'tía', 'sobrino', 'sobrina', 'bisabuelo', 'bisabuela']):
+                if 'bisabuelo' in relacion or 'bisabuela' in relacion:
+                    reporte['tercer_grado']['bisabuelos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                elif 'tío' in relacion or 'tía' in relacion:
+                    reporte['tercer_grado']['tios'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                else:
+                    reporte['tercer_grado']['sobrinos'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+            
+            elif any(word in relacion for word in ['primo', 'prima']):
+                reporte['cuarto_grado']['primos'].append({
+                    'nombre': persona.get_full_name(),
+                    'relacion': relacion,
+                    'cedula': persona.cedula
+                })
+            
+            elif any(word in relacion for word in ['cónyuge', 'suegro', 'suegra', 'yerno', 'nuera', 'cuñado', 'cuñada']):
+                if 'cónyuge' in relacion:
+                    reporte['afinidad']['conyuge'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                elif 'suegro' in relacion or 'suegra' in relacion:
+                    reporte['afinidad']['suegros'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                elif 'yerno' in relacion or 'nuera' in relacion:
+                    reporte['afinidad']['yernos_nueras'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+                else:
+                    reporte['afinidad']['cunados'].append({
+                        'nombre': persona.get_full_name(),
+                        'relacion': relacion,
+                        'cedula': persona.cedula
+                    })
+        
+        return reporte
+
+    @staticmethod
+    def buscar_familiares_por_tipo(family: Family, persona_cedula: str, tipo_relacion: str) -> list:
+        """
+        Busca todos los familiares de un tipo específico usando la lógica mejorada de relaciones
+        
+        Args:
+            family (Family): La familia
+            persona_cedula (str): Cédula de la persona de referencia
+            tipo_relacion (str): Tipo de relación a buscar (ej: "primo", "tío", "sobrino")
+            
+        Returns:
+            list: Lista de personas que tienen esa relación con la persona de referencia
+        """
+        persona_ref = None
+        for p in family.members:
+            if p.cedula == persona_cedula:
+                persona_ref = p
+                break
+        
+        if not persona_ref:
+            return []
+        
+        familiares = []
+        tipo_lower = tipo_relacion.lower()
+        
+        for otra_persona in family.members:
+            if otra_persona != persona_ref:
+                relacion = persona_ref.get_relationship_to(otra_persona, family)
+                relacion_lower = relacion.lower()
+                
+                # Buscar coincidencias flexibles
+                if (tipo_lower in relacion_lower or 
+                    (tipo_lower == "primo" and "primo" in relacion_lower) or
+                    (tipo_lower == "tío" and "tío" in relacion_lower) or
+                    (tipo_lower == "sobrino" and "sobrino" in relacion_lower) or
+                    (tipo_lower == "hermano" and "hermano" in relacion_lower)):
+                    familiares.append({
+                        'persona': otra_persona,
+                        'relacion': relacion,
+                        'nombre': otra_persona.get_full_name(),
+                        'cedula': otra_persona.cedula
+                    })
+        
+        return familiares
+
+    @staticmethod
+    def obtener_relacion_detallada(family: Family, cedula_1: str, cedula_2: str) -> dict:
+        """
+        Obtiene información detallada sobre la relación entre dos personas
+        
+        Args:
+            family (Family): La familia
+            cedula_1 (str): Cédula de la primera persona
+            cedula_2 (str): Cédula de la segunda persona
+            
+        Returns:
+            dict: Información detallada sobre la relación
+        """
+        persona_1 = None
+        persona_2 = None
+        
+        for p in family.members:
+            if p.cedula == cedula_1:
+                persona_1 = p
+            elif p.cedula == cedula_2:
+                persona_2 = p
+        
+        if not persona_1 or not persona_2:
+            return {
+                'error': 'Una o ambas personas no fueron encontradas',
+                'relacion': 'Desconocida'
+            }
+        
+        relacion_1_a_2 = persona_1.get_relationship_to(persona_2, family)
+        relacion_2_a_1 = persona_2.get_relationship_to(persona_1, family)
+        
+        return {
+            'persona_1': {
+                'nombre': persona_1.get_full_name(),
+                'cedula': persona_1.cedula
+            },
+            'persona_2': {
+                'nombre': persona_2.get_full_name(),
+                'cedula': persona_2.cedula
+            },
+            'relacion_1_a_2': relacion_1_a_2,
+            'relacion_2_a_1': relacion_2_a_1,
+            'es_reciproca': RelacionService._es_relacion_reciproca(relacion_1_a_2, relacion_2_a_1),
+            'grado_consanguinidad': RelacionService._calcular_grado_consanguinidad(relacion_1_a_2)
+        }
+
+    @staticmethod
+    def _es_relacion_reciproca(relacion_1: str, relacion_2: str) -> bool:
+        """Verifica si una relación es recíproca entre dos personas"""
+        relaciones_reciprocas = {
+            'hermano': 'hermano',
+            'hermana': 'hermana',
+            'primo': 'primo',
+            'prima': 'prima',
+            'cónyuge': 'cónyuge',
+            'padre': 'hijo',
+            'madre': 'hija',
+            'hijo': 'padre',
+            'hija': 'madre',
+            'abuelo': 'nieto',
+            'abuela': 'nieta',
+            'nieto': 'abuelo',
+            'nieta': 'abuela',
+            'tío': 'sobrino',
+            'tía': 'sobrina',
+            'sobrino': 'tío',
+            'sobrina': 'tía'
+        }
+        
+        for key, value in relaciones_reciprocas.items():
+            if key in relacion_1.lower() and value in relacion_2.lower():
+                return True
+            if value in relacion_1.lower() and key in relacion_2.lower():
+                return True
+        
+        return False
+
+    @staticmethod
+    def _calcular_grado_consanguinidad(relacion: str) -> int:
+        """Calcula el grado de consanguinidad basado en la relación"""
+        relacion_lower = relacion.lower()
+        
+        if 'yo mismo' in relacion_lower:
+            return 0
+        elif any(word in relacion_lower for word in ['padre', 'madre', 'hijo', 'hija']):
+            return 1
+        elif any(word in relacion_lower for word in ['hermano', 'hermana', 'abuelo', 'abuela', 'nieto', 'nieta']):
+            return 2
+        elif any(word in relacion_lower for word in ['tío', 'tía', 'sobrino', 'sobrina', 'bisabuelo', 'bisnieto']):
+            return 3
+        elif any(word in relacion_lower for word in ['primo', 'prima']):
+            if 'segundo' in relacion_lower:
+                return 5
+            else:
+                return 4
+        else:
+            return -1  # Relación por afinidad o no determinada

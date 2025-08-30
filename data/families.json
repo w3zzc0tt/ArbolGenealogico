@@ -1,41 +1,175 @@
 {
   "1": {
     "id": 1,
-    "name": "Familia Dinarte",
-    "description": "",
+    "name": "Familia de Ejemplo",
+    "description": "Árbol familiar de ejemplo cargado desde archivo GEDCOM",
     "members": [
       {
-        "cedula": "504650480",
-        "first_name": "Jose Pablo",
-        "last_name": "Campos Dinarte",
-        "birth_date": "2006-05-24T00:00:00",
-        "death_date": null,
+        "cedula": "I1",
+        "first_name": "Carlos Alberto",
+        "last_name": "Rodríguez",
+        "birth_date": "1945-01-15",
+        "death_date": "2020-03-12",
         "gender": "M",
-        "province": "Guanacaste",
-        "marital_status": "Soltero/a",
-        "alive": true,
-        "father_cedula": "501230659",
+        "province": "San José",
+        "marital_status": "Casado/a",
+        "alive": false,
+        "father_cedula": null,
         "mother_cedula": null,
-        "spouse_cedula": null,
-        "children_cedulas": [],
+        "spouse_cedula": "I2",
+        "children_cedulas": [
+          "I3",
+          "I7"
+        ],
         "siblings_cedulas": []
       },
       {
-        "cedula": "501230659",
-        "first_name": "Santos Leon",
-        "last_name": "Campos Ruiz",
-        "birth_date": "1970-06-28T00:00:00",
+        "cedula": "I2",
+        "first_name": "María Elena",
+        "last_name": "González",
+        "birth_date": "1948-04-22",
         "death_date": null,
-        "gender": "M",
-        "province": "Guanacaste",
-        "marital_status": "Soltero/a",
+        "gender": "F",
+        "province": "San José",
+        "marital_status": "Casado/a",
         "alive": true,
         "father_cedula": null,
         "mother_cedula": null,
-        "spouse_cedula": null,
+        "spouse_cedula": "I1",
         "children_cedulas": [
-          "504650480"
+          "I3",
+          "I7"
         ],
+        "siblings_cedulas": []
+      },
+      {
+        "cedula": "I3",
+        "first_name": "Roberto",
+        "last_name": "Rodríguez",
+        "birth_date": "1970-07-08",
+        "death_date": null,
+        "gender": "M",
+        "province": "San José",
+        "marital_status": "Casado/a",
+        "alive": true,
+        "father_cedula": "I1",
+        "mother_cedula": "I2",
+        "spouse_cedula": "I4",
+        "children_cedulas": [
+          "I5",
+          "I6"
+        ],
+        "siblings_cedulas": [
+          "I7"
+        ]
+      },
+      {
+        "cedula": "I4",
+        "first_name": "Ana Patricia",
+        "last_name": "Vargas",
+        "birth_date": "1972-11-14",
+        "death_date": null,
+        "gender": "F",
+        "province": "San José",
+        "marital_status": "Casado/a",
+        "alive": true,
+        "father_cedula": null,
+        "mother_cedula": null,
+        "spouse_cedula": "I3",
+        "children_cedulas": [
+          "I5",
+          "I6"
+        ],
+        "siblings_cedulas": []
+      },
+      {
+        "cedula": "I5",
+        "first_name": "Luis Carlos",
+        "last_name": "Rodríguez",
+        "birth_date": "1995-03-25",
+        "death_date": null,
+        "gender": "M",
+        "province": "San José",
+        "marital_status": "Soltero/a",
+        "alive": true,
+        "father_cedula": "I3",
+        "mother_cedula": "I4",
+        "spouse_cedula": null,
+        "children_cedulas": [],
+        "siblings_cedulas": [
+          "I6"
+        ]
+      },
+      {
+        "cedula": "I6",
+        "first_name": "Sofia Elena",
+        "last_name": "Rodríguez",
+        "birth_date": "1998-09-10",
+        "death_date": null,
+        "gender": "F",
+        "province": "San José",
+        "marital_status": "Soltero/a",
+        "alive": true,
+        "father_cedula": "I3",
+        "mother_cedula": "I4",
+        "spouse_cedula": null,
+        "children_cedulas": [],
+        "siblings_cedulas": [
+          "I5"
+        ]
+      },
+      {
+        "cedula": "I7",
+        "first_name": "Carmen",
+        "last_name": "Rodríguez",
+        "birth_date": "1975-02-03",
+        "death_date": null,
+        "gender": "F",
+        "province": "San José",
+        "marital_status": "Casado/a",
+        "alive": true,
+        "father_cedula": "I1",
+        "mother_cedula": "I2",
+        "spouse_cedula": "I8",
+        "children_cedulas": [
+          "I9"
+        ],
+        "siblings_cedulas": [
+          "I3"
+        ]
+      },
+      {
+        "cedula": "I8",
+        "first_name": "Miguel",
+        "last_name": "Morales",
+        "birth_date": "1973-06-18",
+        "death_date": null,
+        "gender": "M",
+        "province": "San José",
+        "marital_status": "Casado/a",
+        "alive": true,
+        "father_cedula": null,
+        "mother_cedula": null,
+        "spouse_cedula": "I7",
+        "children_cedulas": [
+          "I9"
+        ],
+        "siblings_cedulas": []
+      },
+      {
+        "cedula": "I9",
+        "first_name": "Diego",
+        "last_name": "Morales",
+        "birth_date": "2005-12-05",
+        "death_date": "1969-02-14",
+        "gender": "M",
+        "province": "San José",
+        "marital_status": "Soltero/a",
+        "alive": false,
+        "father_cedula": "I8",
+        "mother_cedula": "I7",
+        "spouse_cedula": null,
+        "children_cedulas": [],
         "siblings_cedulas": []
       }
     ],

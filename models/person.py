@@ -1,6 +1,11 @@
+from __future__ import annotations
 import datetime
 import random
 import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.family import Family
 
 class Person:
     """Clase que representa a una persona en el árbol genealógico"""
@@ -62,7 +67,14 @@ class Person:
             return 20  # Edad por defecto si no hay fecha de nacimiento
         
         try:
-            birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
+            # Manejar tanto datetime objects como strings
+            if isinstance(self.birth_date, datetime.datetime):
+                birth = self.birth_date
+            elif isinstance(self.birth_date, str):
+                birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
+            else:
+                return 20  # Tipo no reconocido
+                
             today = datetime.datetime.now()
             return today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
         except (ValueError, TypeError) as e:
@@ -173,76 +185,166 @@ class Person:
     
     def get_relationship_to(self, other_person: 'Person', family: 'Family') -> str:
         """
-        Determina la relación entre dos personas
+        Determina la relación entre dos personas usando lógica de deducción familiar
         
         Args:
             other_person (Person): La otra persona
             family (Family): La familia a la que pertenecen
             
         Returns:
-            str: Descripción de la relación
+            str: Descripción de la relación según grados de consanguinidad
         """
         if self == other_person:
-            return "Yo mismo"
-            
-        # Padre/Madre
-        if self == other_person.father:
+            return "Yo mismo/a"
+        
+        # === GRADO CERO - YO ===
+        
+        # === PRIMER GRADO - RELACIONES DIRECTAS ===
+        
+        # Padres
+        if self.father == other_person:
             return "Padre"
-        if self == other_person.mother:
+        if self.mother == other_person:
             return "Madre"
-            
-        # Hijo/Hija
+        
+        # Hijos
         if other_person in self.children:
             return "Hijo/a"
-            
-        # Hermanos
-        if self.mother and other_person.mother and self.mother == other_person.mother:
-            if self.father and other_person.father and self.father == other_person.father:
-                return "Hermano/a"
-            return "Medio hermano/a (misma madre)"
-        if self.father and other_person.father and self.father == other_person.father:
-            return "Medio hermano/a (mismo padre)"
-            
-        # Abuelos
-        if self.father and self.father == other_person.father:
-            return "Abuelo paterno"
-        if self.mother and self.mother == other_person.mother:
-            return "Abuela materna"
         
-        # Nietos
+        # Cónyuge
+        if self.spouse == other_person:
+            return "Cónyuge"
+        
+        # === SEGUNDO GRADO - HERMANOS, ABUELOS, NIETOS ===
+        
+        # Hermanos
+        if other_person in self.siblings:
+            return "Hermano/a"
+        
+        # Verificar hermanos por padres comunes
+        if (self.father and other_person.father and self.father == other_person.father) or \
+           (self.mother and other_person.mother and self.mother == other_person.mother):
+            return "Hermano/a"
+        
+        # Abuelos - padres de mis padres
+        if self.father and (self.father.father == other_person or self.father.mother == other_person):
+            return "Abuelo/a paterno/a"
+        if self.mother and (self.mother.father == other_person or self.mother.mother == other_person):
+            return "Abuelo/a materno/a"
+        
+        # Nietos - hijos de mis hijos
         for child in self.children:
             if other_person in child.children:
                 return "Nieto/a"
         
-        # Tíos/Tías
-        if other_person.father and self in other_person.father.siblings:
-            return "Tío paterno"
-        if other_person.mother and self in other_person.mother.siblings:
-            return "Tío materno"
+        # === TERCER GRADO - TÍOS, SOBRINOS, BISABUELOS, BISNIETOS ===
         
-        # Sobrinos
+        # Tíos - hermanos de mis padres
+        if self.father:
+            for sibling in self.father.siblings:
+                if sibling == other_person:
+                    return "Tío/a paterno/a"
+        if self.mother:
+            for sibling in self.mother.siblings:
+                if sibling == other_person:
+                    return "Tío/a materno/a"
+        
+        # Sobrinos - hijos de mis hermanos
         for sibling in self.siblings:
             if other_person in sibling.children:
                 return "Sobrino/a"
         
-        # Primos
-        if self.father and other_person.father and self.father in other_person.father.siblings:
-            return "Primo/a paterno"
-        if self.mother and other_person.mother and self.mother in other_person.mother.siblings:
-            return "Primo/a materno"
+        # Bisabuelos - padres de mis abuelos
+        if self.father and self.father.father:
+            if (self.father.father.father == other_person or self.father.father.mother == other_person):
+                return "Bisabuelo/a paterno/a"
+        if self.father and self.father.mother:
+            if (self.father.mother.father == other_person or self.father.mother.mother == other_person):
+                return "Bisabuelo/a paterno/a"
+        if self.mother and self.mother.father:
+            if (self.mother.father.father == other_person or self.mother.father.mother == other_person):
+                return "Bisabuelo/a materno/a"
+        if self.mother and self.mother.mother:
+            if (self.mother.mother.father == other_person or self.mother.mother.mother == other_person):
+                return "Bisabuelo/a materno/a"
         
-        # Bisabuelos
-        if self.father and self.father.father and self.father.father == other_person.father:
-            return "Bisabuelo paterno"
-        if self.mother and self.mother.mother and self.mother.mother == other_person.mother:
-            return "Bisabuela materna"
+        # Bisnietos - hijos de mis nietos
+        for child in self.children:
+            for grandchild in child.children:
+                if other_person in grandchild.children:
+                    return "Bisnieto/a"
         
-        # Cuñados
-        if self.spouse and other_person in self.spouse.siblings:
-            return "Cuñado/a"
+        # === CUARTO GRADO - PRIMOS, TÍOS ABUELOS, SOBRINOS NIETOS ===
         
-        return "Relación no identificada"
-    
+        # Primos hermanos - hijos de mis tíos
+        if self.father:
+            for uncle in self.father.siblings:
+                if other_person in uncle.children:
+                    return "Primo/a hermano/a (paterno/a)"
+        if self.mother:
+            for uncle in self.mother.siblings:
+                if other_person in uncle.children:
+                    return "Primo/a hermano/a (materno/a)"
+        
+        # Tíos abuelos - hermanos de mis abuelos
+        if self.father and self.father.father:
+            for great_uncle in self.father.father.siblings:
+                if great_uncle == other_person:
+                    return "Tío/a abuelo/a paterno/a"
+        if self.father and self.father.mother:
+            for great_uncle in self.father.mother.siblings:
+                if great_uncle == other_person:
+                    return "Tío/a abuelo/a paterno/a"
+        if self.mother and self.mother.father:
+            for great_uncle in self.mother.father.siblings:
+                if great_uncle == other_person:
+                    return "Tío/a abuelo/a materno/a"
+        if self.mother and self.mother.mother:
+            for great_uncle in self.mother.mother.siblings:
+                if great_uncle == other_person:
+                    return "Tío/a abuelo/a materno/a"
+        
+        # Sobrinos nietos - nietos de mis hermanos
+        for sibling in self.siblings:
+            for nephew in sibling.children:
+                if other_person in nephew.children:
+                    return "Sobrino/a nieto/a"
+        
+        # === QUINTO GRADO - PRIMOS SEGUNDOS ===
+        
+        # Primos segundos - hijos de los primos de mis padres
+        if self.father:
+            for uncle in self.father.siblings:
+                for cousin in uncle.children:
+                    if other_person in cousin.children:
+                        return "Primo/a segundo/a (paterno/a)"
+        if self.mother:
+            for uncle in self.mother.siblings:
+                for cousin in uncle.children:
+                    if other_person in cousin.children:
+                        return "Primo/a segundo/a (materno/a)"
+        
+        # === RELACIONES POLÍTICAS (POR MATRIMONIO) ===
+        
+        if self.spouse:
+            # Suegros
+            if self.spouse.father == other_person:
+                return "Suegro"
+            if self.spouse.mother == other_person:
+                return "Suegra"
+            
+            # Cuñados
+            if other_person in self.spouse.siblings:
+                return "Cuñado/a"
+            
+            # Yernos/Nueras
+            for child in self.children:
+                if child.spouse == other_person:
+                    return "Yerno/Nuera"
+        
+        # Si llegamos aquí, no hay relación directa identificable
+        return "Sin relación familiar directa"
+
     def get_extended_family(self, family: 'Family', max_generations: int = 3) -> list:
         """
         Obtiene la familia extendida de una persona

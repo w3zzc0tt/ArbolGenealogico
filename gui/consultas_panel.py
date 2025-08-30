@@ -11,7 +11,10 @@ class ConsultasPanel:
         self.parent = parent
         self.family = family
         self.consulta_actual = ctk.StringVar(value="1")
+        self.personas = []  # Inicializar lista de personas
         self.setup_ui()
+        # Actualizar lista de personas después de configurar la UI
+        self.actualizar_lista_personas()
     
     def setup_ui(self):
         self.frame = ctk.CTkFrame(self.parent)
@@ -67,12 +70,12 @@ class ConsultasPanel:
         btn_cargar.pack(side=tk.TOP, pady=2)
     
     def setup_main_content(self):
-        """Configura el contenido principal en dos columnas"""
+        """Configura el contenido principal con diseño mejorado"""
         main_frame = ctk.CTkFrame(self.frame)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-        # Columna izquierda - Panel de control
-        left_frame = ctk.CTkFrame(main_frame, width=400)
+        # Columna izquierda - Panel de control (más ancho)
+        left_frame = ctk.CTkFrame(main_frame, width=450)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
         left_frame.pack_propagate(False)
         
@@ -84,163 +87,271 @@ class ConsultasPanel:
         self.setup_results_panel(right_frame)
     
     def setup_control_panel(self, parent):
-        """Configura el panel de control izquierdo"""
-        # Título del panel de control
-        control_title = ctk.CTkLabel(
-            parent,
-            text="⚙️ Panel de Control",
-            font=("Arial", 16, "bold"),
-            text_color="#1976d2"
+        """Configura el panel de control izquierdo con diseño mejorado"""
+        # Crear scrollable frame para todo el contenido
+        scrollable_frame = ctk.CTkScrollableFrame(
+            parent, 
+            width=420,
+            label_text="⚙️ Panel de Control",
+            label_font=("Arial", 16, "bold")
         )
-        control_title.pack(pady=10)
+        scrollable_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Estado del árbol familiar
-        self.setup_family_status(parent)
+        self.setup_family_status(scrollable_frame)
         
         # Selector de tipo de consulta
-        self.setup_query_selector(parent)
+        self.setup_query_selector(scrollable_frame)
         
         # Selector de personas
-        self.setup_person_selector(parent)
+        self.setup_person_selector(scrollable_frame)
         
-        # Botón de ejecución
-        self.setup_execution_button(parent)
+        # Botón de ejecución (siempre visible)
+        self.setup_execution_button(scrollable_frame)
     
     def setup_family_status(self, parent):
-        """Muestra el estado actual del árbol familiar"""
+        """Muestra el estado actual del árbol familiar con diseño mejorado"""
         status_frame = ctk.CTkFrame(parent)
-        status_frame.pack(fill=tk.X, padx=10, pady=10)
+        status_frame.pack(fill=tk.X, padx=5, pady=15)
         
-        ctk.CTkLabel(
+        # Título de la sección
+        title_label = ctk.CTkLabel(
             status_frame,
             text="📊 Estado del Árbol Familiar",
-            font=("Arial", 12, "bold")
-        ).pack(pady=5)
+            font=("Arial", 14, "bold"),
+            text_color="#1976d2"
+        )
+        title_label.pack(pady=(15, 10))
+        
+        # Frame para el contenido del estado
+        content_frame = ctk.CTkFrame(status_frame, fg_color="#2b2b2b")
+        content_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
         
         self.status_label = ctk.CTkLabel(
-            status_frame,
+            content_frame,
             text=self.get_family_status(),
-            font=("Arial", 10),
-            wraplength=350,
+            font=("Arial", 11),
+            wraplength=380,
             justify="left"
         )
-        self.status_label.pack(padx=10, pady=5)
+        self.status_label.pack(padx=15, pady=15)
     
     def setup_query_selector(self, parent):
-        """Configura el selector de tipo de consulta"""
+        """Configura el selector de tipo de consulta con diseño mejorado"""
         query_frame = ctk.CTkFrame(parent)
-        query_frame.pack(fill=tk.X, padx=10, pady=10)
+        query_frame.pack(fill=tk.X, padx=5, pady=15)
         
-        ctk.CTkLabel(
+        # Título de la sección
+        title_label = ctk.CTkLabel(
             query_frame,
             text="🔍 Tipo de Consulta",
-            font=("Arial", 12, "bold")
-        ).pack(pady=5)
+            font=("Arial", 14, "bold"),
+            text_color="#1976d2"
+        )
+        title_label.pack(pady=(15, 10))
         
-        # Radio buttons para cada tipo de consulta
+        # Container con scroll para los radio buttons
+        radio_container = ctk.CTkScrollableFrame(
+            query_frame,
+            height=250,
+            width=400,
+            fg_color="transparent"
+        )
+        radio_container.pack(padx=15, pady=(0, 15))
+        
+        # Radio buttons para cada tipo de consulta agrupados por categoría
         consultas = [
-            ("1", "Relación entre dos personas"),
-            ("2", "Primos de primer grado"),
-            ("3", "Antepasados maternos"),
-            ("4", "Descendientes vivos"),
-            ("5", "Nacimientos últimos 10 años"),
-            ("6", "Parejas con múltiples hijos"),
-            ("7", "Fallecidos antes de 50 años"),
-            ("all", "Ejecutar todas las consultas")
+            ("👥 ANÁLISIS DE RELACIONES", [
+                ("1", "Relación entre dos personas específicas"),
+                ("8", "Análisis completo de relaciones familiares")
+            ]),
+            ("🔍 BÚSQUEDAS ESPECÍFICAS", [
+                ("2", "Primos de primer grado"),
+                ("3", "Antepasados maternos"),
+                ("4", "Descendientes vivos")
+            ]),
+            ("📊 ESTADÍSTICAS FAMILIARES", [
+                ("5", "Nacimientos en los últimos 10 años"),
+                ("6", "Parejas con múltiples hijos"),
+                ("7", "Fallecidos antes de los 50 años")
+            ]),
+            ("🔄 EJECUCIÓN MÚLTIPLE", [
+                ("all", "Ejecutar todas las consultas")
+            ])
         ]
         
-        for value, text in consultas:
-            radio = ctk.CTkRadioButton(
-                query_frame,
-                text=text,
-                variable=self.consulta_actual,
-                value=value,
-                font=("Arial", 10),
-                command=self.on_query_type_change
+        for categoria, items in consultas:
+            # Título de categoría
+            category_label = ctk.CTkLabel(
+                radio_container,
+                text=categoria,
+                font=("Arial", 11, "bold"),
+                text_color="#FFA726",
+                anchor="w"
             )
-            radio.pack(anchor="w", padx=15, pady=2)
+            category_label.pack(fill=tk.X, padx=5, pady=(10, 5))
+            
+            # Radio buttons de la categoría
+            for value, text in items:
+                radio = ctk.CTkRadioButton(
+                    radio_container,
+                    text=text,
+                    variable=self.consulta_actual,
+                    value=value,
+                    font=("Arial", 10),
+                    command=self.on_query_type_change
+                )
+                radio.pack(anchor="w", padx=20, pady=2)
     
     def setup_person_selector(self, parent):
-        """Configura los selectores de personas"""
+        """Configura los selectores de personas con diseño mejorado"""
         person_frame = ctk.CTkFrame(parent)
-        person_frame.pack(fill=tk.X, padx=10, pady=10)
+        person_frame.pack(fill=tk.X, padx=5, pady=15)
         
-        ctk.CTkLabel(
+        # Título de la sección
+        title_label = ctk.CTkLabel(
             person_frame,
             text="👥 Selección de Personas",
-            font=("Arial", 12, "bold")
-        ).pack(pady=5)
-        
-        # Actualizar lista de personas
-        self.actualizar_lista_personas()
-        
-        # Persona principal (para consultas 2, 3, 4)
-        self.persona_label = ctk.CTkLabel(
-            person_frame,
-            text="Persona principal:",
-            font=("Arial", 10, "bold")
+            font=("Arial", 14, "bold"),
+            text_color="#1976d2"
         )
-        self.persona_label.pack(anchor="w", padx=10, pady=(10, 2))
+        title_label.pack(pady=(15, 10))
+        
+        # Container para los selectores
+        selectors_frame = ctk.CTkFrame(person_frame, fg_color="transparent")
+        selectors_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        
+        # === SELECTOR ÚNICO (para consultas 2, 3, 4, 8) ===
+        self.single_selector_frame = ctk.CTkFrame(selectors_frame)
+        
+        self.persona_label = ctk.CTkLabel(
+            self.single_selector_frame,
+            text="Persona principal:",
+            font=("Arial", 11, "bold"),
+            anchor="w"
+        )
+        self.persona_label.pack(fill=tk.X, padx=10, pady=(10, 5))
         
         self.persona_var = ctk.StringVar()
         self.persona_combo = ctk.CTkComboBox(
-            person_frame,
+            self.single_selector_frame,
             variable=self.persona_var,
-            width=350,
-            font=("Arial", 10)
+            width=380,
+            height=35,
+            font=("Arial", 11),
+            dropdown_font=("Arial", 10)
         )
-        self.persona_combo.pack(padx=10, pady=2)
+        self.persona_combo.pack(padx=10, pady=(0, 15))
         
-        # Persona A (para consulta 1 - relación entre dos personas)
+        # === SELECTOR DUAL (para consulta 1) ===
+        self.dual_selector_frame = ctk.CTkFrame(selectors_frame)
+        
+        # Primera persona
         self.persona_a_label = ctk.CTkLabel(
-            person_frame,
+            self.dual_selector_frame,
             text="Primera persona:",
-            font=("Arial", 10, "bold")
+            font=("Arial", 11, "bold"),
+            anchor="w"
         )
-        self.persona_a_label.pack(anchor="w", padx=10, pady=(10, 2))
+        self.persona_a_label.pack(fill=tk.X, padx=10, pady=(10, 5))
         
         self.persona_a_var = ctk.StringVar()
         self.persona_a_combo = ctk.CTkComboBox(
-            person_frame,
+            self.dual_selector_frame,
             variable=self.persona_a_var,
-            width=350,
-            font=("Arial", 10)
+            width=380,
+            height=35,
+            font=("Arial", 11),
+            dropdown_font=("Arial", 10)
         )
-        self.persona_a_combo.pack(padx=10, pady=2)
+        self.persona_a_combo.pack(padx=10, pady=(0, 10))
         
-        # Persona B (para consulta 1 - relación entre dos personas)
+        # Segunda persona
         self.persona_b_label = ctk.CTkLabel(
-            person_frame,
+            self.dual_selector_frame,
             text="Segunda persona:",
-            font=("Arial", 10, "bold")
+            font=("Arial", 11, "bold"),
+            anchor="w"
         )
-        self.persona_b_label.pack(anchor="w", padx=10, pady=(10, 2))
+        self.persona_b_label.pack(fill=tk.X, padx=10, pady=(5, 5))
         
         self.persona_b_var = ctk.StringVar()
         self.persona_b_combo = ctk.CTkComboBox(
-            person_frame,
+            self.dual_selector_frame,
             variable=self.persona_b_var,
-            width=350,
-            font=("Arial", 10)
+            width=380,
+            height=35,
+            font=("Arial", 11),
+            dropdown_font=("Arial", 10)
         )
-        self.persona_b_combo.pack(padx=10, pady=(2, 10))
+        self.persona_b_combo.pack(padx=10, pady=(0, 15))
         
-        # Inicialmente mostrar/ocultar controles según el tipo de consulta
-        self.on_query_type_change()
+        # === SELECTOR DE INFORMACIÓN (para consultas que no requieren selección) ===
+        self.info_selector_frame = ctk.CTkFrame(selectors_frame)
+        
+        self.info_label = ctk.CTkLabel(
+            self.info_selector_frame,
+            text="ℹ️ Esta consulta analiza toda la familia\nNo requiere selección específica de personas",
+            font=("Arial", 11),
+            text_color="#888888",
+            justify="center"
+        )
+        self.info_label.pack(padx=20, pady=20)
+        
+        # Configurar la visualización inicial después de un delay
+        self.parent.after(100, self.on_query_type_change)
     
     def setup_execution_button(self, parent):
-        """Configura el botón de ejecución"""
-        btn_ejecutar = ctk.CTkButton(
-            parent,
-            text="� Ejecutar Consulta",
-            command=self.ejecutar_consulta,
-            fg_color="#1976d2",
-            hover_color="#1565c0",
+        """Configura el botón de ejecución con diseño mejorado"""
+        # Crear frame especial para el botón con separación visual
+        button_container = ctk.CTkFrame(parent, fg_color="#1a1a1a", corner_radius=15)
+        button_container.pack(fill=tk.X, padx=5, pady=20)
+        
+        # Título de la sección
+        action_title = ctk.CTkLabel(
+            button_container,
+            text="🚀 Ejecutar Consulta",
             font=("Arial", 14, "bold"),
-            height=40,
-            width=200
+            text_color="#4CAF50"
         )
-        btn_ejecutar.pack(pady=20)
+        action_title.pack(pady=(15, 5))
+        
+        # El botón principal
+        self.btn_ejecutar = ctk.CTkButton(
+            button_container,
+            text="▶️ EJECUTAR CONSULTA SELECCIONADA",
+            command=self.ejecutar_consulta,
+            fg_color="#4CAF50",
+            hover_color="#45a049",
+            font=("Arial", 13, "bold"),
+            height=50,
+            width=380,
+            corner_radius=12
+        )
+        self.btn_ejecutar.pack(pady=(5, 10))
+        
+        # Información del estado
+        self.execution_info = ctk.CTkLabel(
+            button_container,
+            text="Selecciona un tipo de consulta y presiona el botón",
+            font=("Arial", 10),
+            text_color="#888888"
+        )
+        self.execution_info.pack(pady=(0, 15))
+        
+        # Botón secundario para ejecutar todas las consultas
+        self.btn_ejecutar_todas = ctk.CTkButton(
+            button_container,
+            text="🔄 Ejecutar Todas las Consultas",
+            command=self.ejecutar_todas_consultas_directo,
+            fg_color="#FF9800",
+            hover_color="#f57c00",
+            font=("Arial", 11, "bold"),
+            height=40,
+            width=380,
+            corner_radius=8
+        )
+        self.btn_ejecutar_todas.pack(pady=(0, 15))
     
     def setup_results_panel(self, parent):
         """Configura el panel de resultados"""
@@ -290,38 +401,52 @@ class ConsultasPanel:
         ).pack(padx=10, pady=5)
     
     def on_query_type_change(self):
-        """Maneja el cambio de tipo de consulta"""
+        """Maneja el cambio de tipo de consulta con el nuevo diseño"""
         query_type = self.consulta_actual.get()
         
-        # Ocultar todos los controles inicialmente
-        if hasattr(self, 'persona_label'):
-            self.persona_label.pack_forget()
-        if hasattr(self, 'persona_combo'):
-            self.persona_combo.pack_forget()
-        if hasattr(self, 'persona_a_label'):
-            self.persona_a_label.pack_forget()
-        if hasattr(self, 'persona_a_combo'):
-            self.persona_a_combo.pack_forget()
-        if hasattr(self, 'persona_b_label'):
-            self.persona_b_label.pack_forget()
-        if hasattr(self, 'persona_b_combo'):
-            self.persona_b_combo.pack_forget()
+        # Ocultar todos los frames de selección
+        if hasattr(self, 'single_selector_frame'):
+            self.single_selector_frame.pack_forget()
+        if hasattr(self, 'dual_selector_frame'):
+            self.dual_selector_frame.pack_forget()
+        if hasattr(self, 'info_selector_frame'):
+            self.info_selector_frame.pack_forget()
         
-        # Mostrar controles según el tipo de consulta
+        # Mostrar frame apropiado según el tipo de consulta
         if query_type == "1":  # Relación entre dos personas
-            if hasattr(self, 'persona_a_label'):
-                self.persona_a_label.pack(anchor="w", padx=10, pady=(10, 2))
-            if hasattr(self, 'persona_a_combo'):
-                self.persona_a_combo.pack(padx=10, pady=2)
-            if hasattr(self, 'persona_b_label'):
-                self.persona_b_label.pack(anchor="w", padx=10, pady=(10, 2))
-            if hasattr(self, 'persona_b_combo'):
-                self.persona_b_combo.pack(padx=10, pady=(2, 10))
-        elif query_type in ["2", "3", "4"]:  # Consultas que requieren una persona
-            if hasattr(self, 'persona_label'):
-                self.persona_label.pack(anchor="w", padx=10, pady=(10, 2))
-            if hasattr(self, 'persona_combo'):
-                self.persona_combo.pack(padx=10, pady=(2, 10))
+            if hasattr(self, 'dual_selector_frame'):
+                self.dual_selector_frame.pack(fill=tk.X, pady=5)
+            self.update_execution_info("Selecciona dos personas para analizar su relación")
+            
+        elif query_type in ["2", "3", "4", "8"]:  # Consultas que requieren una persona
+            if hasattr(self, 'single_selector_frame'):
+                self.single_selector_frame.pack(fill=tk.X, pady=5)
+            
+            # Actualizar el texto del label según el tipo
+            query_descriptions = {
+                "2": "Selecciona una persona para encontrar sus primos de primer grado",
+                "3": "Selecciona una persona para ver sus antepasados maternos", 
+                "4": "Selecciona una persona para ver sus descendientes vivos",
+                "8": "Selecciona una persona para análisis completo de relaciones"
+            }
+            self.update_execution_info(query_descriptions.get(query_type, "Selecciona una persona"))
+            
+        else:  # Consultas 5, 6, 7, all - no requieren selección específica
+            if hasattr(self, 'info_selector_frame'):
+                self.info_selector_frame.pack(fill=tk.X, pady=5)
+            
+            query_descriptions = {
+                "5": "Consulta sobre nacimientos en los últimos 10 años",
+                "6": "Consulta sobre parejas con múltiples hijos",
+                "7": "Consulta sobre fallecidos antes de los 50 años",
+                "all": "Ejecutará todas las consultas disponibles"
+            }
+            self.update_execution_info(query_descriptions.get(query_type, "Lista para ejecutar"))
+    
+    def update_execution_info(self, text):
+        """Actualiza el texto informativo del botón de ejecución"""
+        if hasattr(self, 'execution_info'):
+            self.execution_info.configure(text=text)
     
     def get_family_status(self):
         """Obtiene el estado actual del árbol familiar"""
@@ -480,6 +605,16 @@ class ConsultasPanel:
             self.result_text.delete("1.0", "end")
             self.result_text.insert("end", f"❌ ERROR AL CARGAR ARCHIVO\n\n{str(e)}")
     
+    def ejecutar_todas_consultas_directo(self):
+        """Ejecuta todas las consultas directamente sin cambiar la selección"""
+        if not self.personas:
+            messagebox.showwarning("Advertencia", "No hay personas en el árbol familiar. Importa un ejemplo o carga un archivo GEDCOM.")
+            return
+        
+        # Limpiar resultados anteriores
+        self.result_text.delete("1.0", "end")
+        self.ejecutar_todas_consultas()
+    
     def ejecutar_consulta(self):
         """Ejecuta la consulta seleccionada"""
         if not self.personas:
@@ -517,6 +652,8 @@ class ConsultasPanel:
                 self.ejecutar_consulta_parejas_con_hijos()
             elif query_type == "7":
                 self.ejecutar_consulta_fallecidos_joven()
+            elif query_type == "8":
+                self.ejecutar_consulta_analisis_completo()
         
         except Exception as e:
             self.result_text.insert("end", f"❌ Error al ejecutar consulta: {str(e)}")
@@ -530,9 +667,21 @@ class ConsultasPanel:
             self.result_text.insert("end", "❌ Error: Selecciona ambas personas válidas\n")
             return
         
-        relacion = RelacionService.encontrar_relacion(persona_a, persona_b)
+        # Usar la nueva lógica mejorada
+        relacion = persona_a.get_relationship_to(persona_b, self.family)
+        
         self.result_text.insert("end", f"👥 Relación entre {persona_a.first_name} y {persona_b.first_name}:\n")
         self.result_text.insert("end", f"   📍 {relacion}\n\n")
+        
+        # Mostrar información adicional
+        relacion_detallada = RelacionService.obtener_relacion_detallada(
+            self.family, persona_a.cedula, persona_b.cedula
+        )
+        
+        if 'error' not in relacion_detallada:
+            self.result_text.insert("end", "📋 INFORMACIÓN DETALLADA:\n")
+            self.result_text.insert("end", f"   Relación recíproca: {'✅ Sí' if relacion_detallada['es_reciproca'] else '❌ No'}\n")
+            self.result_text.insert("end", f"   Grado de consanguinidad: {relacion_detallada['grado_consanguinidad']}\n")
     
     def ejecutar_consulta_primos(self):
         """Ejecuta consulta de primos de primer grado"""
@@ -607,6 +756,119 @@ class ConsultasPanel:
         self.result_text.insert("end", "⚰️ Personas fallecidas antes de cumplir 50 años:\n")
         self.result_text.insert("end", f"   📊 Total: {fallecidos} personas\n\n")
     
+    def ejecutar_consulta_analisis_completo(self):
+        """Ejecuta un análisis completo de relaciones familiares usando la lógica mejorada"""
+        try:
+            # Obtener persona seleccionada
+            persona_seleccionada = self.obtener_persona_por_combo(self.persona_var.get())
+            
+            if not persona_seleccionada:
+                self.result_text.insert("end", "❌ Por favor, selecciona una persona de referencia\n\n")
+                return
+            
+            self.result_text.insert("end", f"🔍 ANÁLISIS COMPLETO DE RELACIONES FAMILIARES (LÓGICA AVANZADA)\n")
+            self.result_text.insert("end", f"👤 Persona de referencia: {persona_seleccionada.get_full_name()}\n")
+            self.result_text.insert("end", "=" * 70 + "\n\n")
+            
+            # Usar la nueva lógica mejorada para analizar cada relación
+            relaciones_encontradas = {}
+            
+            for otra_persona in self.family.members:
+                if otra_persona != persona_seleccionada:
+                    relacion = persona_seleccionada.get_relationship_to(otra_persona, self.family)
+                    
+                    if relacion != "Sin relación familiar directa":
+                        # Calcular grado de consanguinidad
+                        grado = RelacionService._calcular_grado_consanguinidad(relacion)
+                        
+                        if grado not in relaciones_encontradas:
+                            relaciones_encontradas[grado] = []
+                        
+                        relaciones_encontradas[grado].append({
+                            'nombre': otra_persona.get_full_name(),
+                            'cedula': otra_persona.cedula,
+                            'relacion': relacion,
+                            'edad': otra_persona.calculate_age() if hasattr(otra_persona, 'calculate_age') else 'N/A',
+                            'genero': 'Masculino' if otra_persona.gender == 'M' else 'Femenino',
+                            'vivo': '✅ Vivo' if otra_persona.alive else '⚰️ Fallecido'
+                        })
+            
+            # Mostrar resultados por grado de consanguinidad
+            grados_nombres = {
+                0: "🔵 GRADO CERO - YO MISMO",
+                1: "🔴 PRIMER GRADO - Relación directa (padres, hijos)",
+                2: "🟡 SEGUNDO GRADO - Hermanos, abuelos, nietos",
+                3: "🟠 TERCER GRADO - Tíos, sobrinos, bisabuelos",
+                4: "🟣 CUARTO GRADO - Primos hermanos, tíos abuelos",
+                5: "🟤 QUINTO GRADO - Primos segundos",
+                -1: "💙 RELACIONES POR AFINIDAD - Matrimonio"
+            }
+            
+            total_familiares = 0
+            
+            for grado in sorted(relaciones_encontradas.keys()):
+                if grado in grados_nombres:
+                    self.result_text.insert("end", f"{grados_nombres[grado]}\n")
+                    self.result_text.insert("end", "-" * 50 + "\n")
+                    
+                    # Agrupar por tipo de relación
+                    relaciones_por_tipo = {}
+                    for familiar in relaciones_encontradas[grado]:
+                        tipo = familiar['relacion']
+                        if tipo not in relaciones_por_tipo:
+                            relaciones_por_tipo[tipo] = []
+                        relaciones_por_tipo[tipo].append(familiar)
+                    
+                    for tipo_relacion, familiares in relaciones_por_tipo.items():
+                        self.result_text.insert("end", f"\n📋 {tipo_relacion.upper()}:\n")
+                        for familiar in familiares:
+                            self.result_text.insert("end", 
+                                f"   • {familiar['nombre']} (ID: {familiar['cedula']})\n")
+                            self.result_text.insert("end", 
+                                f"     Edad: {familiar['edad']} | Género: {familiar['genero']} | Estado: {familiar['vivo']}\n")
+                            total_familiares += 1
+                    
+                    self.result_text.insert("end", "\n")
+            
+            # Resumen estadístico
+            self.result_text.insert("end", "📊 RESUMEN ESTADÍSTICO\n")
+            self.result_text.insert("end", "=" * 50 + "\n")
+            self.result_text.insert("end", f"👥 Total de familiares identificados: {total_familiares}\n")
+            
+            if relaciones_encontradas:
+                grados_presentes = [g for g in relaciones_encontradas.keys() if g != -1]
+                if grados_presentes:
+                    grado_max = max(grados_presentes)
+                    self.result_text.insert("end", f"🔗 Grado máximo de consanguinidad: {grado_max}\n")
+                
+                if -1 in relaciones_encontradas:
+                    self.result_text.insert("end", f"💍 Relaciones por afinidad: {len(relaciones_encontradas[-1])}\n")
+            
+            # Buscar tipos específicos de familiares
+            self.result_text.insert("end", "\n🔍 BÚSQUEDA POR TIPOS ESPECÍFICOS\n")
+            self.result_text.insert("end", "=" * 50 + "\n")
+            
+            tipos_buscar = ['primo', 'tío', 'sobrino', 'hermano']
+            for tipo in tipos_buscar:
+                familiares_tipo = RelacionService.buscar_familiares_por_tipo(
+                    self.family, persona_seleccionada.cedula, tipo
+                )
+                if familiares_tipo:
+                    self.result_text.insert("end", f"\n🔎 {tipo.upper()}S ENCONTRADOS:\n")
+                    for familiar in familiares_tipo:
+                        self.result_text.insert("end", 
+                            f"   • {familiar['nombre']} - {familiar['relacion']}\n")
+                else:
+                    self.result_text.insert("end", f"\n❌ No se encontraron {tipo}s\n")
+            
+            self.result_text.insert("end", "\n" + "=" * 70 + "\n")
+            self.result_text.insert("end", "✅ Análisis completo finalizado\n\n")
+            
+        except Exception as e:
+            self.result_text.insert("end", f"❌ Error en análisis completo: {str(e)}\n")
+            import traceback
+            traceback.print_exc()
+    
     def ejecutar_todas_consultas(self):
         """Ejecuta todas las consultas disponibles"""
         self.result_text.insert("end", "📊 REPORTE COMPLETO DE CONSULTAS GENEALÓGICAS\n")
@@ -620,7 +882,7 @@ class ConsultasPanel:
         try:
             # 1. Relación entre personas
             if persona_a and persona_b:
-                relacion = RelacionService.encontrar_relacion(persona_a, persona_b)
+                relacion = persona_a.get_relationship_to(persona_b, self.family)
                 self.result_text.insert("end", f"1️⃣ Relación entre {persona_a.first_name} y {persona_b.first_name}:\n")
                 self.result_text.insert("end", f"   📍 {relacion}\n\n")
             
@@ -678,7 +940,7 @@ class ConsultasPanel:
             
         except Exception as e:
             self.result_text.insert("end", f"❌ Error durante la ejecución: {str(e)}")
-    
+
     def obtener_persona_por_combo(self, combo_value):
         """Obtiene el objeto Person basado en el valor del combobox"""
         if not combo_value or combo_value == "No hay personas en el árbol":
