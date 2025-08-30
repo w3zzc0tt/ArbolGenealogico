@@ -49,7 +49,7 @@ class FamilyGraphVisualizer:
         return self.G
 
     def calculate_hierarchical_layout(self, family) -> Dict[str, Tuple[float, float]]:
-        """Calcula posiciones jerárquicas mejoradas con mejor distribución espacial"""
+        """Calcula posiciones jerárquicas mejoradas con posicionamiento optimizado de cónyuges"""
         pos = {}
         levels = self._assign_levels(family)
 
@@ -80,46 +80,104 @@ class FamilyGraphVisualizer:
         else:
             level_height = available_height / max_level if max_level > 0 else available_height
 
-        # Distribuir nodos por niveles
-        level_nodes = {}
-        for cedula, level in adjusted_levels.items():
-            level_nodes.setdefault(level, []).append(cedula)
-
-        # Posicionar nodos con mejor distribución
-        for level, cedulas in level_nodes.items():
+        # NUEVA LÓGICA: Agrupar personas por unidades familiares (parejas + solteros)
+        family_units = self._create_family_units(family, adjusted_levels)
+        
+        # Distribuir unidades familiares por niveles
+        for level in range(max_level + 1):
+            level_units = [unit for unit in family_units if unit['level'] == level]
+            if not level_units:
+                continue
+                
             y = margin_top + (level * level_height)
             
-            # Distribución horizontal mejorada
-            if len(cedulas) == 1:
-                # Una sola persona: centrar en el espacio disponible
-                x = margin_left + available_width / 2
-                pos[cedulas[0]] = (x, y)
-            else:
-                # Múltiples personas: distribuir uniformemente
-                if len(cedulas) > 6:
-                    # Para familias grandes, usar dos filas
-                    row1_count = (len(cedulas) + 1) // 2
-                    row2_count = len(cedulas) - row1_count
+            # Calcular ancho total necesario para este nivel
+            total_width_needed = sum(unit['width'] for unit in level_units)
+            spacing_between_units = max(80, (available_width - total_width_needed) / (len(level_units) + 1))
+            
+            current_x = margin_left + spacing_between_units
+            
+            for unit in level_units:
+                if unit['type'] == 'couple':
+                    # Posicionar pareja side-by-side con espaciado optimizado
+                    person1_cedula, person2_cedula = unit['members']
                     
-                    # Primera fila
-                    row1_spacing = available_width / (row1_count + 1)
-                    for i in range(row1_count):
-                        x = margin_left + (i + 1) * row1_spacing
-                        pos[cedulas[i]] = (x, y - 30)
+                    # El esposo a la izquierda, la esposa a la derecha por convención
+                    person1 = next(p for p in family.members if p.cedula == person1_cedula)
+                    person2 = next(p for p in family.members if p.cedula == person2_cedula)
                     
-                    # Segunda fila
-                    row2_spacing = available_width / (row2_count + 1)
-                    for i in range(row2_count):
-                        x = margin_left + (i + 1) * row2_spacing
-                        pos[cedulas[row1_count + i]] = (x, y + 30)
-                else:
-                    # Distribución normal en una fila
-                    spacing = available_width / (len(cedulas) + 1)
-                    for i, cedula in enumerate(cedulas):
-                        x = margin_left + (i + 1) * spacing
-                        pos[cedula] = (x, y)
+                    # Reducir separación entre cónyuges para líneas más cortas
+                    couple_spacing = 45  # Reducido de 60 a 45px
+                    
+                    if person1.gender == 'M':
+                        male_x = current_x
+                        female_x = current_x + couple_spacing
+                        pos[person1_cedula] = (male_x, y)
+                        pos[person2_cedula] = (female_x, y)
+                    else:
+                        female_x = current_x
+                        male_x = current_x + couple_spacing
+                        pos[person2_cedula] = (male_x, y)
+                        pos[person1_cedula] = (female_x, y)
+                        
+                elif unit['type'] == 'single':
+                    # Posicionar persona sola
+                    person_cedula = unit['members'][0]
+                    pos[person_cedula] = (current_x + 30, y)  # Centrar en el espacio asignado
+                
+                current_x += unit['width'] + spacing_between_units
 
         return pos
+
+    def _create_family_units(self, family, levels) -> List[Dict]:
+        """Crea unidades familiares (parejas y solteros) organizadas por nivel"""
+        family_units = []
+        processed_persons = set()
+        
+        # Agrupar por niveles
+        level_groups = {}
+        for person in family.members:
+            level = levels.get(person.cedula, 0)
+            level_groups.setdefault(level, []).append(person)
+        
+        for level, persons in level_groups.items():
+            level_units = []
+            
+            for person in persons:
+                if person.cedula in processed_persons:
+                    continue
+                    
+                # Verificar si tiene cónyuge en el mismo nivel
+                if (person.spouse and 
+                    person.spouse.cedula in [p.cedula for p in family.members] and
+                    levels.get(person.spouse.cedula, 0) == level and
+                    person.spouse.cedula not in processed_persons):
+                    
+                    # Crear unidad de pareja
+                    unit = {
+                        'type': 'couple',
+                        'level': level,
+                        'members': [person.cedula, person.spouse.cedula],
+                        'width': 105  # Ajustado para el nuevo espaciado (45px + margen)
+                    }
+                    level_units.append(unit)
+                    processed_persons.add(person.cedula)
+                    processed_persons.add(person.spouse.cedula)
+                    
+                else:
+                    # Crear unidad individual
+                    unit = {
+                        'type': 'single',
+                        'level': level,
+                        'members': [person.cedula],
+                        'width': 60  # Espacio para una persona
+                    }
+                    level_units.append(unit)
+                    processed_persons.add(person.cedula)
+            
+            family_units.extend(level_units)
+        
+        return family_units
 
     def _assign_levels(self, family) -> Dict[str, int]:
         """Asigna niveles jerárquicos a cada persona"""
@@ -354,7 +412,7 @@ class FamilyGraphVisualizer:
                     canvas.create_text(mid_x, mid_y, text="💕", font=("Arial", 12))
                     parejas_dibujadas.add(pareja_id)
             
-            # 2. Dibujar conexiones padre-hijo inteligentes
+            # 2. Dibujar conexiones padre-hijo inteligentes con rutas optimizadas
             for person in family.members:
                 if person.cedula in pos:
                     # Si la persona tiene ambos padres
@@ -371,10 +429,21 @@ class FamilyGraphVisualizer:
                             child_x, child_y = pos[person.cedula]
                             parent_mid_x, parent_mid_y = puntos_medios_parejas[pareja_id]
                             
-                            # Línea del punto medio de los padres al hijo
-                            canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
-                                             fill="#1976D2", width=3, arrow=tk.LAST,
-                                             arrowshape=(12, 15, 6))
+                            # Línea vertical directa desde punto medio a hijo
+                            if abs(parent_mid_x - child_x) < 20:  # Si están casi alineados verticalmente
+                                canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
+                                                 fill="#1976D2", width=3, arrow=tk.LAST,
+                                                 arrowshape=(12, 15, 6))
+                            else:
+                                # Línea en L para evitar cruces
+                                mid_y = parent_mid_y + (child_y - parent_mid_y) * 0.4
+                                canvas.create_line(parent_mid_x, parent_mid_y, parent_mid_x, mid_y,
+                                                 fill="#1976D2", width=3)
+                                canvas.create_line(parent_mid_x, mid_y, child_x, mid_y,
+                                                 fill="#1976D2", width=3)
+                                canvas.create_line(child_x, mid_y, child_x, child_y,
+                                                 fill="#1976D2", width=3, arrow=tk.LAST,
+                                                 arrowshape=(12, 15, 6))
                         else:
                             # Los padres NO están casados: dibujar línea entre padres y luego al hijo
                             padre_x, padre_y = pos[padre_cedula]
@@ -386,29 +455,62 @@ class FamilyGraphVisualizer:
                             canvas.create_line(padre_x, padre_y, madre_x, madre_y,
                                              fill="#FF9800", width=2, dash=(10, 5))  # Naranja punteado
                             
-                            # Línea del punto medio al hijo
-                            canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
-                                             fill="#1976D2", width=3, arrow=tk.LAST,
-                                             arrowshape=(12, 15, 6))
+                            # Línea del punto medio al hijo con ruta optimizada
+                            if abs(parent_mid_x - child_x) < 20:
+                                canvas.create_line(parent_mid_x, parent_mid_y, child_x, child_y,
+                                                 fill="#1976D2", width=3, arrow=tk.LAST,
+                                                 arrowshape=(12, 15, 6))
+                            else:
+                                mid_y = parent_mid_y + (child_y - parent_mid_y) * 0.4
+                                canvas.create_line(parent_mid_x, parent_mid_y, parent_mid_x, mid_y,
+                                                 fill="#1976D2", width=3)
+                                canvas.create_line(parent_mid_x, mid_y, child_x, mid_y,
+                                                 fill="#1976D2", width=3)
+                                canvas.create_line(child_x, mid_y, child_x, child_y,
+                                                 fill="#1976D2", width=3, arrow=tk.LAST,
+                                                 arrowshape=(12, 15, 6))
                     
                     # Si la persona tiene solo un padre
                     elif person.father and person.father.cedula in pos:
                         padre_x, padre_y = pos[person.father.cedula]
                         child_x, child_y = pos[person.cedula]
-                        canvas.create_line(padre_x, padre_y, child_x, child_y,
-                                         fill="#1976D2", width=3, arrow=tk.LAST,
-                                         arrowshape=(12, 15, 6))
+                        
+                        # Conexión optimizada padre-hijo
+                        if abs(padre_x - child_x) < 20:
+                            canvas.create_line(padre_x, padre_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
+                        else:
+                            mid_y = padre_y + (child_y - padre_y) * 0.4
+                            canvas.create_line(padre_x, padre_y, padre_x, mid_y,
+                                             fill="#1976D2", width=3)
+                            canvas.create_line(padre_x, mid_y, child_x, mid_y,
+                                             fill="#1976D2", width=3)
+                            canvas.create_line(child_x, mid_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
                     
                     # Si la persona tiene solo una madre
                     elif person.mother and person.mother.cedula in pos:
                         madre_x, madre_y = pos[person.mother.cedula]
                         child_x, child_y = pos[person.cedula]
-                        canvas.create_line(madre_x, madre_y, child_x, child_y,
-                                         fill="#1976D2", width=3, arrow=tk.LAST,
-                                         arrowshape=(12, 15, 6))
+                        
+                        # Conexión optimizada madre-hijo
+                        if abs(madre_x - child_x) < 20:
+                            canvas.create_line(madre_x, madre_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
+                        else:
+                            mid_y = madre_y + (child_y - madre_y) * 0.4
+                            canvas.create_line(madre_x, madre_y, madre_x, mid_y,
+                                             fill="#1976D2", width=3)
+                            canvas.create_line(madre_x, mid_y, child_x, mid_y,
+                                             fill="#1976D2", width=3)
+                            canvas.create_line(child_x, mid_y, child_x, child_y,
+                                             fill="#1976D2", width=3, arrow=tk.LAST,
+                                             arrowshape=(12, 15, 6))
             
-            # 3. Dibujar relaciones de hermanos
-            # Recopilar todas las relaciones de hermanos únicas primero
+            # 3. Dibujar relaciones de hermanos con rutas optimizadas
             hermanos_unicos = set()
             for person in family.members:
                 if person.siblings and person.cedula in pos:
@@ -417,15 +519,23 @@ class FamilyGraphVisualizer:
                             hermano_id = tuple(sorted([person.cedula, sibling.cedula]))
                             hermanos_unicos.add(hermano_id)
             
-            # Dibujar cada relación de hermanos única solo una vez
+            # Dibujar cada relación de hermanos con líneas curvas suaves
             for hermano_id in hermanos_unicos:
                 cedula1, cedula2 = hermano_id
                 if cedula1 in pos and cedula2 in pos:
                     x1, y1 = pos[cedula1]
                     x2, y2 = pos[cedula2]
                     
-                    canvas.create_line(x1, y1, x2, y2,
-                                     fill="#4CAF50", width=2, dash=(8, 4))
+                    # Solo dibujar línea de hermanos si están en el mismo nivel
+                    if abs(y1 - y2) < 30:  # Mismo nivel aproximado
+                        # Línea curva arriba para no interferir con otras conexiones
+                        curve_offset = -25  # Arriba del nivel
+                        mid_x = (x1 + x2) / 2
+                        mid_y = min(y1, y2) + curve_offset
+                        
+                        # Crear curva suave con múltiples segmentos
+                        canvas.create_line(x1, y1, mid_x, mid_y, x2, y2,
+                                         fill="#4CAF50", width=2, dash=(6, 3), smooth=True)
                                 
         except Exception as e:
             print(f"Error dibujando conexiones familiares: {e}")

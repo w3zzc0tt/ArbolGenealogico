@@ -548,8 +548,34 @@ class SimulacionService:
         success, message = RelacionService.registrar_pareja(family, person.cedula, new_partner.cedula, es_simulacion=True)
     
         if success:
-            logger.info(f"{person.first_name} formó pareja con {new_partner.first_name} (persona externa)")
-            logger.info(f"Nueva persona generada: {new_partner.first_name} {new_partner.last_name}, edad: {new_partner.virtual_age}")
+            # ✅ CORRECCIÓN CRÍTICA: Asegurar que las referencias bidireccionales estén correctas
+            # Esto garantiza que la persona externa aparezca conectada en el árbol genealógico
+            
+            # Actualizar referencias en la familia para ambas personas
+            person_in_family = family.get_member_by_cedula(person.cedula)
+            partner_in_family = family.get_member_by_cedula(new_partner.cedula)
+            
+            if person_in_family and partner_in_family:
+                # Establecer relación bidireccional explícitamente
+                person_in_family.spouse = partner_in_family
+                partner_in_family.spouse = person_in_family
+                
+                # Actualizar estados civiles
+                person_in_family.marital_status = "Casado/a"
+                partner_in_family.marital_status = "Casado/a"
+                
+                # Registrar eventos de matrimonio
+                marriage_date = f"{family.current_year}-01-01"
+                person_in_family.add_event(f"Matrimonio con {partner_in_family.first_name} {partner_in_family.last_name}", marriage_date)
+                partner_in_family.add_event(f"Matrimonio con {person_in_family.first_name} {person_in_family.last_name}", marriage_date)
+            
+            logger.info(f"✅ Persona externa {new_partner.first_name} {new_partner.last_name} registrada exitosamente como pareja de {person.first_name}")
+            return True
+        else:
+            # Si falla el registro de pareja, remover la persona de la familia
+            family.members = [m for m in family.members if m.cedula != new_partner.cedula]
+            logger.error(f"❌ Error registrando pareja externa: {message}")
+            return False
             logger.info(f"Intereses comunes: {common_interests}")
             return True
     
