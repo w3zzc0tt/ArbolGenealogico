@@ -703,3 +703,110 @@
 2025-08-31 01:26:20,402 - root - INFO - Iniciando bucle principal de la aplicación...
 2025-08-31 01:26:28,503 - asyncio - INFO - ✅ Persona externa Raúl Mendez registrada exitosamente como pareja de Sofía Elena
 2025-08-31 01:26:35,715 - asyncio - INFO - ✅ Persona externa Isabel Castro registrada exitosamente como pareja de Luis Carlos
+2025-08-31 01:30:03,417 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 01:30:03,437 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:30:03,442 - matplotlib - DEBUG - interactive is False
+2025-08-31 01:30:03,442 - matplotlib - DEBUG - platform is win32
+2025-08-31 01:30:03,472 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 01:30:03,525 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 01:30:03,914 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:30:03,916 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 01:30:04,247 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 01:30:04,248 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 01:30:04,327 - root - INFO - Ventana principal creada
+2025-08-31 01:30:05,298 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 01:30:05,579 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 01:30:05,581 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 01:37:02,344 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 01:37:02,355 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:37:02,357 - matplotlib - DEBUG - interactive is False
+2025-08-31 01:37:02,357 - matplotlib - DEBUG - platform is win32
+2025-08-31 01:37:02,371 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 01:37:02,437 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 01:37:02,788 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:37:02,791 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 01:37:03,023 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 01:37:03,024 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 01:37:03,112 - root - INFO - Ventana principal creada
+2025-08-31 01:37:04,192 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 01:37:04,554 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 01:37:04,554 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 01:37:12,295 - asyncio - INFO - ✅ Persona externa Diego Mendez registrada exitosamente como pareja de Sofía Elena
+2025-08-31 01:37:22,527 - asyncio - INFO - ✅ Persona externa Isabel Picado registrada exitosamente como pareja de Luis Carlos
+2025-08-31 01:37:30,131 - asyncio - INFO - ✅ Persona externa María Aguilar registrada exitosamente como pareja de Oscar
+2025-08-31 01:37:30,318 - asyncio - INFO - ✅ Persona externa Andrés Salas registrada exitosamente como pareja de Patricia
+2025-08-31 01:37:30,399 - asyncio - INFO - ✅ Persona externa Ricardo Esquivel registrada exitosamente como pareja de Verónica
+2025-08-31 01:37:31,117 - asyncio - INFO - ✅ Persona externa Mónica Cordero registrada exitosamente como pareja de Ricardo
+2025-08-31 01:37:31,297 - asyncio - INFO - ✅ Persona externa Patricia Villalobos registrada exitosamente como pareja de José
+2025-08-31 01:37:31,685 - asyncio - INFO - ✅ Persona externa Ana Vega registrada exitosamente como pareja de Diego
+2025-08-31 01:37:32,044 - asyncio - INFO - ✅ Persona externa Andrés Ramírez registrada exitosamente como pareja de Claudia
+2025-08-31 01:37:33,553 - asyncio - INFO - ✅ Persona externa Raúl Carballo registrada exitosamente como pareja de Isabel
+2025-08-31 01:37:33,651 - asyncio - INFO - ✅ Persona externa Alberto Segura registrada exitosamente como pareja de Isabel
+2025-08-31 01:37:33,749 - asyncio - INFO - ✅ Persona externa Oscar Quesada registrada exitosamente como pareja de Mónica
+2025-08-31 01:37:33,749 - asyncio - INFO - ✅ Persona externa Gabriela Trejos registrada exitosamente como pareja de Miguel
+2025-08-31 01:37:33,849 - asyncio - INFO - ✅ Persona externa Pedro González registrada exitosamente como pareja de Carolina
+2025-08-31 01:37:34,137 - asyncio - INFO - ✅ Persona externa Carolina Herrera registrada exitosamente como pareja de Fernando
+2025-08-31 01:37:34,407 - asyncio - INFO - ✅ Persona externa Elena Mora registrada exitosamente como pareja de Ricardo
+2025-08-31 01:37:34,554 - asyncio - INFO - ✅ Persona externa Isabel Chaves registrada exitosamente como pareja de Andrés
+2025-08-31 01:37:34,734 - asyncio - INFO - ✅ Persona externa Andrés Castro registrada exitosamente como pareja de Verónica
+2025-08-31 01:37:34,734 - asyncio - INFO - ✅ Persona externa Juan Araya registrada exitosamente como pareja de Isabel
+2025-08-31 01:37:34,872 - asyncio - INFO - ✅ Persona externa Carolina Monge registrada exitosamente como pareja de Ricardo
+2025-08-31 01:37:34,873 - asyncio - INFO - ✅ Persona externa Patricia Rojas registrada exitosamente como pareja de Juan
+2025-08-31 01:37:34,936 - asyncio - INFO - ✅ Persona externa Daniela Morales registrada exitosamente como pareja de Miguel
+2025-08-31 01:37:50,498 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 01:37:50,513 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:37:50,514 - matplotlib - DEBUG - interactive is False
+2025-08-31 01:37:50,514 - matplotlib - DEBUG - platform is win32
+2025-08-31 01:37:50,527 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 01:37:50,658 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 01:37:50,988 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:37:50,991 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 01:37:51,223 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 01:37:51,224 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 01:37:51,329 - root - INFO - Ventana principal creada
+2025-08-31 01:37:52,447 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 01:37:52,762 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 01:37:52,762 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 01:38:06,641 - asyncio - INFO - ✅ Persona externa Paula Vega registrada exitosamente como pareja de Luis Carlos
+2025-08-31 01:38:07,401 - asyncio - INFO - ✅ Persona externa Raúl Carballo registrada exitosamente como pareja de Sofía Elena
+2025-08-31 01:38:11,491 - asyncio - INFO - ✅ Persona externa Carmen Cordero registrada exitosamente como pareja de Miguel
+2025-08-31 01:38:12,123 - asyncio - INFO - ✅ Persona externa Andrés Trejos registrada exitosamente como pareja de Patricia
+2025-08-31 01:40:10,549 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 01:40:10,567 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:40:10,569 - matplotlib - DEBUG - interactive is False
+2025-08-31 01:40:10,571 - matplotlib - DEBUG - platform is win32
+2025-08-31 01:40:10,595 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 01:40:10,646 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 01:40:11,010 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:40:11,012 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 01:40:11,359 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 01:40:11,361 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 01:40:11,448 - root - INFO - Ventana principal creada
+2025-08-31 01:40:12,396 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 01:40:12,703 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 01:40:12,703 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 01:40:24,998 - asyncio - INFO - ✅ Persona externa Sofía Vargas registrada exitosamente como pareja de Luis Carlos
+2025-08-31 01:40:26,907 - asyncio - INFO - ✅ Persona externa Juan Carballo registrada exitosamente como pareja de Sofía Elena
+2025-08-31 01:49:41,426 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 01:49:41,446 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:49:41,448 - matplotlib - DEBUG - interactive is False
+2025-08-31 01:49:41,448 - matplotlib - DEBUG - platform is win32
+2025-08-31 01:49:41,472 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 01:49:41,526 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 01:49:41,811 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 01:49:41,814 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 01:49:42,125 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 01:49:42,125 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 01:49:42,226 - root - INFO - Ventana principal creada
+2025-08-31 01:49:43,074 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 01:49:43,332 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 01:49:43,332 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 01:50:15,906 - asyncio - INFO - ✅ Persona externa Fernando Chaves registrada exitosamente como pareja de Sofía Elena
+2025-08-31 01:50:20,423 - asyncio - INFO - ✅ Persona externa Carmen Solano registrada exitosamente como pareja de Luis Carlos
+2025-08-31 01:50:24,028 - asyncio - INFO - ✅ Persona externa Claudia Aguilar registrada exitosamente como pareja de Oscar
+2025-08-31 01:50:26,227 - asyncio - INFO - ✅ Persona externa Ricardo Villalobos registrada exitosamente como pareja de Gabriela
+2025-08-31 01:51:12,429 - asyncio - INFO - ✅ Persona externa Claudia Mora registrada exitosamente como pareja de Raúl
+2025-08-31 01:51:12,647 - asyncio - INFO - ✅ Persona externa Ricardo Vargas registrada exitosamente como pareja de Carmen
+2025-08-31 01:51:14,447 - asyncio - INFO - ✅ Persona externa Diego Salas registrada exitosamente como pareja de Mónica
+2025-08-31 01:51:14,633 - asyncio - INFO - ✅ Persona externa Fernando Trejos registrada exitosamente como pareja de Ana
+2025-08-31 01:51:15,003 - asyncio - INFO - ✅ Persona externa Fernando González registrada exitosamente como pareja de Paula

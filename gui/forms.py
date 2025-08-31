@@ -474,6 +474,14 @@ class PersonForm(ctk.CTkToplevel):
                 return
 
         # === Datos validados correctamente ===
+        
+        # NUEVA VERIFICACIÓN: Límite generacional para personas agregadas manualmente
+        if self.family and hasattr(self.family, 'members') and len(self.family.members) > 0:
+            generation_check = self._verificar_limite_generacional_manual()
+            if not generation_check['allowed']:
+                messagebox.showerror("Límite Generacional", generation_check['reason'])
+                return
+        
         data = {
             "cedula": cedula,
             "first_name": first_name,
@@ -912,3 +920,58 @@ class RelationshipForm:
         
         messagebox.showinfo("Éxito", "Hermano registrado exitosamente")
         self.form_window.destroy()
+    
+    def _verificar_limite_generacional_manual(self) -> dict:
+        """
+        Verifica el límite generacional para personas agregadas manualmente.
+        
+        Para personas agregadas manualmente, asumimos que pueden ser de cualquier generación
+        existente, pero no pueden crear una 6ta generación (bisnietos).
+        
+        Returns:
+            dict: {'allowed': bool, 'reason': str}
+        """
+        try:
+            # Importar aquí para evitar dependencias circulares
+            from utils.graph_visualizer import FamilyGraphVisualizer
+            
+            # Calcular niveles generacionales actuales
+            visualizer = FamilyGraphVisualizer()
+            levels = visualizer._assign_levels(self.family)
+            
+            if not levels:
+                # Si no hay niveles definidos, permitir
+                return {'allowed': True, 'reason': 'Primera persona en la familia'}
+            
+            # Encontrar el nivel más bajo (más profundo) actual
+            max_current_level = max(levels.values()) if levels else 0
+            
+            # Verificar límite de 5 generaciones (niveles 0-4)
+            MAX_GENERATION_LEVEL = 4  # Nietos = nivel 4 (última generación permitida)
+            
+            if max_current_level >= MAX_GENERATION_LEVEL:
+                generation_names = {
+                    0: "Bisabuelos",
+                    1: "Abuelos", 
+                    2: "Padres",
+                    3: "Hijos",
+                    4: "Nietos"
+                }
+                
+                current_deepest = generation_names.get(max_current_level, f"Generación {max_current_level}")
+                
+                return {
+                    'allowed': False,
+                    'reason': f'🚫 Límite generacional alcanzado\n\n'
+                             f'El árbol genealógico ya contiene la generación más profunda permitida: {current_deepest} (nivel {max_current_level}).\n\n'
+                             f'Sistema limitado a 5 generaciones:\n'
+                             f'• Bisabuelos → Abuelos → Padres → Hijos → Nietos\n\n'
+                             f'No se pueden agregar más descendientes (bisnietos).'
+                }
+            
+            return {'allowed': True, 'reason': f'Persona puede agregarse en generaciones existentes (hasta nivel {MAX_GENERATION_LEVEL})'}
+            
+        except Exception as e:
+            # En caso de error, permitir por defecto para no bloquear la creación
+            print(f"⚠️ Error verificando límite generacional manual: {e}")
+            return {'allowed': True, 'reason': 'Error en verificación generacional'}

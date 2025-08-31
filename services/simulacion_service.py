@@ -88,6 +88,11 @@ class SimulacionService:
         if not (18 <= father_age <= 65):
             return False, f"Padre fuera de edad reproductiva ({father_age} años)"
         
+        # NUEVA VERIFICACIÓN: Límite generacional (Bisabuelos a Bisnietos = 5 generaciones)
+        generation_check = SimulacionService._verificar_limite_generacional(mother, father, family)
+        if not generation_check['allowed']:
+            return False, generation_check['reason']
+        
         # Verificar compatibilidad
         compatibility = SimulacionService.calcular_compatibilidad_total(mother, father)
         if not compatibility['compatible']:
@@ -1066,3 +1071,74 @@ class SimulacionService:
                         eventos.append(f"😔 {person.first_name} sufre deterioro emocional por viudez prolongada")
         
         return eventos
+    
+    @staticmethod
+    def _verificar_limite_generacional(mother: Person, father: Person, family: Family) -> dict:
+        """
+        Verifica que el nuevo bebé no exceda el límite de 5 generaciones (Bisabuelos a Bisnietos).
+        
+        Estructura generacional permitida:
+        - Nivel 0: Bisabuelos (generación más antigua)
+        - Nivel 1: Abuelos  
+        - Nivel 2: Padres
+        - Nivel 3: Hijos
+        - Nivel 4: Nietos (última generación permitida)
+        
+        Args:
+            mother: Madre del futuro bebé
+            father: Padre del futuro bebé
+            family: Familia donde nacerá el bebé
+            
+        Returns:
+            dict: {'allowed': bool, 'reason': str}
+        """
+        try:
+            # Importar aquí para evitar dependencias circulares
+            from utils.graph_visualizer import FamilyGraphVisualizer
+            
+            # Calcular niveles generacionales actuales
+            visualizer = FamilyGraphVisualizer()
+            levels = visualizer._assign_levels(family)
+            
+            # Obtener niveles de los padres
+            mother_level = levels.get(mother.cedula)
+            father_level = levels.get(father.cedula)
+            
+            if mother_level is None or father_level is None:
+                # Si no se pueden determinar los niveles, permitir por defecto
+                return {'allowed': True, 'reason': 'Niveles no determinados'}
+            
+            # El bebé estará en el nivel más bajo de los padres + 1
+            parent_level = max(mother_level, father_level)
+            baby_level = parent_level + 1
+            
+            # Verificar límite de 5 generaciones (niveles 0-4)
+            MAX_GENERATION_LEVEL = 4  # Nietos = nivel 4 (última generación permitida)
+            
+            if baby_level > MAX_GENERATION_LEVEL:
+                # Determinar nombres de generaciones para el mensaje
+                generation_names = {
+                    0: "Bisabuelos",
+                    1: "Abuelos", 
+                    2: "Padres",
+                    3: "Hijos",
+                    4: "Nietos",
+                    5: "Bisnietos (NO PERMITIDO)"
+                }
+                
+                current_generation = generation_names.get(parent_level, f"Generación {parent_level}")
+                would_be_generation = generation_names.get(baby_level, f"Generación {baby_level}")
+                
+                return {
+                    'allowed': False, 
+                    'reason': f'🚫 Límite generacional alcanzado: {current_generation} no pueden tener más descendencia. '
+                             f'El árbol genealógico está limitado a 5 generaciones (Bisabuelos → Nietos). '
+                             f'Nuevo bebé sería {would_be_generation}'
+                }
+            
+            return {'allowed': True, 'reason': f'✅ Bebé será generación válida (nivel {baby_level})'}
+            
+        except Exception as e:
+            # En caso de error, permitir por defecto para no bloquear la simulación
+            print(f"⚠️ Error verificando límite generacional: {e}")
+            return {'allowed': True, 'reason': 'Error en verificación generacional'}
