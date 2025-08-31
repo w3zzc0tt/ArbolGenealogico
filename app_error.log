@@ -810,3 +810,9 @@
 2025-08-31 01:51:14,447 - asyncio - INFO - ✅ Persona externa Diego Salas registrada exitosamente como pareja de Mónica
 2025-08-31 01:51:14,633 - asyncio - INFO - ✅ Persona externa Fernando Trejos registrada exitosamente como pareja de Ana
 2025-08-31 01:51:15,003 - asyncio - INFO - ✅ Persona externa Fernando González registrada exitosamente como pareja de Paula
+2025-08-31 17:21:29,590 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 17:21:29,684 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 17:21:29,687 - matplotlib - DEBUG - interactive is False
+2025-08-31 17:21:29,687 - matplotlib - DEBUG - platform is win32
+2025-08-31 17:21:29,855 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 17:21:30,998 - root - INFO - CustomTkinter importado correctamente
