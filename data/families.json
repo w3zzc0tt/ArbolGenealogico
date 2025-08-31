@@ -174,5 +174,12 @@
       }
     ],
     "current_year": 2025
+  },
+  "2": {
+    "id": 2,
+    "name": "Familia Saiyajin",
+    "description": "",
+    "members": [],
+    "current_year": 2025
   }
 }

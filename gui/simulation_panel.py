@@ -178,6 +178,7 @@ class SimulationPanel:
             self.zoom_level = 1.0
             self.min_zoom = 0.3
             self.max_zoom = 3.0
+            self._last_applied_zoom = 1.0  # track last applied zoom so redraws can reapply correctly
             
             ctk.CTkButton(
                 zoom_frame,
@@ -213,6 +214,17 @@ class SimulationPanel:
                 width=30,
                 height=25
             ).pack(side=tk.LEFT, padx=2)
+
+            # Appearance toggle (Dark / Light)
+            self.appearance_mode = tk.StringVar(value="dark")
+            self.appearance_btn = ctk.CTkButton(
+                zoom_frame,
+                text="🌞",
+                command=self.toggle_appearance_mode,
+                width=30,
+                height=25
+            )
+            self.appearance_btn.pack(side=tk.LEFT, padx=2)
             
             # Frame para canvas con scrollbars
             canvas_frame = ctk.CTkFrame(left_panel)
@@ -441,8 +453,14 @@ class SimulationPanel:
             self.zoom_label.configure(text=f"{zoom_percent}%")
             
             # Escalar todo el contenido del canvas
-            scale_factor = self.zoom_level / old_zoom
-            self.tree_canvas.scale("all", 0, 0, scale_factor, scale_factor)
+            # Evitar re-escalar si ya aplicamos este zoom
+            if abs(self._last_applied_zoom - self.zoom_level) > 1e-6:
+                try:
+                    scale_factor = self.zoom_level / max(old_zoom, 1e-6)
+                    self.tree_canvas.scale("all", 0, 0, scale_factor, scale_factor)
+                    self._last_applied_zoom = self.zoom_level
+                except Exception as e:
+                    logger.error(f"Error aplicando escala al canvas: {e}")
             
             # Actualizar región de scroll
             bbox = self.tree_canvas.bbox("all")
@@ -463,6 +481,23 @@ class SimulationPanel:
         """Cambia el modo de simulación"""
         self.simulation_mode = "memory" if "Memoria" in selection else "file"
         logger.info(f"Modo de simulación cambiado a: {self.simulation_mode}")
+
+    def toggle_appearance_mode(self):
+        """Alterna entre modo claro y oscuro en la UI"""
+        try:
+            current = self.appearance_mode.get()
+            if current == "dark":
+                ctk.set_appearance_mode("light")
+                self.appearance_mode.set("light")
+                if hasattr(self, 'appearance_btn'):
+                    self.appearance_btn.configure(text="🌙")
+            else:
+                ctk.set_appearance_mode("dark")
+                self.appearance_mode.set("dark")
+                if hasattr(self, 'appearance_btn'):
+                    self.appearance_btn.configure(text="🌞")
+        except Exception as e:
+            logger.error(f"Error alternando apariencia: {e}")
     
     def iniciar_simulacion(self):
         """Inicia la simulación según el modo seleccionado"""
@@ -853,6 +888,13 @@ class SimulationPanel:
             
             # Actualizar región de scroll después de dibujar
             self.update_scroll_region()
+            
+            # Reaplicar zoom actual en caso de que el canvas haya sido limpiado/redibujado
+            try:
+                self.apply_zoom(self._last_applied_zoom)
+            except Exception:
+                # Fallback sencillo si no está inicializado
+                self.apply_zoom(1.0)
             
         except Exception as e:
             logger.error(f"Error al dibujar árbol en simulación: {e}", exc_info=True)

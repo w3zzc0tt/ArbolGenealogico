@@ -142,9 +142,9 @@ class SimulacionService:
         # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
         from services.relacion_service import RelacionService
         
-        # Registrar relaciones familiares
+        # Registrar relaciones familiares - CORREGIR ORDEN DE PARÁMETROS
         success, message = RelacionService.registrar_padres(
-            family, baby.cedula, mother.cedula, father.cedula
+            family, baby.cedula, father.cedula, mother.cedula
         )
         
         if success:
@@ -159,57 +159,7 @@ class SimulacionService:
             
             return True, f"👶 ¡Nació {baby.first_name} {baby.last_name}! Padres: {mother.first_name} y {father.first_name}"
         
-        return False, "Error al registrar el nacimiento"
-        
-        # Provincia: Hereda de los padres
-        province = father.province if random.random() < 0.6 else mother.province
-        
-        # Crear bebé
-        current_date = f"{family.current_year}-01-01"
-        baby = Person(
-            cedula=cedula,
-            first_name=first_name,
-            last_name=last_name,
-            birth_date=current_date,
-            gender=gender,
-            province=province,
-            marital_status="Soltero/a"
-        )
-        
-        # Edad virtual inicial
-        baby.virtual_age = 0
-        
-        # Heredar algunos intereses de los padres
-        parent_interests = list(set(mother.interests + father.interests))
-        if parent_interests:
-            baby.interests = random.sample(parent_interests, min(2, len(parent_interests)))
-        else:
-            baby.interests = random.sample(["Juegos", "Dibujo", "Música"], 2)
-        
-        # Agregar intereses de bebé
-        baby_interests = ["Juegos", "Dibujo", "Música"]
-        baby.interests.extend(random.sample(baby_interests, 1))
-        
-        # Agregar a la familia
-        family.add_or_update_member(baby)
-        
-        # ✅ CORRECCIÓN: Importar RelacionService LOCALMENTE para evitar importación circular
-        from services.relacion_service import RelacionService
-        
-        # Registrar relaciones familiares
-        success, message = RelacionService.registrar_padres(
-            family, baby.cedula, mother.cedula, father.cedula
-        )
-        
-        if success:
-            # Registrar evento en todos los involucrados
-            mother.add_event(f"Dio a luz a {baby.first_name}", current_date)
-            father.add_event(f"Nació su hijo/a {baby.first_name}", current_date)
-            baby.add_event("Nacimiento", current_date)
-            
-            return True, f"👶 ¡Nació {baby.first_name} {baby.last_name}! Padres: {mother.first_name} y {father.first_name}"
-        
-        return False, "Error al registrar el nacimiento"
+        return False, "Error al registrar las relaciones familiares del nacimiento"
 
     @staticmethod
     def ejecutar_ciclo_simulacion(family: Family, config: SimulationConfig = None) -> list:
@@ -298,9 +248,9 @@ class SimulacionService:
         else:
             scores['age'] = 0
         
-        # 2. Intereses (25 puntos) - Mínimo 2 en común
+        # 2. Intereses (25 puntos) - REDUCIDO: Mínimo 1 en común
         common_interests = len(set(person1.interests) & set(person2.interests))
-        scores['interests'] = min(25, common_interests * 8)  # 8 puntos por interés común
+        scores['interests'] = min(25, common_interests * 12)  # 12 puntos por interés común (más generoso)
         
         # 3. Salud emocional (25 puntos) - Similar nivel
         emotional_diff = abs(person1.emotional_health - person2.emotional_health)
@@ -316,7 +266,7 @@ class SimulacionService:
         
         return {
             'total': total,
-            'compatible': total >= 70,  # Umbral del 70%
+            'compatible': total >= 50,  # Reducido de 70% a 50% para más parejas viables
             'breakdown': scores,
             'common_interests': list(set(person1.interests) & set(person2.interests)),
             'recommendation': SimulacionService.get_compatibility_message(total)
@@ -401,17 +351,33 @@ class SimulacionService:
         if not SimulacionService.es_compatible_geneticamente(person1, person2):
             return False, "Incompatibilidad genética detectada. No se recomienda la unión por riesgos en descendencia"
         
-        # 5. Verificar compatibilidad emocional (intereses en común)
+        # 5. Verificar compatibilidad emocional (intereses en común) - REQUISITO REDUCIDO
         common_interests = set(person1.interests) & set(person2.interests)
-        if len(common_interests) < 2:
-            return False, f"Se requieren al menos 2 intereses en común. Tienen {len(common_interests)} interés(es) compartido(s)"
+        if len(common_interests) < 1:  # Reducido de 2 a 1 interés en común
+            return False, f"Se requiere al menos 1 interés en común. Tienen {len(common_interests)} interés(es) compartido(s)"
         
-        # 6. Verificar índice de compatibilidad
+        # 6. Verificar índice de compatibilidad - UMBRAL REDUCIDO
         compatibility = SimulacionService.calcular_compatibilidad_total(person1, person2)
         if not compatibility['compatible']:
-            return False, f"Índice de compatibilidad insuficiente ({compatibility['total']:.1f}%). Mínimo requerido: 70%"
+            # Reducir umbral de 70% a 50%
+            if compatibility['total'] < 50:
+                return False, f"Índice de compatibilidad insuficiente ({compatibility['total']:.1f}%). Mínimo requerido: 50%"
         
         return True, f"✅ {person1.first_name} y {person2.first_name} cumplen con todos los requisitos para formar pareja"
+    
+    @staticmethod
+    def regenerar_intereses_familia(family: Family) -> list:
+        """Regenera intereses para toda la familia para mejorar compatibilidad"""
+        eventos = []
+        
+        for person in family.members:
+            # Regenerar intereses solo si tiene muy pocos
+            if len(person.interests) < 4:
+                old_interests = person.interests.copy()
+                person.interests = person.generate_interests()
+                eventos.append(f"🎯 {person.first_name} desarrolló nuevos intereses: {', '.join(person.interests[:3])}...")
+        
+        return eventos
 
     @staticmethod
     def intentar_encontrar_pareja(person: Person, family: Family) -> bool:
@@ -1034,8 +1000,24 @@ class SimulacionService:
                     config.min_marriage_age <= man_age <= config.max_male_fertility):
                     parejas_fertiles.append((person, person.spouse))
         
+        def penalizacion_por_hijos(mother: Person, father: Person) -> float:
+            """Devuelve un multiplicador (0-1) que reduce la probabilidad de tener más hijos a medida que ya tienen más."""
+            # Contar hijos en común
+            hijos_comunes = 0
+            for child in mother.children:
+                if child in father.children:
+                    hijos_comunes += 1
+
+            # Penalización progresiva: 0 hijos -> 1.0, 1 hijo -> 0.8, 2 -> 0.6, 3 -> 0.4, >=4 -> 0.2
+            mapping = {0: 1.0, 1: 0.8, 2: 0.6, 3: 0.4}
+            factor = mapping.get(hijos_comunes, 0.2)
+            # No bajar de un piso mínimo para permitir rare births
+            return max(0.05, factor)
+
         for mother, father in parejas_fertiles:
-            if random.random() < config.birth_probability:
+            factor = penalizacion_por_hijos(mother, father)
+            effective_prob = config.birth_probability * factor
+            if random.random() < effective_prob:
                 success, message = SimulacionService.simular_nacimiento_mejorado(mother, father, family)
                 if success:
                     eventos.append(message)

@@ -1,6 +1,7 @@
 # main.py
 import logging
 import sys
+import io
 import traceback
 from tkinter import messagebox
 
@@ -8,9 +9,10 @@ from tkinter import messagebox
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    # File handler with UTF-8 encoding and a stream handler that wraps stdout with UTF-8
     handlers=[
-        logging.FileHandler("app_error.log"),
-        logging.StreamHandler()
+        logging.FileHandler("app_error.log", encoding="utf-8"),
+        logging.StreamHandler(stream=io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace'))
     ]
 )
 

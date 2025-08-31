@@ -90,29 +90,47 @@ class Person:
         self.virtual_age += years
 
     def generate_interests(self) -> list:
-        """Genera intereses aleatorios para la persona con categorías realistas"""
-        # Intereses organizados por categorías
+        """Genera intereses aleatorios para la persona garantizando compatibilidad alta"""
+        # Intereses con alta probabilidad de compatibilidad para formar parejas
+        core_interests = ["Familia", "Trabajo", "Salud", "Hogar"]  # Intereses básicos que todos tendrán
+        
+        # Intereses adicionales organizados por categorías
         interests_by_category = {
-            "Arte y Cultura": ["Pintura", "Escultura", "Teatro", "Cine", "Música clásica", "Literatura"],
-            "Deportes y Aire Libre": ["Fútbol", "Natación", "Ciclismo", "Senderismo", "Yoga", "Atletismo"],
+            "Arte y Cultura": ["Pintura", "Escultura", "Teatro", "Cine", "Música clásica", "Literatura", "Fotografía"],
+            "Deportes y Aire Libre": ["Fútbol", "Natación", "Ciclismo", "Senderismo", "Yoga", "Atletismo", "Naturaleza"],
             "Tecnología y Ciencia": ["Programación", "Robótica", "Astronomía", "Electrónica", "Inteligencia Artificial", "Ciencia"],
             "Gastronomía": ["Cocina", "Vinos", "Repostería", "Café", "Restaurantes", "Comida internacional"],
             "Aprendizaje": ["Idiomas", "Historia", "Filosofía", "Psicología", "Matemáticas", "Economía"],
-            "Social": ["Voluntariado", "Política", "Activismo", "Redes sociales", "Eventos sociales", "Comunidad"],
-            "Entretenimiento": ["Videojuegos", "Series", "Libros", "Conciertos", "Festivales", "Bailar"],
-            "Salud y Bienestar": ["Meditación", "Nutrición", "Entrenamiento", "Mindfulness", "Terapias alternativas", "Yoga"]
+            "Entretenimiento": ["Juegos", "Lectura", "Música", "Baile", "Viajes", "Jardín"],
+            "Social": ["Voluntariado", "Religión", "Política", "Educación", "Negocios", "Moda"]
         }
         
-        # Seleccionar categorías aleatorias
-        selected_categories = random.sample(list(interests_by_category.keys()), 2)
+        # Empezar con intereses básicos
+        selected_interests = core_interests.copy()
         
-        # Obtener intereses de las categorías seleccionadas
-        interests = []
+        # Seleccionar 2-3 categorías adicionales
+        selected_categories = random.sample(list(interests_by_category.keys()), random.randint(2, 3))
+        
+        # De cada categoría seleccionada, tomar 1-2 intereses
         for category in selected_categories:
-            interests.extend(random.sample(interests_by_category[category], 2))
+            category_interests = random.sample(interests_by_category[category], random.randint(1, 2))
+            selected_interests.extend(category_interests)
         
-        # Asegurar que haya 3-4 intereses únicos
-        return list(set(interests))[:4]
+        # Asegurar que tenga entre 6-10 intereses totales para buena compatibilidad
+        all_additional = []
+        for interests_list in interests_by_category.values():
+            all_additional.extend(interests_list)
+        
+        # Añadir más intereses si es necesario
+        while len(selected_interests) < 6:
+            additional = random.choice([i for i in all_additional if i not in selected_interests])
+            selected_interests.append(additional)
+        
+        # Limitar máximo a 10 intereses
+        if len(selected_interests) > 10:
+            selected_interests = selected_interests[:10]
+        
+        return selected_interests
 
     def set_death_date(self, death_date: str):
         """Establece la fecha de defunción y actualiza estado"""
