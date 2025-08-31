@@ -517,3 +517,23 @@
 2025-08-31 00:28:08,840 - asyncio - INFO - ✅ Persona externa Raúl Esquivel registrada exitosamente como pareja de Sofia Elena
 2025-08-31 00:28:15,416 - asyncio - INFO - ✅ Persona externa María Segura registrada exitosamente como pareja de José
 2025-08-31 00:28:17,552 - asyncio - INFO - ✅ Persona externa Isabel Ramírez registrada exitosamente como pareja de Juan
+2025-08-31 00:43:27,771 - matplotlib - DEBUG - matplotlib data path: C:\Users\USER\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\matplotlib\mpl-data
+2025-08-31 00:43:27,782 - matplotlib - DEBUG - CONFIGDIR=C:\Users\USER\.matplotlib
+2025-08-31 00:43:27,783 - matplotlib - DEBUG - interactive is False
+2025-08-31 00:43:27,783 - matplotlib - DEBUG - platform is win32
+2025-08-31 00:43:27,799 - root - INFO - Matplotlib backend configurado correctamente
+2025-08-31 00:43:27,866 - root - INFO - CustomTkinter importado correctamente
+2025-08-31 00:43:28,094 - matplotlib - DEBUG - CACHEDIR=C:\Users\USER\.matplotlib
+2025-08-31 00:43:28,096 - matplotlib.font_manager - DEBUG - Using fontManager instance from C:\Users\USER\.matplotlib\fontlist-v390.json
+2025-08-31 00:43:28,279 - root - INFO - Módulo gui.app importado correctamente
+2025-08-31 00:43:28,279 - root - INFO - Configuración de CustomTkinter establecida
+2025-08-31 00:43:28,385 - root - INFO - Ventana principal creada
+2025-08-31 00:43:29,321 - gui.simulation_panel - INFO - UI del panel de simulación configurada correctamente
+2025-08-31 00:43:29,618 - root - INFO - GenealogyApp inicializada correctamente
+2025-08-31 00:43:29,618 - root - INFO - Iniciando bucle principal de la aplicación...
+2025-08-31 00:43:46,322 - asyncio - INFO - ✅ Persona externa Laura Segura registrada exitosamente como pareja de Luis Carlos
+2025-08-31 00:43:53,939 - asyncio - INFO - ✅ Persona externa Pedro Picado registrada exitosamente como pareja de Sofia Elena
+2025-08-31 00:44:00,158 - asyncio - INFO - ✅ Persona externa Carolina Castro registrada exitosamente como pareja de Víctor
+2025-08-31 00:44:11,901 - asyncio - INFO - ✅ Persona externa Ana Quesada registrada exitosamente como pareja de Ricardo
+2025-08-31 00:44:13,007 - asyncio - INFO - ✅ Persona externa Raúl Esquivel registrada exitosamente como pareja de Laura
+2025-08-31 00:44:13,320 - asyncio - INFO - ✅ Persona externa Luis Aguilar registrada exitosamente como pareja de Ana
