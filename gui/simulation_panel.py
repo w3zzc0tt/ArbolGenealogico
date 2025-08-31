@@ -880,10 +880,7 @@ class SimulationPanel:
             if not self.visualizer:
                 self.visualizer = FamilyGraphVisualizer()
             
-            # Limpiar canvas antes de dibujar
-            self.tree_canvas.delete("all")
-            
-            # ✅ USAR EL MÉTODO CORRECTO con Canvas
+            # ✅ USAR EL MÉTODO CORRECTO con Canvas (la limpieza se hace en draw_family_tree)
             self.visualizer.draw_family_tree(self.simulated_family, self.tree_canvas)
             
             # Actualizar región de scroll después de dibujar

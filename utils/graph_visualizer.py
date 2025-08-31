@@ -122,12 +122,21 @@ class FamilyGraphVisualizer:
                     person.spouse.cedula not in processed_persons):
                     
                     # Crear unidad de pareja (vivos o fallecidos, siguen siendo pareja)
+                    # Posicionar según género: mujer izquierda, hombre derecha
+                    if person.gender == 'F' and person.spouse.gender == 'M':
+                        left_cedula, right_cedula = person.cedula, person.spouse.cedula
+                    elif person.gender == 'M' and person.spouse.gender == 'F':
+                        left_cedula, right_cedula = person.spouse.cedula, person.cedula
+                    else:
+                        # Fallback para casos especiales (mismo género o sin especificar)
+                        left_cedula, right_cedula = min(person.cedula, person.spouse.cedula), max(person.cedula, person.spouse.cedula)
+                    
                     unit = {
                         'type': 'couple',
                         'level': level,
                         'members': [person.cedula, person.spouse.cedula],
-                        'left_cedula': min(person.cedula, person.spouse.cedula),
-                        'right_cedula': max(person.cedula, person.spouse.cedula),
+                        'left_cedula': left_cedula,
+                        'right_cedula': right_cedula,
                         'width': 280,  # Más espacio para dos tarjetas lado a lado como en imagen
                         'both_alive': person.alive and person.spouse.alive,
                         'both_dead': not person.alive and not person.spouse.alive,
@@ -571,12 +580,11 @@ class FamilyGraphVisualizer:
             print(f"Error dibujando leyenda: {e}")
 
     def _draw_family_connections(self, canvas, family, pos):
-        """Dibuja conexiones familiares con algoritmo anti-colisiones avanzado"""
+        """Dibuja conexiones familiares con sistema de ramificación horizontal consistente"""
         try:
             # 1. Primero dibujar relaciones de pareja/cónyuge
             parejas_dibujadas = set()
             puntos_medios_parejas = {}
-            rutas_ocupadas = []  # Para rastrear rutas ya dibujadas y evitar colisiones
             
             # Recopilar todas las parejas únicas
             parejas_unicas = set()
@@ -592,36 +600,29 @@ class FamilyGraphVisualizer:
                     x1, y1 = pos[cedula1]
                     x2, y2 = pos[cedula2]
                     
-                    # LÍNEAS MATRIMONIALES: Horizontales directas fucsia como en la imagen
+                    # LÍNEAS MATRIMONIALES: Horizontales directas fucsia
                     canvas.create_line(x1, y1, x2, y2, 
                                      fill="#E91E63", width=4, smooth=True, capstyle="round")
-                    
-                    # Registrar ruta ocupada
-                    rutas_ocupadas.append({
-                        'type': 'matrimonial',
-                        'y': y1,
-                        'x_start': min(x1, x2),
-                        'x_end': max(x1, x2)
-                    })
                     
                     # Punto medio para conexiones padre-hijo
                     mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
                     puntos_medios_parejas[pareja_id] = (mid_x, mid_y)
                     
-                    # Pequeño círculo en el punto medio (como en la imagen)
+                    # Pequeño círculo en el punto medio
                     canvas.create_oval(mid_x-4, mid_y-4, mid_x+4, mid_y+4, 
                                      fill="#E91E63", outline="#FFFFFF", width=1)
-                    parejas_dibujadas.add(pareja_id)
 
-            # 2. CONEXIONES PADRE-HIJO con sistema de ramificación horizontal
-            # Primero, agrupar todos los hijos por sus padres
-            conexiones_por_padres = {}
+            # 2. SISTEMA DE RAMIFICACIÓN HORIZONTAL UNIFICADO
+            # Agrupar TODOS los hijos por sus unidades parentales
+            conexiones_familiares = {}
             
             for person in family.members:
                 if person.cedula in pos:
-                    child_x, child_y = pos[person.cedula]
+                    # Identificar a los padres de esta persona
+                    padres_key = None
+                    parent_pos = None
                     
-                    # Si la persona tiene ambos padres
+                    # Caso 1: Ambos padres (casados o no)
                     if (person.father and person.mother and 
                         person.father.cedula in pos and person.mother.cedula in pos):
                         
@@ -630,89 +631,109 @@ class FamilyGraphVisualizer:
                         pareja_id = tuple(sorted([padre_cedula, madre_cedula]))
                         
                         if pareja_id in puntos_medios_parejas:
-                            # PADRES CASADOS: Agrupar hijos
-                            if pareja_id not in conexiones_por_padres:
-                                conexiones_por_padres[pareja_id] = {
-                                    'parent_pos': puntos_medios_parejas[pareja_id],
-                                    'hijos': [],
-                                    'tipo': 'casados'
-                                }
-                            conexiones_por_padres[pareja_id]['hijos'].append((person.cedula, child_x, child_y))
-                        
+                            # Padres casados - usar punto medio
+                            padres_key = f"pareja_{pareja_id[0]}_{pareja_id[1]}"
+                            parent_pos = puntos_medios_parejas[pareja_id]
                         else:
-                            # PADRES NO CASADOS: Crear punto medio virtual
+                            # Padres no casados - crear punto medio y línea
                             padre_x, padre_y = pos[padre_cedula]
                             madre_x, madre_y = pos[madre_cedula]
-                            parent_mid_x, parent_mid_y = (padre_x + madre_x) / 2, (padre_y + madre_y) / 2
+                            parent_pos = ((padre_x + madre_x) / 2, (padre_y + madre_y) / 2)
+                            padres_key = f"no_casados_{pareja_id[0]}_{pareja_id[1]}"
                             
-                            if pareja_id not in conexiones_por_padres:
-                                # Línea entre padres no casados
+                            # Dibujar línea entre padres no casados (solo una vez)
+                            if padres_key not in conexiones_familiares:
                                 canvas.create_line(padre_x, padre_y, madre_x, madre_y,
                                                  fill="#FF9800", width=3, dash=(10, 5), capstyle="round")
-                                
-                                conexiones_por_padres[pareja_id] = {
-                                    'parent_pos': (parent_mid_x, parent_mid_y),
-                                    'hijos': [],
-                                    'tipo': 'no_casados'
-                                }
-                            conexiones_por_padres[pareja_id]['hijos'].append((person.cedula, child_x, child_y))
                     
-                    # PADRE SOLTERO
+                    # Caso 2: Solo padre
                     elif person.father and person.father.cedula in pos:
-                        padre_x, padre_y = pos[person.father.cedula]
-                        padre_id = f"solo_{person.father.cedula}"
-                        
-                        if padre_id not in conexiones_por_padres:
-                            conexiones_por_padres[padre_id] = {
-                                'parent_pos': (padre_x, padre_y),
-                                'hijos': [],
-                                'tipo': 'padre_solo'
-                            }
-                        conexiones_por_padres[padre_id]['hijos'].append((person.cedula, child_x, child_y))
+                        padres_key = f"padre_solo_{person.father.cedula}"
+                        parent_pos = pos[person.father.cedula]
                     
-                    # MADRE SOLTERA
+                    # Caso 3: Solo madre
                     elif person.mother and person.mother.cedula in pos:
-                        madre_x, madre_y = pos[person.mother.cedula]
-                        madre_id = f"solo_{person.mother.cedula}"
-                        
-                        if madre_id not in conexiones_por_padres:
-                            conexiones_por_padres[madre_id] = {
-                                'parent_pos': (madre_x, madre_y),
-                                'hijos': [],
-                                'tipo': 'madre_sola'
+                        padres_key = f"madre_sola_{person.mother.cedula}"
+                        parent_pos = pos[person.mother.cedula]
+                    
+                    # Si encontramos padres, agregar este hijo al grupo
+                    if padres_key and parent_pos:
+                        if padres_key not in conexiones_familiares:
+                            conexiones_familiares[padres_key] = {
+                                'parent_pos': parent_pos,
+                                'hijos': []
                             }
-                        conexiones_por_padres[madre_id]['hijos'].append((person.cedula, child_x, child_y))
+                        
+                        child_x, child_y = pos[person.cedula]
+                        conexiones_familiares[padres_key]['hijos'].append((person.cedula, child_x, child_y))
 
-            # Ahora dibujar las conexiones con ramificación horizontal
-            for parent_key, info in conexiones_por_padres.items():
+            # 3. DIBUJAR TODAS LAS CONEXIONES CON RAMIFICACIÓN HORIZONTAL
+            for padres_key, info in conexiones_familiares.items():
                 parent_x, parent_y = info['parent_pos']
                 hijos = info['hijos']
                 
-                if len(hijos) == 1:
-                    # Un solo hijo: línea directa
-                    cedula, child_x, child_y = hijos[0]
-                    canvas.create_line(parent_x, parent_y, child_x, child_y,
-                                     fill="#1976D2", width=4, capstyle="round", 
-                                     arrow=tk.LAST, arrowshape=(16, 20, 8))
+                if not hijos:
+                    continue
                 
-                elif len(hijos) > 1:
-                    # Múltiples hijos: sistema de ramificación horizontal
+                if len(hijos) == 1:
+                    # Un solo hijo: línea directa y simple (sin extensiones innecesarias)
+                    cedula, child_x, child_y = hijos[0]
                     
-                    # Calcular la altura de la línea horizontal (a mitad de camino)
-                    min_child_y = min(child_y for _, _, child_y in hijos)
-                    horizontal_y = parent_y + (min_child_y - parent_y) * 0.6
+                    # Altura intermedia para la ramificación
+                    horizontal_y = parent_y + (child_y - parent_y) * 0.6
                     
-                    # Calcular el rango horizontal de los hijos
-                    children_x = [child_x for _, child_x, _ in hijos]
-                    min_child_x = min(children_x)
-                    max_child_x = max(children_x)
+                    # Para hijos únicos: línea directa desde padre hasta hijo
+                    # Sin extensiones simétricas - solo la conexión natural
+                    line_start_x = parent_x
+                    line_end_x = child_x
                     
-                    # 1. Línea vertical desde el padre hasta la altura horizontal
+                    # 1. Línea vertical desde padre
                     canvas.create_line(parent_x, parent_y, parent_x, horizontal_y,
                                      fill="#1976D2", width=4, capstyle="round")
                     
-                    # 2. Línea horizontal que abarca todos los hijos
-                    canvas.create_line(min_child_x, horizontal_y, max_child_x, horizontal_y,
+                    # 2. Línea horizontal directa desde padre hasta hijo (sin extensiones)
+                    canvas.create_line(line_start_x, horizontal_y, line_end_x, horizontal_y,
+                                     fill="#1976D2", width=4, capstyle="round")
+                    
+                    # 3. Línea vertical al hijo con flecha
+                    canvas.create_line(child_x, horizontal_y, child_x, child_y,
+                                     fill="#1976D2", width=4, capstyle="round",
+                                     arrow=tk.LAST, arrowshape=(16, 20, 8))
+                
+                else:
+                    # Múltiples hijos: ramificación horizontal completa con ancho mínimo
+                    
+                    # Calcular posiciones
+                    children_x = [child_x for _, child_x, _ in hijos]
+                    children_y = [child_y for _, _, child_y in hijos]
+                    
+                    min_child_x = min(children_x)
+                    max_child_x = max(children_x)
+                    avg_child_y = sum(children_y) / len(children_y)
+                    
+                    # Altura de ramificación
+                    horizontal_y = parent_y + (avg_child_y - parent_y) * 0.6
+                    
+                    # Determinar el rango completo con ancho mínimo garantizado
+                    natural_width = max_child_x - min_child_x
+                    min_line_width = 120  # Ancho mínimo para múltiples hijos
+                    
+                    if natural_width < min_line_width:
+                        # Expandir desde el centro para garantizar ancho mínimo
+                        center_x = (min_child_x + max_child_x) / 2
+                        line_start_x = min(parent_x, center_x - min_line_width / 2)
+                        line_end_x = max(parent_x, center_x + min_line_width / 2)
+                    else:
+                        # Usar el rango natural si es suficientemente amplio
+                        line_start_x = min(parent_x, min_child_x)
+                        line_end_x = max(parent_x, max_child_x)
+                    
+                    # 1. Línea vertical desde padre hasta altura de ramificación
+                    canvas.create_line(parent_x, parent_y, parent_x, horizontal_y,
+                                     fill="#1976D2", width=4, capstyle="round")
+                    
+                    # 2. Línea horizontal que garantiza visibilidad y diferenciación
+                    canvas.create_line(line_start_x, horizontal_y, line_end_x, horizontal_y,
                                      fill="#1976D2", width=4, capstyle="round")
                     
                     # 3. Líneas verticales individuales a cada hijo
@@ -720,16 +741,8 @@ class FamilyGraphVisualizer:
                         canvas.create_line(child_x, horizontal_y, child_x, child_y,
                                          fill="#1976D2", width=4, capstyle="round",
                                          arrow=tk.LAST, arrowshape=(16, 20, 8))
-                    
-                    # 4. Registrar las rutas ocupadas para evitar colisiones futuras
-                    rutas_ocupadas.append({
-                        'type': 'padre-hijo-horizontal',
-                        'horizontal_y': horizontal_y,
-                        'x_start': min_child_x,
-                        'x_end': max_child_x
-                    })
 
-            # 3. RELACIONES DE HERMANOS (solo si no interfieren)
+            # 4. RELACIONES DE HERMANOS (opcional, más simple)
             hermanos_unicos = set()
             for person in family.members:
                 if person.siblings and person.cedula in pos:
@@ -738,25 +751,23 @@ class FamilyGraphVisualizer:
                             hermano_id = tuple(sorted([person.cedula, sibling.cedula]))
                             hermanos_unicos.add(hermano_id)
             
-            # Dibujar hermanos con rutas que eviten todas las líneas existentes
+            # Dibujar hermanos con líneas curvas simples
             for hermano_id in hermanos_unicos:
                 cedula1, cedula2 = hermano_id
                 if cedula1 in pos and cedula2 in pos:
                     x1, y1 = pos[cedula1]
                     x2, y2 = pos[cedula2]
                     
-                    # Solo dibujar si están en el mismo nivel
+                    # Solo dibujar si están en el mismo nivel (altura similar)
                     if abs(y1 - y2) < 30:
-                        # Buscar altura libre arriba del nivel
-                        curve_y = self._encontrar_altura_libre_para_hermanos(
-                            min(x1, x2), max(x1, x2), y1, rutas_ocupadas
-                        )
+                        # Línea curva arriba del nivel
+                        curve_y = min(y1, y2) - 40
+                        mid_x = (x1 + x2) / 2
                         
-                        if curve_y:  # Solo dibujar si encontramos espacio libre
-                            mid_x = (x1 + x2) / 2
-                            canvas.create_line(x1, y1, mid_x, curve_y, x2, y2,
-                                             fill="#4CAF50", width=3, dash=(8, 4), smooth=True, 
-                                             capstyle="round", joinstyle="round")
+                        # Usar create_line con smooth para curva
+                        canvas.create_line(x1, y1, mid_x, curve_y, x2, y2,
+                                         fill="#4CAF50", width=3, dash=(8, 4), 
+                                         smooth=True, capstyle="round")
                                              
         except Exception as e:
             print(f"Error dibujando conexiones familiares: {e}")
