@@ -111,8 +111,10 @@ class SimulacionService:
         # Provincia: Hereda principalmente del padre (60%) o madre (40%)
         province = father.province if random.random() < 0.6 else mother.province
         
-        # Crear bebé
-        current_date = f"{family.current_year}-01-01"
+        # Crear bebé con fecha de nacimiento realista
+        birth_month = random.randint(1, 12)
+        birth_day = random.randint(1, 28)  # Usar 28 para evitar problemas con febrero
+        current_date = f"{family.current_year}-{birth_month:02d}-{birth_day:02d}"
         baby = Person(
             cedula=cedula,
             first_name=first_name,
@@ -461,10 +463,12 @@ class SimulacionService:
         age_diff = random.randint(-8, 8)  # Diferencia de hasta 8 años
         age = max(18, min(85, person_age + age_diff))
     
-        # Calcular fecha de nacimiento
+        # Calcular fecha de nacimiento con mes y día aleatorios
         current_year = family.current_year
         birth_year = current_year - age
-        birth_date = f"{birth_year}-01-01"
+        birth_month = random.randint(1, 12)
+        birth_day = random.randint(1, 28)  # Usar 28 para evitar problemas con febrero
+        birth_date = f"{birth_year}-{birth_month:02d}-{birth_day:02d}"
     
         # Determinar provincia (60% misma provincia, 40% diferente)
         provinces = ["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"]
@@ -581,10 +585,12 @@ class SimulacionService:
             available_surnames = [s for s in all_surnames if s not in existing_surnames]
             last_name = random.choice(available_surnames) if available_surnames else random.choice(all_surnames)
             
-            # Generar edad adulta (20-60 años)
+            # Generar edad adulta (20-60 años) y fecha de nacimiento realista
             age = random.randint(20, 60)
             birth_year = family.current_year - age
-            birth_date = f"{birth_year}-01-01"
+            birth_month = random.randint(1, 12)
+            birth_day = random.randint(1, 28)  # Usar 28 para evitar problemas con febrero
+            birth_date = f"{birth_year}-{birth_month:02d}-{birth_day:02d}"
             
             # Provincia aleatoria
             provinces = ["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"]

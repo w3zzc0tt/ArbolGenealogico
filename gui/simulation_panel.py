@@ -49,6 +49,7 @@ class SimulationPanel:
         self.btn_stop = None
         self.btn_step = None
         self.btn_clear = None
+        self.btn_timeline = None
         self.btn_import_example = None
         self.event_listbox = None
         self.tree_canvas = None
@@ -127,6 +128,17 @@ class SimulationPanel:
                 width=120
             )
             self.btn_clear.pack(side=tk.LEFT, padx=2)
+            
+            # Botón Timeline (solo disponible cuando la simulación está parada)
+            self.btn_timeline = ctk.CTkButton(
+                self.button_frame,
+                text="🕰️ Timeline",
+                command=self.mostrar_timeline_simulacion,
+                fg_color="#8e44ad",
+                width=100,
+                state="normal"  # Habilitado por defecto (sin simulación corriendo)
+            )
+            self.btn_timeline.pack(side=tk.LEFT, padx=2)
             
             # Frame para botón de ejemplo
             example_frame = ctk.CTkFrame(control_frame)
@@ -534,6 +546,8 @@ class SimulationPanel:
                 self.btn_pause.configure(state="normal")
             if self.btn_stop:
                 self.btn_stop.configure(state="normal")
+            if self.btn_timeline:
+                self.btn_timeline.configure(state="disabled")  # Deshabilitar timeline
             
             self.running = True
             self.paused = False
@@ -705,6 +719,8 @@ class SimulationPanel:
             self.btn_pause.configure(state="disabled", text="⏸ Pausar")
         if self.btn_stop:
             self.btn_stop.configure(state="disabled")
+        if self.btn_timeline:
+            self.btn_timeline.configure(state="normal")  # Habilitar timeline cuando para
         
         self.add_simulation_event("⏹ Simulación detenida")
 
@@ -800,6 +816,8 @@ class SimulationPanel:
                 self.btn_pause.configure(state="disabled", text="⏸ Pausar")
             if self.btn_stop:
                 self.btn_stop.configure(state="disabled")
+            if self.btn_timeline:
+                self.btn_timeline.configure(state="normal")  # Habilitar timeline al resetear
             
             # Resetear modo a memoria
             self.simulation_mode = "memory"
@@ -1021,3 +1039,145 @@ class SimulationPanel:
                 logger.info(f"Estado de simulación cargado desde: {filename}")
         except Exception as e:
             logger.error(f"Error cargando estado de simulación: {e}")
+
+    def mostrar_timeline_simulacion(self):
+        """Muestra el timeline con lista de personas para seleccionar"""
+        try:
+            # Usar la familia simulada si existe, sino la principal
+            familia_activa = self.simulated_family if self.simulated_family else self.family
+            
+            if not familia_activa or not familia_activa.members:
+                messagebox.showwarning("Atención", "No hay datos familiares cargados para mostrar el timeline.")
+                return
+            
+            # Crear ventana de selección de persona
+            # Obtener la ventana principal navegando por la jerarquía
+            root_window = self.parent.winfo_toplevel()
+            seleccion_window = tk.Toplevel(root_window)
+            seleccion_window.title("Seleccionar Persona - Timeline")
+            seleccion_window.geometry("400x500")
+            seleccion_window.resizable(False, False)
+            
+            # Configurar ventana para que aparezca al frente
+            seleccion_window.transient(root_window)
+            seleccion_window.grab_set()
+            seleccion_window.focus_set()
+            seleccion_window.lift()
+            seleccion_window.attributes('-topmost', True)
+            
+            # Título
+            titulo_label = tk.Label(
+                seleccion_window, 
+                text="Selecciona una persona para ver su timeline:",
+                font=("Arial", 12, "bold"),
+                pady=10
+            )
+            titulo_label.pack()
+            
+            # Frame para la lista con scrollbar
+            list_frame = tk.Frame(seleccion_window)
+            list_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+            
+            # Listbox con scrollbar
+            scrollbar = tk.Scrollbar(list_frame)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            persona_listbox = tk.Listbox(
+                list_frame,
+                yscrollcommand=scrollbar.set,
+                font=("Arial", 10),
+                height=15
+            )
+            persona_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.config(command=persona_listbox.yview)
+            
+            # Llenar lista con personas ordenadas por nombre
+            personas = [(persona.get_full_name(), persona.cedula) for persona in familia_activa.members]
+            personas.sort(key=lambda x: x[0])  # Ordenar por nombre
+            
+            for nombre, cedula in personas:
+                persona_listbox.insert(tk.END, f"{nombre} ({cedula})")
+            
+            # Frame para botones
+            button_frame = tk.Frame(seleccion_window)
+            button_frame.pack(pady=10)
+            
+            def mostrar_timeline_persona():
+                """Muestra el timeline de la persona seleccionada"""
+                try:
+                    selected_index = persona_listbox.curselection()
+                    if not selected_index:
+                        messagebox.showwarning("Atención", "Por favor selecciona una persona de la lista.")
+                        return
+                    
+                    # Obtener cédula de la persona seleccionada
+                    _, cedula_seleccionada = personas[selected_index[0]]
+                    
+                    # Obtener la persona por su cédula
+                    persona_seleccionada = familia_activa.get_member_by_cedula(cedula_seleccionada)
+                    if not persona_seleccionada:
+                        messagebox.showerror("Error", "No se pudo encontrar la persona seleccionada.")
+                        return
+                    
+                    # Cerrar ventana de selección
+                    seleccion_window.destroy()
+                    
+                    # Crear y mostrar timeline
+                    timeline_visualizer = TimelineVisualizer()
+                    timeline_window = timeline_visualizer.create_timeline_window(persona_seleccionada)
+                    
+                    # Configurar ventana timeline para que aparezca al frente
+                    if timeline_window:
+                        root_window = self.parent.winfo_toplevel()
+                        timeline_window.transient(root_window)
+                        timeline_window.focus_set()
+                        timeline_window.lift()
+                        timeline_window.attributes('-topmost', True)
+                        # Remover topmost después de 500ms para permitir interacción normal
+                        timeline_window.after(500, lambda: timeline_window.attributes('-topmost', False))
+                        
+                except Exception as e:
+                    logger.error(f"Error mostrando timeline: {e}")
+                    messagebox.showerror("Error", f"Error al mostrar timeline: {str(e)}")
+            
+            # Botón Ver Timeline
+            btn_ver = tk.Button(
+                button_frame,
+                text="🕰️ Ver Timeline",
+                command=mostrar_timeline_persona,
+                bg="#8e44ad",
+                fg="white",
+                font=("Arial", 10, "bold"),
+                padx=20,
+                pady=5
+            )
+            btn_ver.pack(side=tk.LEFT, padx=5)
+            
+            # Botón Cancelar
+            btn_cancelar = tk.Button(
+                button_frame,
+                text="❌ Cancelar",
+                command=seleccion_window.destroy,
+                bg="#e74c3c",
+                fg="white",
+                font=("Arial", 10),
+                padx=20,
+                pady=5
+            )
+            btn_cancelar.pack(side=tk.LEFT, padx=5)
+            
+            # Bind doble-click para mostrar timeline directamente
+            def on_double_click(event):
+                mostrar_timeline_persona()
+            
+            persona_listbox.bind('<Double-Button-1>', on_double_click)
+            
+            # Bind Enter para mostrar timeline
+            def on_enter(event):
+                mostrar_timeline_persona()
+            
+            seleccion_window.bind('<Return>', on_enter)
+            
+        except Exception as e:
+            logger.error(f"Error en mostrar_timeline_simulacion: {e}")
+            messagebox.showerror("Error", f"Error al mostrar selección de timeline: {str(e)}")

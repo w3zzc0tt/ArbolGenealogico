@@ -531,7 +531,57 @@ class Person:
                 'categoria': 'birth'
             })
             
-        # Agregar eventos registrados
+        # Agregar matrimonio (basado en la fecha de matrimonio del cónyuge si existe)
+        if self.spouse and hasattr(self.spouse, 'marriage_date') and self.spouse.marriage_date:
+            timeline.append({
+                'fecha': self.spouse.marriage_date,
+                'evento': f'Matrimonio con {self.spouse.get_full_name()}',
+                'descripcion': f"Se casó con {self.spouse.get_full_name()}",
+                'categoria': 'marriage'
+            })
+        elif self.spouse:
+            # Si hay cónyuge pero no fecha de matrimonio, estimarla
+            estimated_marriage_year = self.calculate_age() - 25  # Estimar matrimonio a los 25 años
+            if estimated_marriage_year > 0:
+                # Extraer año de nacimiento de manera segura
+                birth_year = 2000  # Valor por defecto
+                if self.birth_date:
+                    try:
+                        if isinstance(self.birth_date, str):
+                            birth_year = int(self.birth_date.split('-')[0])
+                        elif hasattr(self.birth_date, 'year'):
+                            birth_year = self.birth_date.year
+                    except (ValueError, AttributeError):
+                        birth_year = 2000
+                
+                marriage_year = birth_year + 25
+                timeline.append({
+                    'fecha': f'{marriage_year}-06-15',
+                    'evento': f'Matrimonio con {self.spouse.get_full_name()}',
+                    'descripcion': f"Se casó con {self.spouse.get_full_name()} (fecha estimada)",
+                    'categoria': 'marriage'
+                })
+        
+        # Agregar nacimiento de hijos
+        for child in self.children:
+            if child.birth_date:
+                timeline.append({
+                    'fecha': child.birth_date,
+                    'evento': f'Nacimiento de hijo/a: {child.get_full_name()}',
+                    'descripcion': f"Nació su hijo/a {child.get_full_name()}",
+                    'categoria': 'childbirth'
+                })
+        
+        # Agregar eventos de enviudar (si el cónyuge ha fallecido)
+        if self.spouse and not self.spouse.alive and self.spouse.death_date:
+            timeline.append({
+                'fecha': self.spouse.death_date,
+                'evento': f'Enviudó - Fallecimiento de {self.spouse.get_full_name()}',
+                'descripcion': f"Perdió a su cónyuge {self.spouse.get_full_name()}",
+                'categoria': 'widowhood'
+            })
+            
+        # Agregar eventos registrados manualmente
         for event in self.events:
             # Extraer la categoría del evento
             category = 'other'
@@ -551,17 +601,37 @@ class Person:
                 'evento': event_text,
                 'categoria': category
             })
-            
+        
         # Agregar fallecimiento si aplica
         if not self.alive and self.death_date:
             timeline.append({
                 'fecha': self.death_date,
                 'evento': 'Fallecimiento',
+                'descripcion': f"Falleció a los {self.calculate_age()} años",
                 'categoria': 'death'
             })
             
-        # Ordenar por fecha
-        timeline.sort(key=lambda x: x['fecha'])
+        # Ordenar por fecha - convertir todas las fechas a datetime para comparación
+        def parse_date_for_sorting(date_value):
+            """Convierte fecha a datetime para ordenamiento seguro"""
+            if isinstance(date_value, datetime.datetime):
+                return date_value
+            elif isinstance(date_value, str):
+                try:
+                    # Intentar parsear string de fecha en formato YYYY-MM-DD
+                    return datetime.datetime.strptime(date_value, '%Y-%m-%d')
+                except ValueError:
+                    try:
+                        # Intentar parsear otros formatos comunes
+                        return datetime.datetime.strptime(date_value, '%Y/%m/%d')
+                    except ValueError:
+                        # Si no se puede parsear, usar una fecha muy antigua
+                        return datetime.datetime(1900, 1, 1)
+            else:
+                # Si no es ni datetime ni string, usar fecha muy antigua
+                return datetime.datetime(1900, 1, 1)
+        
+        timeline.sort(key=lambda x: parse_date_for_sorting(x['fecha']))
         return timeline
     
     def get_statistics(self) -> dict:

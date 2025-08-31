@@ -77,19 +77,39 @@ class TimelineVisualizer:
                 'marriage': '💍',
                 'divorce': '💔',
                 'death': '⚰️',
+                'childbirth': '🍼',
+                'widowhood': '🕯️',
+                'graduation': '🎓',
+                'retirement': '🏖️',
                 'other': '📝'
             }
             
             category = event.get('categoria', 'other')
             emoji = category_emojis.get(category, '📝')
             
+            # Frame para el contenido del evento
+            content_frame = ctk.CTkFrame(event_frame)
+            content_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10, pady=5)
+            
+            # Evento principal
             event_label = ctk.CTkLabel(
-                event_frame,
+                content_frame,
                 text=f"{emoji} {event['evento']}",
-                font=ctk.CTkFont(size=14),
+                font=ctk.CTkFont(size=14, weight="bold"),
                 anchor="w"
             )
-            event_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10, pady=10)
+            event_label.pack(anchor="w", padx=5, pady=(5, 2))
+            
+            # Descripción adicional si existe
+            if event.get('descripcion'):
+                desc_label = ctk.CTkLabel(
+                    content_frame,
+                    text=event['descripcion'],
+                    font=ctk.CTkFont(size=11),
+                    anchor="w",
+                    text_color="gray"
+                )
+                desc_label.pack(anchor="w", padx=5, pady=(0, 5))
             
             # Color según tipo de evento
             colors = {
@@ -97,6 +117,10 @@ class TimelineVisualizer:
                 'marriage': '#FF6B9D', 
                 'divorce': '#FF5722',
                 'death': '#424242',
+                'childbirth': '#81C784',
+                'widowhood': '#616161',
+                'graduation': '#3F51B5',
+                'retirement': '#FF9800',
                 'other': '#9E9E9E'
             }
             
