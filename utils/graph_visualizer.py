@@ -10,6 +10,8 @@ class FamilyGraphVisualizer:
     def __init__(self):
         self.G = nx.DiGraph()
         self.ego_cedula = None  # Para futuras mejoras
+        self.position_cache = {}  # Caché para mantener posiciones estables
+        self.family_structure_hash = None  # Para detectar cambios estructurales
 
     def build_family_graph(self, family) -> nx.DiGraph:
         """Construye el grafo familiar a partir de los miembros"""
@@ -44,8 +46,9 @@ class FamilyGraphVisualizer:
         return self.G
 
     def calculate_hierarchical_layout(self, family) -> Dict[str, Tuple[float, float]]:
-        """Calcula posiciones jerárquicas mejoradas con posicionamiento optimizado de cónyuges"""
-        pos = {}
+        """Calcula posiciones jerárquicas mejoradas con posicionamiento optimizado de cónyuges
+        MANTENIENDO POSICIONES ESTABLES que no cambian por estado de vida"""
+        
         levels = self._assign_levels(family)
         
         # Debug: Verificar niveles asignados
@@ -58,6 +61,28 @@ class FamilyGraphVisualizer:
 
         if not levels:
             return {}
+
+        # Crear hash de la estructura familiar (sin considerar estado de vida)
+        structure_elements = []
+        for person in family.members:
+            # Solo incluir elementos estructurales, no el estado de vida
+            elements = [
+                person.cedula,
+                person.father.cedula if person.father else None,
+                person.mother.cedula if person.mother else None,
+                person.spouse.cedula if person.spouse else None,
+                person.gender
+            ]
+            structure_elements.append(tuple(elements))
+        
+        current_structure_hash = hash(tuple(sorted(structure_elements)))
+        
+        # Si la estructura no ha cambiado, usar posiciones del caché
+        if (self.family_structure_hash == current_structure_hash and 
+            self.position_cache and 
+            all(cedula in self.position_cache for cedula in levels.keys())):
+            print("🔄 Usando posiciones del caché para mantener estabilidad visual")
+            return self.position_cache.copy()
 
         # Ajustar niveles para que el mínimo sea 0
         min_level = min(levels.values())
@@ -90,10 +115,16 @@ class FamilyGraphVisualizer:
         pos = self._calculate_balanced_layout(family_units, margin_left, margin_top, 
                                             available_width, available_height, level_height)
 
+        # Actualizar caché y hash de estructura
+        self.position_cache = pos.copy()
+        self.family_structure_hash = current_structure_hash
+        print("💾 Posiciones calculadas y guardadas en caché")
+
         return pos
 
     def _create_family_units(self, family, levels) -> List[Dict]:
-        """Crea unidades familiares (parejas y solteros) organizadas por nivel"""
+        """Crea unidades familiares (parejas y solteros) organizadas por nivel
+        MANTENIENDO POSICIONES ESTABLES independientemente del estado de vida"""
         family_units = []
         processed_persons = set()
         
@@ -102,6 +133,10 @@ class FamilyGraphVisualizer:
         for person in family.members:
             level = levels.get(person.cedula, 0)
             level_groups.setdefault(level, []).append(person)
+        
+        # Ordenar personas por cédula para mantener orden consistente
+        for level in level_groups:
+            level_groups[level].sort(key=lambda p: p.cedula)
         
         for level, persons in level_groups.items():
             level_units = []
@@ -124,7 +159,11 @@ class FamilyGraphVisualizer:
                         left_cedula, right_cedula = person.spouse.cedula, person.cedula
                     else:
                         # Fallback para casos especiales (mismo género o sin especificar)
-                        left_cedula, right_cedula = min(person.cedula, person.spouse.cedula), max(person.cedula, person.spouse.cedula)
+                        # Usar orden consistente basado en cédula para mantener posiciones estables
+                        left_cedula, right_cedula = sorted([person.cedula, person.spouse.cedula])
+                    
+                    # Crear ID único para la pareja basado en las cédulas ordenadas
+                    couple_id = f"couple_{min(person.cedula, person.spouse.cedula)}_{max(person.cedula, person.spouse.cedula)}"
                     
                     unit = {
                         'type': 'couple',
@@ -135,7 +174,8 @@ class FamilyGraphVisualizer:
                         'width': 280,  # Más espacio para dos tarjetas lado a lado como en imagen
                         'both_alive': person.alive and person.spouse.alive,
                         'both_dead': not person.alive and not person.spouse.alive,
-                        'mixed_status': person.alive != person.spouse.alive
+                        'mixed_status': person.alive != person.spouse.alive,
+                        'stable_id': couple_id  # ID estable para mantener posición
                     }
                     level_units.append(unit)
                     processed_persons.add(person.cedula)
@@ -148,11 +188,14 @@ class FamilyGraphVisualizer:
                         'level': level,
                         'members': [person.cedula],
                         'width': 160,  # Espacio para una tarjeta como en imagen
-                        'alive': person.alive
+                        'alive': person.alive,
+                        'stable_id': f"single_{person.cedula}"  # ID estable para mantener posición
                     }
                     level_units.append(unit)
                     processed_persons.add(person.cedula)
             
+            # Ordenar unidades por ID estable para mantener orden consistente
+            level_units.sort(key=lambda u: u['stable_id'])
             family_units.extend(level_units)
         
         return family_units
@@ -574,8 +617,15 @@ class FamilyGraphVisualizer:
             print(f"Error dibujando leyenda: {e}")
 
     def _draw_family_connections(self, canvas, family, pos):
-        """Dibuja conexiones familiares con sistema de ramificación horizontal consistente"""
+        """Dibuja conexiones familiares con sistema anti-colisiones mejorado"""
         try:
+            # Sistema de registro de rutas ocupadas para evitar cruces
+            rutas_ocupadas = {
+                'horizontales': [],  # [(y, x_start, x_end)]
+                'verticales': [],    # [(x, y_start, y_end)]
+                'diagonales': []     # [(x1, y1, x2, y2)]
+            }
+            
             # 1. Primero dibujar relaciones de pareja/cónyuge
             parejas_dibujadas = set()
             puntos_medios_parejas = {}
@@ -598,6 +648,10 @@ class FamilyGraphVisualizer:
                     canvas.create_line(x1, y1, x2, y2, 
                                      fill="#E91E63", width=4, smooth=True, capstyle="round")
                     
+                    # Registrar ruta matrimonial como ocupada
+                    min_x, max_x = min(x1, x2), max(x1, x2)
+                    rutas_ocupadas['horizontales'].append((y1, min_x, max_x))
+                    
                     # Punto medio para conexiones padre-hijo
                     mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
                     puntos_medios_parejas[pareja_id] = (mid_x, mid_y)
@@ -606,185 +660,306 @@ class FamilyGraphVisualizer:
                     canvas.create_oval(mid_x-4, mid_y-4, mid_x+4, mid_y+4, 
                                      fill="#E91E63", outline="#FFFFFF", width=1)
 
-            # 2. SISTEMA DE RAMIFICACIÓN HORIZONTAL UNIFICADO
-            # Agrupar TODOS los hijos por sus unidades parentales
+            # 2. SISTEMA DE RAMIFICACIÓN SEPARADO POR NÚCLEOS FAMILIARES CON ANTI-COLISIONES
+            # Agrupar SOLO los hijos por sus PADRES ESPECÍFICOS (sin mezclar primos)
             conexiones_familiares = {}
             
             for person in family.members:
                 if person.cedula in pos:
-                    # Identificar a los padres de esta persona
+                    # Identificar a los padres EXACTOS de esta persona
                     padres_key = None
                     parent_pos = None
                     
-                    # Caso 1: Ambos padres (casados o no)
+                    # Caso 1: Ambos padres específicos (mismo núcleo familiar)
                     if (person.father and person.mother and 
                         person.father.cedula in pos and person.mother.cedula in pos):
                         
                         padre_cedula = person.father.cedula
                         madre_cedula = person.mother.cedula
+                        # CLAVE ESPECÍFICA por núcleo familiar exacto
                         pareja_id = tuple(sorted([padre_cedula, madre_cedula]))
                         
                         if pareja_id in puntos_medios_parejas:
                             # Padres casados - usar punto medio
-                            padres_key = f"pareja_{pareja_id[0]}_{pareja_id[1]}"
+                            padres_key = f"nucleo_casado_{pareja_id[0]}_{pareja_id[1]}"
                             parent_pos = puntos_medios_parejas[pareja_id]
                         else:
                             # Padres no casados - crear punto medio y línea
                             padre_x, padre_y = pos[padre_cedula]
                             madre_x, madre_y = pos[madre_cedula]
                             parent_pos = ((padre_x + madre_x) / 2, (padre_y + madre_y) / 2)
-                            padres_key = f"no_casados_{pareja_id[0]}_{pareja_id[1]}"
+                            padres_key = f"nucleo_no_casado_{pareja_id[0]}_{pareja_id[1]}"
                             
                             # Dibujar línea entre padres no casados (solo una vez)
                             if padres_key not in conexiones_familiares:
                                 canvas.create_line(padre_x, padre_y, madre_x, madre_y,
                                                  fill="#FF9800", width=3, dash=(10, 5), capstyle="round")
+                                # Registrar como ruta ocupada
+                                min_x, max_x = min(padre_x, madre_x), max(padre_x, madre_x)
+                                rutas_ocupadas['horizontales'].append((padre_y, min_x, max_x))
                     
-                    # Caso 2: Solo padre
+                    # Caso 2: Solo padre (núcleo monoparental paterno)
                     elif person.father and person.father.cedula in pos:
-                        padres_key = f"padre_solo_{person.father.cedula}"
+                        padres_key = f"nucleo_paterno_{person.father.cedula}"
                         parent_pos = pos[person.father.cedula]
                     
-                    # Caso 3: Solo madre
+                    # Caso 3: Solo madre (núcleo monoparental materno)
                     elif person.mother and person.mother.cedula in pos:
-                        padres_key = f"madre_sola_{person.mother.cedula}"
+                        padres_key = f"nucleo_materno_{person.mother.cedula}"
                         parent_pos = pos[person.mother.cedula]
                     
-                    # Si encontramos padres, agregar este hijo al grupo
+                    # Si encontramos padres, agregar este hijo AL NÚCLEO ESPECÍFICO
                     if padres_key and parent_pos:
                         if padres_key not in conexiones_familiares:
                             conexiones_familiares[padres_key] = {
                                 'parent_pos': parent_pos,
-                                'hijos': []
+                                'hijos': [],
+                                'tipo_nucleo': padres_key.split('_')[1]  # casado, no_casado, paterno, materno
                             }
                         
                         child_x, child_y = pos[person.cedula]
                         conexiones_familiares[padres_key]['hijos'].append((person.cedula, child_x, child_y))
 
-            # 3. DIBUJAR TODAS LAS CONEXIONES CON RAMIFICACIÓN HORIZONTAL
+            # 3. DIBUJAR CONEXIONES SEPARADAS POR NÚCLEO FAMILIAR CON SISTEMA ANTI-COLISIONES
+            # Cada núcleo familiar tendrá sus propias conexiones independientes
             for padres_key, info in conexiones_familiares.items():
                 parent_x, parent_y = info['parent_pos']
                 hijos = info['hijos']
+                tipo_nucleo = info['tipo_nucleo']
                 
                 if not hijos:
                     continue
                 
+                # Color diferenciado por tipo de núcleo
+                color_conexion = "#1976D2"  # Azul para núcleos completos
+                if tipo_nucleo in ['paterno', 'materno']:
+                    color_conexion = "#4CAF50"  # Verde para monoparentales
+                elif tipo_nucleo == 'no_casado':
+                    color_conexion = "#FF9800"  # Naranja para no casados
+                
                 if len(hijos) == 1:
-                    # Un solo hijo: línea directa y simple (sin extensiones innecesarias)
+                    # Un solo hijo: usar ruta inteligente anti-colisiones
                     cedula, child_x, child_y = hijos[0]
                     
-                    # Altura intermedia para la ramificación
-                    horizontal_y = parent_y + (child_y - parent_y) * 0.6
+                    # Calcular ruta sin colisiones
+                    ruta = self._calcular_ruta_inteligente(parent_x, parent_y, child_x, child_y, rutas_ocupadas)
                     
-                    # Para hijos únicos: línea directa desde padre hasta hijo
-                    # Sin extensiones simétricas - solo la conexión natural
-                    line_start_x = parent_x
-                    line_end_x = child_x
+                    # Dibujar ruta calculada
+                    self._dibujar_ruta_inteligente(canvas, ruta, color_conexion, 4, arrow=True)
                     
-                    # 1. Línea vertical desde padre
+                    # Registrar ruta como ocupada
+                    self._registrar_ruta_ocupada(rutas_ocupadas, ruta, 'padre-hijo')
+                
+                elif len(hijos) == 2:
+                    # Dos hijos: ramificación en T inteligente sin colisiones
+                    child1_cedula, child1_x, child1_y = hijos[0]
+                    child2_cedula, child2_x, child2_y = hijos[1]
+                    
+                    # Calcular altura horizontal óptima evitando colisiones
+                    horizontal_y = self._encontrar_altura_libre(parent_y, child1_y, child2_y, rutas_ocupadas)
+                    
+                    # Línea horizontal SOLO para este núcleo familiar (no cruzará con otros)
+                    min_x = min(child1_x, child2_x, parent_x)
+                    max_x = max(child1_x, child2_x, parent_x)
+                    
+                    # Línea vertical desde padre hasta altura horizontal
                     canvas.create_line(parent_x, parent_y, parent_x, horizontal_y,
-                                     fill="#1976D2", width=4, capstyle="round")
+                                     fill=color_conexion, width=4, capstyle="round")
+                    rutas_ocupadas['verticales'].append((parent_x, parent_y, horizontal_y))
                     
-                    # 2. Línea horizontal directa desde padre hasta hijo (sin extensiones)
-                    canvas.create_line(line_start_x, horizontal_y, line_end_x, horizontal_y,
-                                     fill="#1976D2", width=4, capstyle="round")
+                    # Línea horizontal que conecta SOLO a estos hermanos específicos
+                    canvas.create_line(min_x, horizontal_y, max_x, horizontal_y,
+                                     fill=color_conexion, width=4, capstyle="round")
+                    rutas_ocupadas['horizontales'].append((horizontal_y, min_x, max_x))
                     
-                    # 3. Línea vertical al hijo con flecha
-                    canvas.create_line(child_x, horizontal_y, child_x, child_y,
-                                     fill="#1976D2", width=4, capstyle="round",
+                    # Líneas verticales a cada hijo
+                    canvas.create_line(child1_x, horizontal_y, child1_x, child1_y,
+                                     fill=color_conexion, width=4, capstyle="round",
                                      arrow=tk.LAST, arrowshape=(16, 20, 8))
+                    canvas.create_line(child2_x, horizontal_y, child2_x, child2_y,
+                                     fill=color_conexion, width=4, capstyle="round",
+                                     arrow=tk.LAST, arrowshape=(16, 20, 8))
+                    
+                    # Registrar rutas verticales como ocupadas
+                    rutas_ocupadas['verticales'].append((child1_x, horizontal_y, child1_y))
+                    rutas_ocupadas['verticales'].append((child2_x, horizontal_y, child2_y))
                 
                 else:
-                    # Múltiples hijos: ramificación horizontal completa con ancho mínimo
-                    
-                    # Calcular posiciones
-                    children_x = [child_x for _, child_x, _ in hijos]
-                    children_y = [child_y for _, _, child_y in hijos]
-                    
-                    min_child_x = min(children_x)
-                    max_child_x = max(children_x)
-                    avg_child_y = sum(children_y) / len(children_y)
-                    
-                    # Altura de ramificación
-                    horizontal_y = parent_y + (avg_child_y - parent_y) * 0.6
-                    
-                    # Determinar el rango completo con ancho mínimo garantizado
-                    natural_width = max_child_x - min_child_x
-                    min_line_width = 120  # Ancho mínimo para múltiples hijos
-                    
-                    if natural_width < min_line_width:
-                        # Expandir desde el centro para garantizar ancho mínimo
-                        center_x = (min_child_x + max_child_x) / 2
-                        line_start_x = min(parent_x, center_x - min_line_width / 2)
-                        line_end_x = max(parent_x, center_x + min_line_width / 2)
-                    else:
-                        # Usar el rango natural si es suficientemente amplio
-                        line_start_x = min(parent_x, min_child_x)
-                        line_end_x = max(parent_x, max_child_x)
-                    
-                    # 1. Línea vertical desde padre hasta altura de ramificación
-                    canvas.create_line(parent_x, parent_y, parent_x, horizontal_y,
-                                     fill="#1976D2", width=4, capstyle="round")
-                    
-                    # 2. Línea horizontal que garantiza visibilidad y diferenciación
-                    canvas.create_line(line_start_x, horizontal_y, line_end_x, horizontal_y,
-                                     fill="#1976D2", width=4, capstyle="round")
-                    
-                    # 3. Líneas verticales individuales a cada hijo
+                    # Más de dos hijos: rutas inteligentes individuales
                     for cedula, child_x, child_y in hijos:
-                        canvas.create_line(child_x, horizontal_y, child_x, child_y,
-                                         fill="#1976D2", width=4, capstyle="round",
-                                         arrow=tk.LAST, arrowshape=(16, 20, 8))
+                        # Calcular ruta inteligente para cada hijo
+                        ruta = self._calcular_ruta_inteligente(parent_x, parent_y, child_x, child_y, rutas_ocupadas)
+                        
+                        # Dibujar ruta calculada
+                        self._dibujar_ruta_inteligente(canvas, ruta, color_conexion, 4, arrow=True)
+                        
+                        # Registrar ruta como ocupada
+                        self._registrar_ruta_ocupada(rutas_ocupadas, ruta, 'padre-hijo')
                                              
         except Exception as e:
             print(f"Error dibujando conexiones familiares: {e}")
 
-    def _calcular_ruta_sin_colisiones(self, start_x, start_y, end_x, end_y, rutas_ocupadas):
-        """Calcula la mejor ruta en L evitando colisiones con rutas existentes"""
-        # Distancia base para el punto de inflexión
-        base_offset = abs(end_y - start_y) * 0.6
+    def _calcular_ruta_inteligente(self, start_x, start_y, end_x, end_y, rutas_ocupadas):
+        """Calcula la mejor ruta anti-colisiones entre dos puntos"""
+        # Probar ruta directa primero
+        if not self._ruta_colisiona(start_x, start_y, end_x, end_y, rutas_ocupadas):
+            return {
+                'tipo': 'directa',
+                'puntos': [(start_x, start_y), (end_x, end_y)]
+            }
         
-        # Probar diferentes alturas para el segmento horizontal
-        for offset_multiplier in [0.6, 0.4, 0.8, 0.3, 0.9]:
-            test_y = start_y + (end_y - start_y) * offset_multiplier
+        # Calcular ruta en L evitando colisiones
+        mejor_ruta = None
+        mejor_score = float('inf')
+        
+        # Probar diferentes puntos de inflexión
+        for factor in [0.3, 0.5, 0.7, 0.4, 0.6, 0.8]:
+            # Ruta L vertical-horizontal
+            bend_y = start_y + (end_y - start_y) * factor
+            ruta_vh = {
+                'tipo': 'L_vh',
+                'puntos': [(start_x, start_y), (start_x, bend_y), (end_x, bend_y), (end_x, end_y)]
+            }
             
-            # Verificar si esta altura está libre de colisiones
-            if self._ruta_libre_de_colisiones(start_x, test_y, end_x, test_y, rutas_ocupadas):
-                return {
-                    'start': (start_x, start_y),
-                    'bend1': (start_x, test_y),
-                    'bend2': (end_x, test_y),
-                    'end': (end_x, end_y)
-                }
-        
-        # Si no encuentra espacio, usar ruta básica con offset mínimo
-        fallback_y = start_y + (end_y - start_y) * 0.5
-        return {
-            'start': (start_x, start_y),
-            'bend1': (start_x, fallback_y),
-            'bend2': (end_x, fallback_y),
-            'end': (end_x, end_y)
-        }
-    
-    def _ruta_libre_de_colisiones(self, x1, y, x2, y2, rutas_ocupadas):
-        """Verifica si una ruta horizontal está libre de colisiones"""
-        min_x, max_x = min(x1, x2), max(x1, x2)
-        
-        for ruta in rutas_ocupadas:
-            if ruta['type'] == 'matrimonial':
-                # Verificar colisión con líneas matrimoniales horizontales
-                if (abs(ruta['y'] - y) < 20 and  # Misma altura aproximada
-                    not (max_x < ruta['x_start'] or min_x > ruta['x_end'])):  # Se superponen horizontalmente
-                    return False
+            if not self._ruta_l_colisiona(ruta_vh, rutas_ocupadas):
+                score = abs(factor - 0.5)  # Preferir puntos medios
+                if score < mejor_score:
+                    mejor_score = score
+                    mejor_ruta = ruta_vh
             
-            elif ruta['type'] == 'padre-hijo':
-                # Verificar colisión con segmentos horizontales de otras rutas padre-hijo
-                if 'horizontal_y' in ruta:
-                    if (abs(ruta['horizontal_y'] - y) < 20 and
-                        not (max_x < ruta['x_start'] or min_x > ruta['x_end'])):
-                        return False
+            # Ruta L horizontal-vertical
+            bend_x = start_x + (end_x - start_x) * factor
+            ruta_hv = {
+                'tipo': 'L_hv',
+                'puntos': [(start_x, start_y), (bend_x, start_y), (bend_x, end_y), (end_x, end_y)]
+            }
+            
+            if not self._ruta_l_colisiona(ruta_hv, rutas_ocupadas):
+                score = abs(factor - 0.5)
+                if score < mejor_score:
+                    mejor_score = score
+                    mejor_ruta = ruta_hv
         
-        return True
+        # Si no hay ruta libre, usar la ruta más simple
+        if mejor_ruta is None:
+            mejor_ruta = {
+                'tipo': 'L_vh',
+                'puntos': [(start_x, start_y), (start_x, start_y + (end_y - start_y) * 0.5), 
+                          (end_x, start_y + (end_y - start_y) * 0.5), (end_x, end_y)]
+            }
+        
+        return mejor_ruta
+
+    def _encontrar_altura_libre(self, parent_y, child1_y, child2_y, rutas_ocupadas):
+        """Encuentra una altura libre para líneas horizontales evitando colisiones"""
+        avg_child_y = (child1_y + child2_y) / 2
+        
+        # Probar diferentes alturas
+        for factor in [0.6, 0.5, 0.7, 0.4, 0.8, 0.3, 0.9]:
+            test_y = parent_y + (avg_child_y - parent_y) * factor
+            
+            # Verificar si esta altura está libre
+            libre = True
+            for h_y, h_x1, h_x2 in rutas_ocupadas['horizontales']:
+                if abs(h_y - test_y) < 15:  # Margen de seguridad
+                    libre = False
+                    break
+            
+            if libre:
+                return test_y
+        
+        # Si no encuentra altura libre, usar la calculada básica
+        return parent_y + (avg_child_y - parent_y) * 0.6
+
+    def _ruta_colisiona(self, x1, y1, x2, y2, rutas_ocupadas):
+        """Verifica si una línea directa colisiona con rutas existentes"""
+        margen = 10
+        
+        # Verificar colisión con líneas horizontales
+        for h_y, h_x1, h_x2 in rutas_ocupadas['horizontales']:
+            if self._lineas_se_cruzan(x1, y1, x2, y2, h_x1, h_y, h_x2, h_y, margen):
+                return True
+        
+        # Verificar colisión con líneas verticales
+        for v_x, v_y1, v_y2 in rutas_ocupadas['verticales']:
+            if self._lineas_se_cruzan(x1, y1, x2, y2, v_x, v_y1, v_x, v_y2, margen):
+                return True
+        
+        return False
+
+    def _ruta_l_colisiona(self, ruta, rutas_ocupadas):
+        """Verifica si una ruta en L colisiona con rutas existentes"""
+        puntos = ruta['puntos']
+        
+        # Verificar cada segmento de la ruta L
+        for i in range(len(puntos) - 1):
+            x1, y1 = puntos[i]
+            x2, y2 = puntos[i + 1]
+            
+            if self._ruta_colisiona(x1, y1, x2, y2, rutas_ocupadas):
+                return True
+        
+        return False
+
+    def _lineas_se_cruzan(self, x1, y1, x2, y2, x3, y3, x4, y4, margen=5):
+        """Verifica si dos líneas se cruzan considerando un margen de seguridad"""
+        # Algoritmo de intersección de líneas con margen
+        denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        
+        if abs(denom) < 1e-10:  # Líneas paralelas
+            return False
+        
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+        
+        # Verificar si hay intersección en el segmento
+        if 0 <= t <= 1 and 0 <= u <= 1:
+            # Calcular punto de intersección
+            px = x1 + t * (x2 - x1)
+            py = y1 + t * (y2 - y1)
+            
+            # Verificar margen de seguridad
+            min_dist = min(
+                ((px - x1)**2 + (py - y1)**2)**0.5,
+                ((px - x2)**2 + (py - y2)**2)**0.5,
+                ((px - x3)**2 + (py - y3)**2)**0.5,
+                ((px - x4)**2 + (py - y4)**2)**0.5
+            )
+            
+            return min_dist < margen
+        
+        return False
+
+    def _dibujar_ruta_inteligente(self, canvas, ruta, color, width, arrow=False):
+        """Dibuja una ruta calculada por el sistema inteligente"""
+        puntos = ruta['puntos']
+        
+        if ruta['tipo'] == 'directa':
+            x1, y1 = puntos[0]
+            x2, y2 = puntos[1]
+            
+            if arrow:
+                canvas.create_line(x1, y1, x2, y2, 
+                                 fill=color, width=width, capstyle="round",
+                                 arrow=tk.LAST, arrowshape=(16, 20, 8))
+            else:
+                canvas.create_line(x1, y1, x2, y2, 
+                                 fill=color, width=width, capstyle="round")
+        
+        else:  # Ruta L
+            # Dibujar cada segmento
+            for i in range(len(puntos) - 1):
+                x1, y1 = puntos[i]
+                x2, y2 = puntos[i + 1]
+                
+                # Flecha solo en el último segmento
+                if arrow and i == len(puntos) - 2:
+                    canvas.create_line(x1, y1, x2, y2, 
+                                     fill=color, width=width, capstyle="round",
+                                     arrow=tk.LAST, arrowshape=(16, 20, 8))
+                else:
+                    canvas.create_line(x1, y1, x2, y2, 
+                                     fill=color, width=width, capstyle="round")
     
     def _dibujar_ruta_en_l(self, canvas, ruta, color, width, arrow=False):
         """Dibuja una ruta en L con los puntos especificados y mejor apariencia"""
@@ -811,13 +986,32 @@ class FamilyGraphVisualizer:
                              fill=color, width=width, capstyle="round", joinstyle="round")
     
     def _registrar_ruta_ocupada(self, rutas_ocupadas, ruta, tipo):
-        """Registra una ruta como ocupada para evitar futuras colisiones"""
-        rutas_ocupadas.append({
-            'type': tipo,
-            'horizontal_y': ruta['bend1'][1],  # Altura del segmento horizontal
-            'x_start': min(ruta['bend1'][0], ruta['bend2'][0]),
-            'x_end': max(ruta['bend1'][0], ruta['bend2'][0])
-        })
+        """Registra una ruta como ocupada en el sistema anti-colisiones"""
+        puntos = ruta['puntos']
+        
+        if ruta['tipo'] == 'directa':
+            x1, y1 = puntos[0]
+            x2, y2 = puntos[1]
+            
+            if abs(x1 - x2) < 5:  # Línea vertical
+                rutas_ocupadas['verticales'].append((x1, min(y1, y2), max(y1, y2)))
+            elif abs(y1 - y2) < 5:  # Línea horizontal
+                rutas_ocupadas['horizontales'].append((y1, min(x1, x2), max(x1, x2)))
+            else:  # Línea diagonal
+                rutas_ocupadas['diagonales'].append((x1, y1, x2, y2))
+        
+        else:  # Ruta L
+            # Registrar cada segmento
+            for i in range(len(puntos) - 1):
+                x1, y1 = puntos[i]
+                x2, y2 = puntos[i + 1]
+                
+                if abs(x1 - x2) < 5:  # Segmento vertical
+                    rutas_ocupadas['verticales'].append((x1, min(y1, y2), max(y1, y2)))
+                elif abs(y1 - y2) < 5:  # Segmento horizontal
+                    rutas_ocupadas['horizontales'].append((y1, min(x1, x2), max(x1, x2)))
+                else:  # Segmento diagonal
+                    rutas_ocupadas['diagonales'].append((x1, y1, x2, y2))
     
     def _show_menu(self, event, person):
         """Placeholder - será reemplazado en app.py"""
