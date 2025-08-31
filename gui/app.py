@@ -102,24 +102,13 @@ class GenealogyApp:
         frame = ctk.CTkFrame(self.tree_tab)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        # Botón agregar Ego
-        if not self.family.members:
-            self.add_ego_button = ctk.CTkButton(
-                frame,
-                text="➕ Agregar Persona Principal (Ego)",
-                command=self.open_person_form_for_ego,
-                font=("Arial", 14, "bold"),
-                fg_color="#1db954",
-                hover_color="#1ed760"
-            )
-            self.add_ego_button.pack(pady=20)
-        else:
-            self.add_ego_button = None
-
         # Canvas para el árbol
         self.tree_canvas = tk.Canvas(frame, bg="#2a2a2a", highlightthickness=0)
         self.tree_canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
+        # Configurar botón del Ego inicial
+        self.update_ego_button()
+        
         self.draw_tree()
 
     def open_person_form_for_ego(self):
@@ -135,8 +124,10 @@ class GenealogyApp:
                 marital_status=data["marital_status"]
             )
             self.family.add_or_update_member(person)
-            if self.add_ego_button:
-                self.add_ego_button.destroy()
+            
+            # Actualizar el botón del Ego usando el nuevo método
+            self.update_ego_button()
+            
             self.draw_tree()
             self.update_history_tab()
             # Guardar datos automáticamente
@@ -402,6 +393,9 @@ class GenealogyApp:
                 self.history_panel.family = self.family
                 self.history_panel.update_history()
             
+            # 🔧 ACTUALIZAR BOTÓN DEL EGO EN EL ÁRBOL GENEALÓGICO
+            self.update_ego_button()
+            
             # Redibujar el árbol
             self.draw_tree()
             
@@ -410,6 +404,43 @@ class GenealogyApp:
             
         except Exception as e:
             print(f"Error al actualizar paneles: {e}")
+    
+    def update_ego_button(self):
+        """Actualiza la visibilidad del botón Agregar Ego según la familia actual"""
+        if not hasattr(self, 'tree_tab') or not self.family:
+            return
+            
+        # Obtener el frame principal del árbol
+        tree_frame = None
+        for child in self.tree_tab.winfo_children():
+            if isinstance(child, ctk.CTkFrame):
+                tree_frame = child
+                break
+        
+        if not tree_frame:
+            return
+        
+        # Si la familia no tiene miembros, mostrar el botón del Ego
+        if not self.family.members:
+            # Si ya existe un botón del Ego, no hacer nada
+            if hasattr(self, 'add_ego_button') and self.add_ego_button and self.add_ego_button.winfo_exists():
+                return
+            
+            # Crear el botón del Ego
+            self.add_ego_button = ctk.CTkButton(
+                tree_frame,
+                text="➕ Agregar Persona Principal (Ego)",
+                command=self.open_person_form_for_ego,
+                font=("Arial", 14, "bold"),
+                fg_color="#1db954",
+                hover_color="#1ed760"
+            )
+            self.add_ego_button.pack(pady=20, before=self.tree_canvas)
+        else:
+            # Si la familia tiene miembros, ocultar el botón del Ego
+            if hasattr(self, 'add_ego_button') and self.add_ego_button and self.add_ego_button.winfo_exists():
+                self.add_ego_button.destroy()
+                self.add_ego_button = None
     
     def save_data(self) -> bool:
         """Guarda todos los datos de las familias"""
