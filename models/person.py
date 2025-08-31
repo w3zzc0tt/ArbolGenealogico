@@ -196,6 +196,55 @@ class Person:
         """Agrega un evento a la lista de eventos"""
         self.events.append({"evento": event, "fecha": date})
         
+    def register_life_event(self, event_type: str, details: str = "", date: str = None):
+        """
+        Registra eventos importantes de la vida automáticamente
+        
+        Args:
+            event_type (str): Tipo de evento ('birth', 'marriage', 'childbirth', 'widowhood', 'death', etc.)
+            details (str): Detalles adicionales del evento
+            date (str): Fecha del evento (por defecto fecha actual)
+        """
+        if date is None:
+            date = datetime.datetime.now().strftime("%Y-%m-%d")
+            
+        # Categorías de eventos con emojis
+        event_categories = {
+            'birth': '👶',
+            'marriage': '💍', 
+            'divorce': '💔',
+            'childbirth': '👶',
+            'widowhood': '🕯️',
+            'death': '⚰️',
+            'graduation': '🎓',
+            'retirement': '🏖️',
+            'trauma': '😢',
+            'guardianship': '🏠',
+            'health_decline': '😷',
+            'emotional_crisis': '💔',
+            'other': '📝'
+        }
+        
+        emoji = event_categories.get(event_type, '📝')
+        event_text = f"{emoji} {event_type.capitalize()}"
+        if details:
+            event_text += f": {details}"
+            
+        # Agregar a eventos y historial
+        self.events.append({"evento": event_text, "fecha": date})
+        self.history.append(f"{event_text} ({date})")
+        
+        # Registrar eventos específicos con efectos adicionales
+        if event_type == 'marriage':
+            self.marital_status = "Casado/a"
+        elif event_type == 'widowhood':
+            self.marital_status = "Viudo/a"
+        elif event_type == 'divorce':
+            self.marital_status = "Divorciado/a"
+        elif event_type == 'death':
+            self.alive = False
+            self.death_date = date
+        
     def can_have_children(self) -> bool:
         """Determina si la persona puede tener hijos"""
         age = self.calculate_virtual_age()

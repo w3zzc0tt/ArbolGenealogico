@@ -404,10 +404,10 @@ class RelacionService:
         person1.marital_status = "Casado/a"
         person2.marital_status = "Casado/a"
         
-        # Registrar evento en ambas personas
+        # Registrar evento en ambas personas usando el nuevo sistema
         current_date = datetime.now().strftime("%Y-%m-%d")
-        person1.add_event(f"Matrimonio con {person2.first_name}", current_date)
-        person2.add_event(f"Matrimonio con {person1.first_name}", current_date)
+        person1.register_life_event('marriage', f'con {person2.first_name}', current_date)
+        person2.register_life_event('marriage', f'con {person1.first_name}', current_date)
         
         return True, "Pareja registrada exitosamente"
     

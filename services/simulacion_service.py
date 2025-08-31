@@ -26,6 +26,12 @@ class SimulacionService:
             years_single = family.current_year - int(person.birth_date.split('-')[0]) - 30
             if years_single > 0:
                 person.emotional_health = max(10, person.emotional_health - (years_single * 2))
+                
+        # Procesar efectos de soltería prolongada
+        solteria_events = SimulacionService.procesar_efectos_solteria_prolongada(person)
+        if solteria_events:
+            # Agregar eventos a la familia (se manejarán en el ciclo principal)
+            person.add_event(f"Efectos de soltería prolongada", f"{family.current_year}-01-01")
         
         # Afectar esperanza de vida si la salud emocional es baja
         if person.emotional_health < 30:
@@ -148,10 +154,11 @@ class SimulacionService:
         )
         
         if success:
-            # Registrar evento en todos los involucrados
-            mother.add_event(f"Dio a luz a {baby.first_name} {baby.last_name}", current_date)
-            father.add_event(f"Nació su hijo/a {baby.first_name} {baby.last_name}", current_date)
-            baby.add_event("Nacimiento", current_date)
+            # Registrar evento en todos los involucrados usando el nuevo sistema
+            current_date = f"{family.current_year}-01-01"
+            mother.register_life_event('childbirth', f'dio a luz a {baby.first_name} {baby.last_name}', current_date)
+            father.register_life_event('childbirth', f'nació su hijo/a {baby.first_name} {baby.last_name}', current_date)
+            baby.register_life_event('birth', f'en {baby.province}', current_date)
             
             # Efecto positivo en la salud emocional de los padres
             mother.emotional_health = min(100, mother.emotional_health + random.randint(5, 15))
@@ -532,8 +539,8 @@ class SimulacionService:
                 
                 # Registrar eventos de matrimonio
                 marriage_date = f"{family.current_year}-01-01"
-                person_in_family.add_event(f"Matrimonio con {partner_in_family.first_name} {partner_in_family.last_name}", marriage_date)
-                partner_in_family.add_event(f"Matrimonio con {person_in_family.first_name} {person_in_family.last_name}", marriage_date)
+                person_in_family.register_life_event('marriage', f'con {partner_in_family.first_name} {partner_in_family.last_name}', marriage_date)
+                partner_in_family.register_life_event('marriage', f'con {person_in_family.first_name} {person_in_family.last_name}', marriage_date)
             
             logger.info(f"✅ Persona externa {new_partner.first_name} {new_partner.last_name} registrada exitosamente como pareja de {person.first_name}")
             return True
@@ -762,8 +769,8 @@ class SimulacionService:
             
             # Registrar la tutoría
             current_date = datetime.datetime.now().strftime("%Y-%m-%d")
-            child.add_event(f"Tutoría asignada a {guardian.first_name} {guardian.last_name} ({relationship})", current_date)
-            guardian.add_event(f"Asume tutoría de {child.first_name} {child.last_name}", current_date)
+            child.register_life_event('guardianship', f'asignado a {guardian.first_name} {guardian.last_name} ({relationship})', current_date)
+            guardian.register_life_event('guardianship', f'asume tutoría de {child.first_name} {child.last_name}', current_date)
             
             return True, f"👨‍👩‍👧‍👦 {guardian.first_name} {guardian.last_name} asume la tutoría de {child.first_name}"
         
@@ -776,7 +783,7 @@ class SimulacionService:
         if community_guardians:
             guardian = random.choice(community_guardians)
             current_date = datetime.datetime.now().strftime("%Y-%m-%d")
-            child.add_event(f"Tutoría comunitaria asignada a {guardian.first_name} {guardian.last_name}", current_date)
+            child.register_life_event('guardianship', f'tutoría comunitaria asignada a {guardian.first_name} {guardian.last_name}', current_date)
             return True, f"🏘️ {guardian.first_name} {guardian.last_name} asume tutoría comunitaria de {child.first_name}"
         
         return False, f"⚠️ No se encontró tutor para {child.first_name} {child.last_name}"
@@ -795,8 +802,8 @@ class SimulacionService:
         emotional_impact = random.randint(25, 40)
         person.emotional_health = max(10, person.emotional_health - emotional_impact)
         
-        # Registrar eventos
-        person.add_event(f"Viudez por fallecimiento de {deceased_spouse.first_name}", current_date)
+        # Registrar eventos usando el nuevo sistema
+        person.register_life_event('widowhood', f'por fallecimiento de {deceased_spouse.first_name}', current_date)
         eventos.append(f"💔 {person.first_name} queda viudo/a tras el fallecimiento de {deceased_spouse.first_name}")
         
         # Efectos a largo plazo
@@ -881,7 +888,7 @@ class SimulacionService:
                 # Procesar fallecimiento
                 person.alive = False
                 person.death_date = datetime.datetime.now().strftime("%Y-%m-%d")
-                person.add_event("Fallecimiento", person.death_date)
+                person.register_life_event('death', f'a los {person.calculate_virtual_age()} años', person.death_date)
                 
                 # Registrar en eventos
                 eventos.append(f"⚰️ {person.first_name} {person.last_name} ha fallecido a los {person.calculate_virtual_age()} años")
@@ -891,17 +898,26 @@ class SimulacionService:
                     viudez_events = SimulacionService.procesar_efectos_viudez(person.spouse, person)
                     eventos.extend(viudez_events)
                 
-                # Manejar hijos menores
+                # Manejar hijos menores - SISTEMA MEJORADO
+                menores_huerfanos = []
                 for child in person.children:
                     if child.alive and child.calculate_virtual_age() < 18:
-                        both_parents_dead = (
-                            (not child.father or not child.father.alive) and
-                            (not child.mother or not child.mother.alive)
-                        )
-                        if both_parents_dead:
-                            tutor_success, tutor_msg = SimulacionService.encontrar_tutor_legal_avanzado(child, family)
-                            if tutor_success:
-                                eventos.append(tutor_msg)
+                        # Verificar si ambos padres han fallecido
+                        padre_muerto = not child.father or not child.father.alive
+                        madre_muerta = not child.mother or not child.mother.alive
+                        
+                        if padre_muerto and madre_muerta:
+                            menores_huerfanos.append(child)
+                            
+                # Procesar reasignación de tutores para todos los menores huérfanos
+                for menor in menores_huerfanos:
+                    tutor_success, tutor_msg = SimulacionService.encontrar_tutor_legal_avanzado(menor, family)
+                    eventos.append(tutor_msg)
+                    
+                    # Registrar impacto emocional en el menor
+                    impacto_emocional = random.randint(30, 50)
+                    menor.emotional_health = max(10, menor.emotional_health - impacto_emocional)
+                    menor.register_life_event('trauma', 'pérdida de ambos padres', datetime.datetime.now().strftime("%Y-%m-%d"))
         
         return eventos
         
@@ -976,8 +992,8 @@ class SimulacionService:
                 success, message = RelacionService.registrar_pareja(family, person.cedula, partner.cedula, es_simulacion=True)
                 if success:
                     current_date = f"{family.current_year}-01-01"
-                    person.add_event(f"Matrimonio con {partner.first_name} {partner.last_name}", current_date)
-                    partner.add_event(f"Matrimonio con {person.first_name} {person.last_name}", current_date)
+                    person.register_life_event('marriage', f'con {partner.first_name} {partner.last_name}', current_date)
+                    partner.register_life_event('marriage', f'con {person.first_name} {person.last_name}', current_date)
                     eventos.append(f"💍 {person.first_name} y {partner.first_name} se casaron (familia interna, compatibilidad: {compatibility_score:.1f}%)")
         
         return eventos

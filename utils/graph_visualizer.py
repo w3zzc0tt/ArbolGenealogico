@@ -39,12 +39,7 @@ class FamilyGraphVisualizer:
                 if not self.G.has_edge(person.cedula, person.spouse.cedula) and not self.G.has_edge(person.spouse.cedula, person.cedula):
                     self.G.add_edge(person.cedula, person.spouse.cedula, relationship="spouse")
 
-            # Relación de hermanos (solo agregar una vez entre cada par)
-            for sibling in person.siblings:
-                if sibling.cedula in [p.cedula for p in family.members]:
-                    # Evitar duplicados comparando cédulas alfabéticamente
-                    if person.cedula < sibling.cedula:  # Solo agregar una vez por par
-                        self.G.add_edge(person.cedula, sibling.cedula, relationship="sibling")
+
 
         return self.G
 
@@ -552,8 +547,7 @@ class FamilyGraphVisualizer:
                 ("⚰️ Fallecido/a", "#9E9E9E", "■"),
                 ("💕 Pareja", "#E91E63", "━"),
                 ("→ Relación padre-hijo", "#1976D2", "→"),
-                ("○ Tiene hijos", "#666666", "○"),
-                ("🤝 Hermanos", "#4CAF50", "~")
+                ("○ Tiene hijos", "#666666", "○")
             ]
             
             y_offset = 35
@@ -741,33 +735,6 @@ class FamilyGraphVisualizer:
                         canvas.create_line(child_x, horizontal_y, child_x, child_y,
                                          fill="#1976D2", width=4, capstyle="round",
                                          arrow=tk.LAST, arrowshape=(16, 20, 8))
-
-            # 4. RELACIONES DE HERMANOS (opcional, más simple)
-            hermanos_unicos = set()
-            for person in family.members:
-                if person.siblings and person.cedula in pos:
-                    for sibling in person.siblings:
-                        if sibling.cedula in pos:
-                            hermano_id = tuple(sorted([person.cedula, sibling.cedula]))
-                            hermanos_unicos.add(hermano_id)
-            
-            # Dibujar hermanos con líneas curvas simples
-            for hermano_id in hermanos_unicos:
-                cedula1, cedula2 = hermano_id
-                if cedula1 in pos and cedula2 in pos:
-                    x1, y1 = pos[cedula1]
-                    x2, y2 = pos[cedula2]
-                    
-                    # Solo dibujar si están en el mismo nivel (altura similar)
-                    if abs(y1 - y2) < 30:
-                        # Línea curva arriba del nivel
-                        curve_y = min(y1, y2) - 40
-                        mid_x = (x1 + x2) / 2
-                        
-                        # Usar create_line con smooth para curva
-                        canvas.create_line(x1, y1, mid_x, curve_y, x2, y2,
-                                         fill="#4CAF50", width=3, dash=(8, 4), 
-                                         smooth=True, capstyle="round")
                                              
         except Exception as e:
             print(f"Error dibujando conexiones familiares: {e}")
@@ -852,25 +819,6 @@ class FamilyGraphVisualizer:
             'x_end': max(ruta['bend1'][0], ruta['bend2'][0])
         })
     
-    def _encontrar_altura_libre_para_hermanos(self, x_start, x_end, base_y, rutas_ocupadas):
-        """Encuentra una altura libre arriba del nivel para líneas de hermanos"""
-        for offset in [-30, -50, -70, -90]:  # Probar diferentes alturas arriba
-            test_y = base_y + offset
-            
-            # Verificar que no colisione con rutas existentes
-            libre = True
-            for ruta in rutas_ocupadas:
-                if 'horizontal_y' in ruta:
-                    if (abs(ruta['horizontal_y'] - test_y) < 15 and
-                        not (x_end < ruta['x_start'] or x_start > ruta['x_end'])):
-                        libre = False
-                        break
-            
-            if libre:
-                return test_y
-        
-        return None  # No se encontró espacio libre
-
     def _show_menu(self, event, person):
         """Placeholder - será reemplazado en app.py"""
         print(f"Menú para {person.first_name} - Implementado en app.py")
