@@ -457,15 +457,26 @@ class FamilyGraphVisualizer:
                     card_width = 130
                     card_height = 85
                     
-                    # Colores según género y estado
-                    if person.gender == "M":
-                        border_color = "#2196F3"  # Azul para hombres
-                        header_color = "#E3F2FD"
-                    else:
-                        border_color = "#E91E63"  # Rosa para mujeres
-                        header_color = "#FCE4EC"
+                    # Identificar si es el Ego (persona principal)
+                    is_ego = family.is_ego(person)
                     
-                    card_color = "#FFFFFF" if person.alive else "#F5F5F5"
+                    # Colores según género, estado y si es Ego
+                    if is_ego:
+                        # 👑 COLORES ESPECIALES PARA EL EGO
+                        border_color = "#FFD700"  # Dorado para el Ego
+                        header_color = "#FFF8E1"  # Fondo dorado claro
+                        border_width = 3  # Borde más grueso
+                        card_color = "#FFFDE7" if person.alive else "#F5F5DC"  # Crema
+                    else:
+                        # Colores normales según género
+                        if person.gender == "M":
+                            border_color = "#2196F3"  # Azul para hombres
+                            header_color = "#E3F2FD"
+                        else:
+                            border_color = "#E91E63"  # Rosa para mujeres
+                            header_color = "#FCE4EC"
+                        border_width = 2
+                        card_color = "#FFFFFF" if person.alive else "#F5F5F5"
 
                     # Coordenadas de la tarjeta
                     card_x1, card_y1 = x - card_width//2, y - card_height//2
@@ -473,7 +484,7 @@ class FamilyGraphVisualizer:
                     
                     # Dibujar tarjeta principal
                     card_id = canvas.create_rectangle(card_x1, card_y1, card_x2, card_y2,
-                                                    fill=card_color, outline=border_color, width=2)
+                                                    fill=card_color, outline=border_color, width=border_width)
 
                     # Header de la tarjeta (franja superior)
                     header_height = 25
@@ -483,15 +494,33 @@ class FamilyGraphVisualizer:
                     # Ícono de género en header
                     icon_x = card_x1 + 12
                     icon_y = card_y1 + 12
-                    gender_icon = "👨" if person.gender == "M" else "👩"
+                    
+                    if is_ego:
+                        # 👑 ICONO ESPECIAL PARA EL EGO
+                        gender_icon = "🤴" if person.gender == "M" else "�"  # Príncipe para hombres, princesa para mujeres
+                        ego_text = "TÚ"
+                        canvas.create_text(icon_x + 18, icon_y, text=ego_text, 
+                                         font=("Arial", 8, "bold"), fill="#B8860B", anchor="center")
+                    else:
+                        gender_icon = "👨" if person.gender == "M" else "👩"
+                    
                     canvas.create_text(icon_x, icon_y, text=gender_icon, 
                                      font=("Arial", 12), anchor="center")
 
                     # Botón de opciones en header (esquina derecha)
                     options_x = card_x2 - 12
                     options_y = card_y1 + 12
-                    canvas.create_text(options_x, options_y, text="⋮", 
-                                     font=("Arial", 12, "bold"), fill="#666666", anchor="center")
+                    
+                    # Crear área clickeable más grande alrededor de los tres puntitos
+                    button_size = 8
+                    options_bg_id = canvas.create_oval(
+                        options_x - button_size, options_y - button_size,
+                        options_x + button_size, options_y + button_size,
+                        fill="#f0f0f0", outline="#ccc", width=1
+                    )
+                    
+                    options_button_id = canvas.create_text(options_x, options_y, text="⋮", 
+                                     font=("Arial", 12, "bold"), fill="#333", anchor="center")
 
                     # Nombre completo (línea principal)
                     name_y = card_y1 + 40
@@ -530,9 +559,26 @@ class FamilyGraphVisualizer:
                     canvas.create_text(x, info_y, text=status_text, 
                                      font=("Arial", 7), fill=status_color, anchor="center")
 
-                    # Hacer la tarjeta clickeable para menú contextual
-                    canvas.tag_bind(card_id, "<Button-1>", 
+                    # 🔧 CORREGIDO: Hacer SOLO los tres puntitos clickeables para menú contextual
+                    # Binding en ambos elementos (fondo y texto) para mejor usabilidad
+                    canvas.tag_bind(options_bg_id, "<Button-1>", 
                                   lambda e, p=person: self._show_menu(e, p))
+                    canvas.tag_bind(options_button_id, "<Button-1>", 
+                                  lambda e, p=person: self._show_menu(e, p))
+                    
+                    # Efectos hover para indicar que es clickeable
+                    def on_enter(event):
+                        canvas.itemconfig(options_bg_id, fill="#e0e0e0")
+                        canvas.itemconfig(options_button_id, fill="#000")
+                    
+                    def on_leave(event):
+                        canvas.itemconfig(options_bg_id, fill="#f0f0f0")
+                        canvas.itemconfig(options_button_id, fill="#333")
+                    
+                    canvas.tag_bind(options_bg_id, "<Enter>", on_enter)
+                    canvas.tag_bind(options_bg_id, "<Leave>", on_leave)
+                    canvas.tag_bind(options_button_id, "<Enter>", on_enter)
+                    canvas.tag_bind(options_button_id, "<Leave>", on_leave)
 
                 except Exception as e:
                     print(f"Error dibujando tarjeta {cedula}: {e}")

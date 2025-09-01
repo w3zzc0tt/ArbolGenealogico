@@ -146,35 +146,81 @@ class GenealogyApp:
                 # ✅ CORRECCIÓN CLAVE: Nueva definición con orden correcto
                 def custom_show_menu(event, person):
                     menu = tk.Menu(self.root, tearoff=0)
-                    menu.add_command(
-                        label="➕ Agregar Padre",
-                        command=lambda: self.abrir_formulario_relacion(person, "padre")
-                    )
-                    menu.add_command(
-                        label="➕ Agregar Madre",
-                        command=lambda: self.abrir_formulario_relacion(person, "madre")
-                    )
-                    menu.add_command(
-                        label="💍 Agregar Cónyuge",
-                        command=lambda: self.abrir_formulario_relacion(person, "conyuge")
-                    )
-                    menu.add_command(
-                        label="👶 Agregar Hijo",
-                        command=lambda: self.abrir_formulario_relacion(person, "hijo")
-                    )
-                    menu.add_command(
-                        label="🧍 Agregar Hermano",
-                        command=lambda: self.abrir_formulario_relacion(person, "hermano")
-                    )
-                    menu.add_separator()
-                    menu.add_command(
-                        label="🗑️ Eliminar Persona",
-                        command=lambda: self.eliminar_persona(person)
-                    )
-                    menu.add_command(
-                        label="🔍 Ver relaciones",
-                        command=lambda: self.mostrar_relaciones(person)
-                    )
+                    
+                    # 👑 MENÚ ESPECIAL PARA EL EGO
+                    if self.family.is_ego(person):
+                        menu.add_command(
+                            label="👑 Editar Ego (Tú)",
+                            command=lambda: self.editar_persona(person),
+                            font=("Arial", 9, "bold")
+                        )
+                        menu.add_separator()
+                        
+                        # Solo permitir agregar familiares, NO eliminar
+                        menu.add_command(
+                            label="➕ Agregar Padre",
+                            command=lambda: self.abrir_formulario_relacion(person, "padre")
+                        )
+                        menu.add_command(
+                            label="➕ Agregar Madre",
+                            command=lambda: self.abrir_formulario_relacion(person, "madre")
+                        )
+                        menu.add_command(
+                            label="💍 Agregar Cónyuge",
+                            command=lambda: self.abrir_formulario_relacion(person, "conyuge")
+                        )
+                        menu.add_command(
+                            label="👶 Agregar Hijo",
+                            command=lambda: self.abrir_formulario_relacion(person, "hijo")
+                        )
+                        menu.add_command(
+                            label="🧍 Agregar Hermano",
+                            command=lambda: self.abrir_formulario_relacion(person, "hermano")
+                        )
+                        menu.add_separator()
+                        menu.add_command(
+                            label="� Ver relaciones",
+                            command=lambda: self.mostrar_relaciones(person)
+                        )
+                        # NO incluir opción de eliminar para el Ego
+                    else:
+                        # MENÚ NORMAL PARA OTRAS PERSONAS
+                        menu.add_command(
+                            label="✏️ Editar Persona",
+                            command=lambda: self.editar_persona(person)
+                        )
+                        menu.add_separator()
+                        
+                        menu.add_command(
+                            label="➕ Agregar Padre",
+                            command=lambda: self.abrir_formulario_relacion(person, "padre")
+                        )
+                        menu.add_command(
+                            label="➕ Agregar Madre",
+                            command=lambda: self.abrir_formulario_relacion(person, "madre")
+                        )
+                        menu.add_command(
+                            label="💍 Agregar Cónyuge",
+                            command=lambda: self.abrir_formulario_relacion(person, "conyuge")
+                        )
+                        menu.add_command(
+                            label="👶 Agregar Hijo",
+                            command=lambda: self.abrir_formulario_relacion(person, "hijo")
+                        )
+                        menu.add_command(
+                            label="🧍 Agregar Hermano",
+                            command=lambda: self.abrir_formulario_relacion(person, "hermano")
+                        )
+                        menu.add_separator()
+                        menu.add_command(
+                            label="🔍 Ver relaciones",
+                            command=lambda: self.mostrar_relaciones(person)
+                        )
+                        menu.add_command(
+                            label="🗑️ Eliminar Persona",
+                            command=lambda: self.eliminar_persona(person)
+                        )
+                    
                     menu.tk_popup(event.x_root, event.y_root)
                     menu.grab_release()
 
@@ -326,6 +372,45 @@ class GenealogyApp:
 
         PersonForm(self.root, title=title, on_save=on_save)
 
+    def editar_persona(self, person):
+        """Abre formulario para editar una persona existente"""
+        def on_save(data):
+            # Actualizar los datos de la persona
+            person.first_name = data["first_name"]
+            person.last_name = data["last_name"]
+            person.birth_date = data["birth_date"]
+            person.gender = data["gender"]
+            person.province = data["province"]
+            person.death_date = data["death_date"]
+            person.marital_status = data["marital_status"]
+            
+            # Actualizar en la familia
+            self.family.add_or_update_member(person)
+            
+            if self.family.is_ego(person):
+                messagebox.showinfo("Éxito", f"✅ Ego actualizado: {person.first_name} {person.last_name}")
+            else:
+                messagebox.showinfo("Éxito", f"✅ Persona actualizada: {person.first_name} {person.last_name}")
+            
+            self.draw_tree()
+            self.update_history_tab()
+            self.save_data()
+
+        # Preparar datos actuales para el formulario
+        current_data = {
+            "cedula": person.cedula,
+            "first_name": person.first_name,
+            "last_name": person.last_name,
+            "birth_date": person.birth_date,
+            "gender": person.gender,
+            "province": person.province,
+            "death_date": person.death_date,
+            "marital_status": person.marital_status
+        }
+
+        title = "👑 Editar Ego (Tú)" if self.family.is_ego(person) else f"✏️ Editar {person.first_name}"
+        PersonForm(self.root, title=title, on_save=on_save, data=current_data)
+
     def eliminar_persona(self, person):
         """Método mejorado para eliminar una persona usando el servicio completo"""
         if messagebox.askyesno("Confirmar", f"¿Eliminar a {person.first_name} {person.last_name}?"):
@@ -334,6 +419,10 @@ class GenealogyApp:
             
             if exito:
                 messagebox.showinfo("Éxito", mensaje)
+                
+                # 🔧 ACTUALIZAR botón Ego si se eliminó a alguien
+                self.update_ego_button()
+                
                 self.draw_tree()
                 self.update_history_tab()
             else:

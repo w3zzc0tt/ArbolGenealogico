@@ -122,7 +122,17 @@ class PersonForm(ctk.CTkToplevel):
                 form, placeholder_text="YYYY-MM-DD (cualquier año)", width=220
             )
             self.birth_entry.grid(row=3, column=1, padx=10, pady=6, sticky="ew")
-            self.birth_entry.insert(0, self.data.get("birth_date", ""))
+            # Limpiar fecha para mostrar solo YYYY-MM-DD
+            birth_date_value = self.data.get("birth_date", "")
+            if birth_date_value:
+                birth_date_str = str(birth_date_value)
+                # Manejar formato ISO con T: "2006-11-09T00:00:00"
+                if 'T' in birth_date_str:
+                    birth_date_value = birth_date_str.split('T')[0]
+                # Manejar formato con espacio: "2006-11-09 00:00:00"
+                elif ' ' in birth_date_str and ':' in birth_date_str:
+                    birth_date_value = birth_date_str.split(' ')[0]
+            self.birth_entry.insert(0, birth_date_value)
 
         # Género - CÓDIGO CORREGIDO
         if not self.is_event_form:
@@ -239,7 +249,15 @@ class PersonForm(ctk.CTkToplevel):
             )
             self.death_entry.pack(side="left", padx=5)
             if self.data.get("death_date"):
-                self.death_entry.insert(0, self.data["death_date"])
+                # Limpiar fecha para mostrar solo YYYY-MM-DD
+                death_date_value = str(self.data["death_date"])
+                # Manejar formato ISO con T: "2006-11-09T00:00:00"
+                if 'T' in death_date_value:
+                    death_date_value = death_date_value.split('T')[0]
+                # Manejar formato con espacio: "2006-11-09 00:00:00"
+                elif ' ' in death_date_value and ':' in death_date_value:
+                    death_date_value = death_date_value.split(' ')[0]
+                self.death_entry.insert(0, death_date_value)
 
             # Ocultar si está vivo
             if not self.is_event_form and self.status_var.get() == "Vivo":

@@ -71,7 +71,15 @@ class Person:
             if isinstance(self.birth_date, datetime.datetime):
                 birth = self.birth_date
             elif isinstance(self.birth_date, str):
-                birth = datetime.datetime.strptime(self.birth_date, "%Y-%m-%d")
+                # Limpiar formato ISO con T y hora: "2006-11-09T00:00:00"
+                if 'T' in self.birth_date:
+                    clean_date = self.birth_date.split('T')[0]
+                # Limpiar formato con espacio y hora: "2006-11-09 00:00:00"
+                elif ' ' in self.birth_date and ':' in self.birth_date:
+                    clean_date = self.birth_date.split(' ')[0]
+                else:
+                    clean_date = self.birth_date
+                birth = datetime.datetime.strptime(clean_date, "%Y-%m-%d")
             else:
                 return 20  # Tipo no reconocido
                 
@@ -618,12 +626,20 @@ class Person:
                 return date_value
             elif isinstance(date_value, str):
                 try:
+                    # Limpiar formato ISO con T y hora: "2006-11-09T00:00:00"
+                    if 'T' in date_value:
+                        clean_date = date_value.split('T')[0]
+                    # Limpiar formato con espacio y hora: "2006-11-09 00:00:00"
+                    elif ' ' in date_value and ':' in date_value:
+                        clean_date = date_value.split(' ')[0]
+                    else:
+                        clean_date = date_value
                     # Intentar parsear string de fecha en formato YYYY-MM-DD
-                    return datetime.datetime.strptime(date_value, '%Y-%m-%d')
+                    return datetime.datetime.strptime(clean_date, '%Y-%m-%d')
                 except ValueError:
                     try:
                         # Intentar parsear otros formatos comunes
-                        return datetime.datetime.strptime(date_value, '%Y/%m/%d')
+                        return datetime.datetime.strptime(clean_date, '%Y/%m/%d')
                     except ValueError:
                         # Si no se puede parsear, usar una fecha muy antigua
                         return datetime.datetime(1900, 1, 1)

@@ -39,6 +39,28 @@ class Family:
         """Obtiene todas las personas fallecidas de la familia"""
         return [member for member in self.members if not member.alive]
 
+    def get_ego(self) -> Optional[Person]:
+        """Identifica al Ego (persona principal) de la familia.
+        El Ego es típicamente la primera persona agregada o quien no tiene padres."""
+        if not self.members:
+            return None
+        
+        # Buscar personas sin padres (posibles Egos)
+        potential_egos = [member for member in self.members 
+                         if not member.father and not member.mother]
+        
+        if potential_egos:
+            # Si hay múltiples candidatos, tomar el primero (por orden de creación)
+            return potential_egos[0]
+        else:
+            # Si todos tienen padres, el primer miembro es el Ego
+            return self.members[0]
+
+    def is_ego(self, person: Person) -> bool:
+        """Verifica si una persona es el Ego de la familia"""
+        ego = self.get_ego()
+        return ego and ego.cedula == person.cedula
+
     @staticmethod
     def validate_cedula_unique(cedula: str, family: 'Family') -> bool:
         """Valida que la cédula sea única en la familia"""
