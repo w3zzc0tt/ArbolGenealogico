@@ -167,6 +167,7 @@ class ConsultasPanel:
             ]),
             ("🔍 BÚSQUEDAS ESPECÍFICAS", [
                 ("2", "Primos de primer grado"),
+                ("9", "Sobrinos y sobrinas (análisis completo)"),
                 ("3", "Antepasados maternos"),
                 ("4", "Descendientes vivos")
             ]),
@@ -654,6 +655,8 @@ class ConsultasPanel:
                 self.ejecutar_consulta_fallecidos_joven()
             elif query_type == "8":
                 self.ejecutar_consulta_analisis_completo()
+            elif query_type == "9":
+                self.ejecutar_consulta_sobrinos()
         
         except Exception as e:
             self.result_text.insert("end", f"❌ Error al ejecutar consulta: {str(e)}")
@@ -697,6 +700,67 @@ class ConsultasPanel:
                 self.result_text.insert("end", f"   • {primo.first_name} {primo.last_name}\n")
         else:
             self.result_text.insert("end", "   📭 No tiene primos de primer grado\n")
+        self.result_text.insert("end", "\n")
+    
+    def ejecutar_consulta_sobrinos(self):
+        """Ejecuta consulta especializada de sobrinos con información detallada"""
+        persona = self.obtener_persona_por_combo(self.persona_var.get())
+        if not persona:
+            self.result_text.insert("end", "❌ Error: Selecciona una persona válida\n")
+            return
+        
+        # Obtener información detallada de sobrinos
+        sobrinos_detallados = RelacionService.obtener_sobrinos_con_detalles(persona)
+        conteo = RelacionService.contar_sobrinos(persona)
+        
+        self.result_text.insert("end", f"👶 Sobrinos de {persona.first_name} {persona.last_name}:\n")
+        self.result_text.insert("end", "=" * 60 + "\n")
+        
+        # Mostrar resumen estadístico
+        self.result_text.insert("end", "📊 RESUMEN ESTADÍSTICO:\n")
+        self.result_text.insert("end", f"   • Total de sobrinos: {conteo['total']}\n")
+        self.result_text.insert("end", f"   • Sobrinos (hombres): {conteo['sobrinos']}\n")
+        self.result_text.insert("end", f"   • Sobrinas (mujeres): {conteo['sobrinas']}\n")
+        self.result_text.insert("end", f"   • Vivos: {conteo['vivos']}\n")
+        self.result_text.insert("end", f"   • Fallecidos: {conteo['fallecidos']}\n")
+        self.result_text.insert("end", f"   • Menores de edad: {conteo['menores']}\n")
+        self.result_text.insert("end", f"   • Adultos: {conteo['adultos']}\n\n")
+        
+        if sobrinos_detallados:
+            self.result_text.insert("end", "👨‍👩‍👧‍👦 LISTA DETALLADA (ordenada por edad):\n")
+            for sobrino_info in sobrinos_detallados:
+                estado_vida = "🟢" if sobrino_info['vivo'] else "🔴"
+                icono_genero = "👦" if sobrino_info['persona'].gender == "M" else "👧"
+                
+                self.result_text.insert("end", 
+                    f"{estado_vida} {icono_genero} {sobrino_info['nombre_completo']} "
+                    f"({sobrino_info['edad']} años)\n"
+                )
+                self.result_text.insert("end", 
+                    f"     └─ {sobrino_info['relacion_completa']} - Lado {sobrino_info['lado_familiar']}\n"
+                )
+                
+                # Información adicional si está disponible
+                if hasattr(sobrino_info['persona'], 'province'):
+                    self.result_text.insert("end", 
+                        f"     └─ Provincia: {sobrino_info['persona'].province}\n"
+                    )
+                
+                self.result_text.insert("end", "\n")
+        else:
+            self.result_text.insert("end", "📭 No tiene sobrinos registrados\n")
+        
+        # Mostrar información sobre tíos (relación inversa)
+        tios = RelacionService.obtener_tios(persona)
+        if tios:
+            self.result_text.insert("end", f"\n🔄 INFORMACIÓN RELACIONADA - Tíos de {persona.first_name}:\n")
+            for tio in tios:
+                genero_tio = "👨 Tío" if tio.gender == "M" else "👩 Tía"
+                estado = "🟢" if tio.alive else "🔴"
+                self.result_text.insert("end", 
+                    f"{estado} {genero_tio}: {tio.first_name} {tio.last_name}\n"
+                )
+        
         self.result_text.insert("end", "\n")
     
     def ejecutar_consulta_antepasados_maternos(self):

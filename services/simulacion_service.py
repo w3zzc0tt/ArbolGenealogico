@@ -227,14 +227,36 @@ class SimulacionService:
                 person.can_have_children() and 
                 person.has_partner() and 
                 person.spouse and  # Asegurar que spouse no sea None
-                person.spouse.alive and 
-                random.random() < config.birth_probability):
+                person.spouse.alive):
                 
-                success, message = SimulacionService.simular_nacimiento_mejorado(
-                    person, person.spouse, family
-                )
-                if success:
-                    eventos.append(message)
+                # Calcular probabilidad ajustada por generación y número de hijos
+                age = person.calculate_virtual_age()
+                current_children = len(person.children) if person.children else 0
+                
+                # Probabilidad base reducida según la edad y número de hijos
+                base_probability = config.birth_probability
+                
+                # Reducir probabilidad según generación
+                if age >= 65:  # Abuelos - muy baja probabilidad
+                    generation_factor = 0.1
+                elif age >= 40:  # Padres - probabilidad normal
+                    generation_factor = 1.0
+                elif age >= 20:  # Hijos jóvenes - probabilidad reducida
+                    generation_factor = 0.6
+                else:  # Cuarta generación en adelante - muy baja probabilidad
+                    generation_factor = 0.3
+                
+                # Reducir probabilidad con cada hijo existente
+                children_factor = max(0.1, 1.0 - (current_children * 0.3))
+                
+                adjusted_probability = base_probability * generation_factor * children_factor
+                
+                if random.random() < adjusted_probability:
+                    success, message = SimulacionService.simular_nacimiento_mejorado(
+                        person, person.spouse, family
+                    )
+                    if success:
+                        eventos.append(message)
         
         # Asegurar consistencia en las relaciones de pareja
         for person in members_copy:

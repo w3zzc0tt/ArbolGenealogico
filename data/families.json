@@ -174,53 +174,5 @@
       }
     ],
     "current_year": 2025
-  },
-  "2": {
-    "id": 2,
-    "name": "Familia Soto",
-    "description": "",
-    "members": [
-      {
-        "cedula": "204650123",
-        "first_name": "Jimena María",
-        "last_name": "Soto",
-        "birth_date": "2006-11-09T00:00:00",
-        "death_date": null,
-        "gender": "F",
-        "province": "Alajuela",
-        "marital_status": "Soltero/a",
-        "alive": true,
-        "father_cedula": null,
-        "mother_cedula": null,
-        "spouse_cedula": null,
-        "children_cedulas": [],
-        "siblings_cedulas": []
-      }
-    ],
-    "current_year": 2025
-  },
-  "3": {
-    "id": 3,
-    "name": "Familia Dinarte",
-    "description": "",
-    "members": [
-      {
-        "cedula": "504650480",
-        "first_name": "Jose Pablo",
-        "last_name": "Campos Dinarte",
-        "birth_date": "2006-05-24T00:00:00",
-        "death_date": null,
-        "gender": "M",
-        "province": "Guanacaste",
-        "marital_status": "Soltero/a",
-        "alive": true,
-        "father_cedula": null,
-        "mother_cedula": null,
-        "spouse_cedula": null,
-        "children_cedulas": [],
-        "siblings_cedulas": []
-      }
-    ],
-    "current_year": 2025
   }
 }

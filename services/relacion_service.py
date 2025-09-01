@@ -121,26 +121,214 @@ class RelacionService:
         return None
     
     @staticmethod
-    def _verificar_relacion_tio_sobrino(persona_a: Person, persona_b: Person) -> Optional[str]:
-        """Verifica relación tío-sobrino"""
-        # A es tío de B
-        if persona_a.siblings:
-            for hermano in persona_a.siblings:
-                if hermano.children:
-                    for sobrino in hermano.children:
-                        if sobrino.cedula == persona_b.cedula:
-                            return f"{persona_a.first_name} es {'tío' if persona_a.gender == 'M' else 'tía'} de {persona_b.first_name}"
+    def obtener_sobrinos(persona: Person) -> List[Person]:
+        """
+        Obtiene todos los sobrinos de una persona.
+        Los sobrinos son los hijos de los hermanos de la persona.
         
-        # B es tío de A
-        if persona_b.siblings:
-            for hermano in persona_b.siblings:
-                if hermano.children:
-                    for sobrino in hermano.children:
-                        if sobrino.cedula == persona_a.cedula:
-                            return f"{persona_b.first_name} es {'tío' if persona_b.gender == 'M' else 'tía'} de {persona_a.first_name}"
+        Args:
+            persona (Person): La persona de la cual buscar sobrinos
+            
+        Returns:
+            List[Person]: Lista de sobrinos (incluye sobrinos y sobrinas)
+        """
+        sobrinos = []
+        
+        # Verificar que la persona tenga hermanos
+        if not persona.siblings:
+            return sobrinos
+        
+        # Obtener hijos de todos los hermanos
+        for hermano in persona.siblings:
+            if hermano.children:
+                for hijo in hermano.children:
+                    # Verificar que no sea la misma persona (en caso de errores de datos)
+                    if hijo.cedula != persona.cedula:
+                        sobrinos.append(hijo)
+        
+        # Eliminar duplicados basándose en cédula
+        sobrinos_unicos = []
+        cedulas_vistas = set()
+        for sobrino in sobrinos:
+            if sobrino.cedula not in cedulas_vistas:
+                sobrinos_unicos.append(sobrino)
+                cedulas_vistas.add(sobrino.cedula)
+        
+        return sobrinos_unicos
+    
+    @staticmethod
+    def obtener_sobrinos_con_detalles(persona: Person) -> List[dict]:
+        """
+        Obtiene todos los sobrinos de una persona con información detallada.
+        
+        Args:
+            persona (Person): La persona de la cual buscar sobrinos
+            
+        Returns:
+            List[dict]: Lista de diccionarios con información detallada de cada sobrino
+        """
+        sobrinos_detallados = []
+        
+        if not persona.siblings:
+            return sobrinos_detallados
+        
+        for hermano in persona.siblings:
+            if hermano.children:
+                for hijo in hermano.children:
+                    if hijo.cedula != persona.cedula:
+                        # Determinar la relación específica
+                        if hermano.gender == "M":
+                            lado_familiar = "paterno"
+                            padre_madre = "padre"
+                        else:
+                            lado_familiar = "materno"
+                            padre_madre = "madre"
+                        
+                        sobrino_info = {
+                            'persona': hijo,
+                            'nombre_completo': f"{hijo.first_name} {hijo.last_name}",
+                            'edad': hijo.calculate_virtual_age(),
+                            'genero': "Sobrino" if hijo.gender == "M" else "Sobrina",
+                            'padre_madre': hermano,
+                            'lado_familiar': lado_familiar,
+                            'relacion_completa': f"{'Sobrino' if hijo.gender == 'M' else 'Sobrina'} ({padre_madre}: {hermano.first_name})",
+                            'vivo': hijo.alive
+                        }
+                        sobrinos_detallados.append(sobrino_info)
+        
+        # Ordenar por edad (de mayor a menor)
+        sobrinos_detallados.sort(key=lambda x: x['edad'], reverse=True)
+        
+        return sobrinos_detallados
+    
+    @staticmethod
+    def obtener_tios(persona: Person) -> List[Person]:
+        """
+        Obtiene todos los tíos de una persona.
+        Los tíos son los hermanos de los padres de la persona.
+        
+        Args:
+            persona (Person): La persona de la cual buscar tíos
+            
+        Returns:
+            List[Person]: Lista de tíos (incluye tíos y tías)
+        """
+        tios = []
+        
+        # Tíos paternos (hermanos del padre)
+        if persona.father and persona.father.siblings:
+            tios.extend(persona.father.siblings)
+        
+        # Tíos maternos (hermanos de la madre)
+        if persona.mother and persona.mother.siblings:
+            tios.extend(persona.mother.siblings)
+        
+        # Eliminar duplicados
+        tios_unicos = []
+        cedulas_vistas = set()
+        for tio in tios:
+            if tio.cedula not in cedulas_vistas:
+                tios_unicos.append(tio)
+                cedulas_vistas.add(tio.cedula)
+        
+        return tios_unicos
+    
+    @staticmethod
+    def obtener_sobrinos_por_genero(persona: Person, genero: str = None) -> List[Person]:
+        """
+        Obtiene sobrinos filtrados por género.
+        
+        Args:
+            persona (Person): La persona de la cual buscar sobrinos
+            genero (str): "M" para sobrinos, "F" para sobrinas, None para ambos
+            
+        Returns:
+            List[Person]: Lista de sobrinos filtrada por género
+        """
+        todos_sobrinos = RelacionService.obtener_sobrinos(persona)
+        
+        if genero is None:
+            return todos_sobrinos
+        
+        return [sobrino for sobrino in todos_sobrinos if sobrino.gender == genero]
+    
+    @staticmethod
+    def contar_sobrinos(persona: Person) -> dict:
+        """
+        Cuenta los sobrinos de una persona por categorías.
+        
+        Args:
+            persona (Person): La persona de la cual contar sobrinos
+            
+        Returns:
+            dict: Diccionario con conteos por categorías
+        """
+        sobrinos = RelacionService.obtener_sobrinos(persona)
+        
+        conteo = {
+            'total': len(sobrinos),
+            'sobrinos': len([s for s in sobrinos if s.gender == "M"]),
+            'sobrinas': len([s for s in sobrinos if s.gender == "F"]),
+            'vivos': len([s for s in sobrinos if s.alive]),
+            'fallecidos': len([s for s in sobrinos if not s.alive]),
+            'menores': len([s for s in sobrinos if s.calculate_virtual_age() < 18]),
+            'adultos': len([s for s in sobrinos if s.calculate_virtual_age() >= 18])
+        }
+        
+        return conteo
+
+    @staticmethod
+    def _verificar_relacion_tio_sobrino(persona_a: Person, persona_b: Person) -> Optional[str]:
+        """Verifica relación tío-sobrino con lógica mejorada"""
+        # Verificar si A es tío/tía de B
+        if RelacionService._es_tio_de(persona_a, persona_b):
+            genero_tio = "tío" if persona_a.gender == "M" else "tía"
+            lado = RelacionService._determinar_lado_familiar_tio(persona_a, persona_b)
+            return f"{persona_a.first_name} es {genero_tio} {lado} de {persona_b.first_name}"
+        
+        # Verificar si B es tío/tía de A  
+        if RelacionService._es_tio_de(persona_b, persona_a):
+            genero_tio = "tío" if persona_b.gender == "M" else "tía"
+            lado = RelacionService._determinar_lado_familiar_tio(persona_b, persona_a)
+            return f"{persona_b.first_name} es {genero_tio} {lado} de {persona_a.first_name}"
         
         return None
     
+    @staticmethod
+    def _es_tio_de(posible_tio: Person, posible_sobrino: Person) -> bool:
+        """Verifica si la primera persona es tío/tía de la segunda"""
+        # El tío debe ser hermano de alguno de los padres del sobrino
+        if posible_sobrino.father and RelacionService._son_hermanos(posible_tio, posible_sobrino.father):
+            return True
+        if posible_sobrino.mother and RelacionService._son_hermanos(posible_tio, posible_sobrino.mother):
+            return True
+        return False
+    
+    @staticmethod
+    def _son_hermanos(persona1: Person, persona2: Person) -> bool:
+        """Verifica si dos personas son hermanos"""
+        # Verificar si tienen los mismos padres
+        if (persona1.father and persona2.father and persona1.father.cedula == persona2.father.cedula and
+            persona1.mother and persona2.mother and persona1.mother.cedula == persona2.mother.cedula):
+            return True
+        
+        # También verificar si están en la lista de hermanos uno del otro
+        if persona1.siblings and persona2 in persona1.siblings:
+            return True
+        if persona2.siblings and persona1 in persona2.siblings:
+            return True
+            
+        return False
+    
+    @staticmethod
+    def _determinar_lado_familiar_tio(tio: Person, sobrino: Person) -> str:
+        """Determina si es tío paterno o materno"""
+        if sobrino.father and RelacionService._son_hermanos(tio, sobrino.father):
+            return "paterno"
+        elif sobrino.mother and RelacionService._son_hermanos(tio, sobrino.mother):
+            return "materno"
+        return ""
+
     @staticmethod
     def obtener_primos_primer_grado(persona: Person) -> List[Person]:
         """
@@ -852,20 +1040,8 @@ class RelacionService:
 
     @staticmethod
     def _es_tio_sobrino(persona_a: Person, persona_b: Person) -> bool:
-        """Verifica si hay relación tío-sobrino"""
-        # A es tío de B (A es hermano de un padre de B)
-        if persona_b.father and persona_a._are_siblings(persona_b.father):
-            return True
-        if persona_b.mother and persona_a._are_siblings(persona_b.mother):
-            return True
-        
-        # B es tío de A
-        if persona_a.father and persona_b._are_siblings(persona_a.father):
-            return True
-        if persona_a.mother and persona_b._are_siblings(persona_a.mother):
-            return True
-        
-        return False
+        """Verifica si hay relación tío-sobrino entre dos personas"""
+        return RelacionService._es_tio_de(persona_a, persona_b) or RelacionService._es_tio_de(persona_b, persona_a)
 
     @staticmethod
     def _son_primos_hermanos(persona_a: Person, persona_b: Person) -> bool:

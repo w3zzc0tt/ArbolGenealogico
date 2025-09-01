@@ -254,9 +254,44 @@ class Person:
             self.death_date = date
         
     def can_have_children(self) -> bool:
-        """Determina si la persona puede tener hijos"""
+        """Determina si la persona puede tener hijos con límites por generación"""
         age = self.calculate_virtual_age()
-        return self.alive and self.gender == "F" and 18 <= age <= 45
+        
+        # Verificaciones básicas
+        if not (self.alive and self.gender == "F" and 18 <= age <= 45):
+            return False
+        
+        # Contar hijos actuales
+        current_children = len(self.children) if self.children else 0
+        
+        # Calcular generación aproximada basada en la edad
+        generation = self._calculate_generation_from_age(age)
+        
+        # Límites por generación
+        max_children_by_generation = {
+            1: 6,  # Abuelos (generación más antigua)
+            2: 4,  # Padres 
+            3: 3,  # Hijos jóvenes
+            4: 3,  # Cuarta generación (nietos)
+            5: 2   # Quinta generación en adelante
+        }
+        
+        max_children = max_children_by_generation.get(generation, 2)
+        
+        return current_children < max_children
+    
+    def _calculate_generation_from_age(self, age: int) -> int:
+        """Calcula la generación aproximada basada en la edad"""
+        if age >= 65:
+            return 1  # Abuelos
+        elif age >= 40:
+            return 2  # Padres
+        elif age >= 20:
+            return 3  # Hijos jóvenes
+        elif age >= 15:
+            return 4  # Cuarta generación
+        else:
+            return 5  # Quinta generación en adelante
     
     def get_relationship_to(self, other_person: 'Person', family: 'Family') -> str:
         """
